@@ -1,0 +1,17 @@
+# opencode
+.opencode/node_modules/
+
+# simulation / build artifacts
+sim_build/
+__pycache__/
+*.pyc
+results.xml
+*.vcd
+
+# flow run outputs (regenerable; keep the dir via runs/.gitkeep)
+runs/out*/
+runs/cache/
+runs/*.tar.gz
+
+# OS
+.DS_Store
