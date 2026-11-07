@@ -4,7 +4,7 @@ mode: subagent
 permission:
   edit: allow
   bash:
-    "*": ask
+    "*": allow
     "docker *": allow
     "tar *": allow
     "python3 *": allow

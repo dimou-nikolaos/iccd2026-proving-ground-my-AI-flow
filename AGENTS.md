@@ -32,6 +32,7 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 
 - **Operator+Agent process (source of truth)**: read `docs/joint-flow.md` FIRST — defines cycle, handoffs, file conventions, communication
 - **Competition strategy**: read `docs/competition-strategy.md` (scoring priorities, timing, PPA targets)
+- **PPA freedom audit**: read `docs/ppa-freedom-strategy.md` before Phase 4b PPA iterations (which spec-silences can be exploited, which are traps)
 - **Technical 4-phase workflow**: read `docs/flow.md`
 - **Spawning agents**: read `docs/task-cards.md`
 - **Design knowledge**: `docs/designs/` (see README for template; create per design)

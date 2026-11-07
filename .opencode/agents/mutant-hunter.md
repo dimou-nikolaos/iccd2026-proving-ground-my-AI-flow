@@ -4,7 +4,7 @@ mode: subagent
 permission:
   edit: allow
   bash:
-    "*": ask
+    "*": allow
     "verilator *": allow
     "make *": allow
     "docker *": allow

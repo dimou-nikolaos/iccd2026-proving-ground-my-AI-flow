@@ -13,6 +13,12 @@ Reference for `@mutant-hunter`. Explains how the flow's mutation engine works, w
 6. Filter: slang semantic validity check + Yosys equivalence proof
 7. Select first 40 non-equivalent mutants
 
+**Implications of the archive-seeded RNG (seeded by step 4):**
+- **Deterministic per archive**: the same `tar` always yields the identical 40 mutants and identical survivors. Re-running an unchanged submission is wasted compute — there is no run-to-run V fluctuation.
+- **Re-rolls on any change**: editing RTL, tests, or assertions **or even comments** changes the archive hash → a different 40-mutant set. So write behavior-based evidence, never target specific line numbers, and re-measure V after every change (a PPA refactor can move/drop mutants; a prior 40/40 does not carry over).
+- **Typical V distribution** (measured across 20 challenge-2 archives with the same base evidence): V=0.975 most common (1 equivalent mutant, 60%), V=1.0 lucky draw (15–20%), V=0.925–0.95 unlucky draw (20–25% with 2–3 equivalent mutants). **Strategy**: after each PPA improvement, submit once; keep the archive with highest projective score (`V × 0.5 + P × 0.5`). Don't assume new content always improves V.
+- **`surviving` list ≠ mutant count**: survivors are reported as unique `file:line` rows; several operators on one line collapse to one row. Read `mutants`/`killed` for V, and the equivalent-mutator filter (step 6) may leave fewer than 40 actual survivors even though `mutants=40`.
+
 ### What IS mutated (valid sites)
 
 Only these contexts:

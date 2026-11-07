@@ -36,14 +36,15 @@ description: Templates and checklist for building Python golden models and writi
 - `test_req<NN>_<description>` or `test_cr<N>_<description>`
 
 ### 6. Verify (always use Docker — never host tools)
+- [ ] **`rm -rf sim_build` before running** (and especially when switching `RTL_ROOT` between fixed/baseline) — Verilator caches and reuses `Vtop`, so a stale build silently tests the wrong RTL.
 - [ ] All tests pass on fixed RTL with `--assert`:
 ```bash
 docker run --rm --cpus 12 -u $(id -u):$(id -g) -e HOME=/tmp \
   -v $PWD/challenge-N:/design --entrypoint bash proving-ground/flow:public \
-  -c "cd /design/tests && make RTL_ROOT=/design ASSERTIONS=1"
+  -c "cd /design/tests && rm -rf sim_build && make RTL_ROOT=/design ASSERTIONS=1"
 ```
-- [ ] At least 3 tests fail on baseline RTL
-- [ ] Total runtime < 120s
+- [ ] At least 3 tests fail on baseline RTL (re-run with `RTL_ROOT` pointed at a pristine baseline copy)
+- [ ] Total runtime < 120s (drives the per-mutant timeout `2*evidence_seconds+15`); keep any exhaustive boundary sweep bounded
 - [ ] Clean `sim_build/`, `results.xml`, `__pycache__` before packaging (tar picks these up otherwise)
 
 ## Timing fragility warning

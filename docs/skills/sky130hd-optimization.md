@@ -9,8 +9,9 @@ Tech-specific RTL strategies that change how Yosys synthesizes and OpenROAD plac
 ### Strategies
 
 - **Strip resets from deep datapath flops.** Pipeline registers, line buffers, data-path arrays — if a random initial value doesn't break control logic, drop the reset. Reduces cell area AND routing pressure (no reset net to those flops).
-  - Apply to: shift chains, captured data, frame buffers
+  - Apply to: shift chains, captured data, frame buffers, **FIFO data memory arrays**
   - Don't apply to: FSM state, valid/ready flags, counters used in comparisons, anything observable in cycle-1 tests
+  - **Confirmed (challenge-1, streaming CRC):** stripping the result-FIFO data array (208 flops) → **−614 synth cells**, area/timing/power all beat baseline (P 0.545→0.572). Two caveats measured: (1) strips can *nudge the critical path* — a second 32-bit strip lowered WNS and cost P −0.007, so **one strip per submission + measure**, never bundle; (2) if a **bound SVA reset assertion** checks that register's reset value you must delete it too (self-fires on the new RTL), and the register must be read-after-write / gated by a valid flag so its reset value is never observed.
 
 - **Keep reset styles homogeneous per module.** Don't mix async reset (`always_ff @(posedge clk or negedge rst_n)`) with sync reset (`always_ff @(posedge clk) if (!rst_n)`) inside the same module. Yosys can't share logic across mixed styles → fragmented layout, larger area.
 
@@ -74,7 +75,24 @@ sky130_hd cells have weak drive strength. Yosys can build long deep gate chains 
 
 - **Pipeline deep math** (32-bit multipliers, wide adders). Don't run combinational — slice across 2-3 RTL pipeline registers. Smaller combinational chunks pack tighter into 6-track sky130 cell rows, improving area AND timing.
 
-  Only do this if hidden tests don't check exact cycle timing. **High risk of C<1.0**.
+   Only do this if hidden tests don't check exact cycle timing. **High risk of C<1.0**.
+
+- **Hoist config-derived shift/mask out of the datapath into the config latch (BIG power + timing win, behavior-identical).** A variable shifter (`v << (32-W)`) or mask (`v & mask(W)`) that is recomputed **every cycle** from a config that is **constant per transaction** is pure combinational logic that (a) toggles continuously → large dynamic power, and (b) sits on the datapath critical path. Compute it **once when the config is captured** and store the already-processed value; the hot path just reads a register.
+
+  ```systemverilog
+  // Bad: re-derived every token from the per-frame config
+  assign poly_l = left_justify(frame_cfg.poly, frame_cfg.width);   // barrel shifter, every cycle
+  // Good: pre-process at first-beat capture (width known there); hot path reads a wire
+  always_ff @(posedge clk or negedge rst_n)
+    if (!rst_n)         frame_cfg_q <= '0;
+    else if (first_beat) begin
+      frame_cfg_q.poly_l     <= left_justify(cfg_poly, cfg_width);  // shifter feeds a reg only
+      frame_cfg_q.xor_masked <= cfg_xorout & width_mask(cfg_width); // mask feeds a reg only
+    end
+  assign poly_l = frame_cfg_q.poly_l;                               // just a wire in the datapath
+  ```
+
+  Same flop count as the config latch itself; removes N-bit variable shifters/masks from the datapath. Measured: flipped P 0.45→0.54 on a streaming CRC datapath (power −34% vs baseline, timing better than baseline, area parity). Update any bound assertion that referenced the old combinational signal to assert the pre-processed register field instead (keep the D3 "captured at first beat" assertion).
 
 ## 3. Physical & Optimization Mitigation (Hold Time + Fanout)
 
@@ -112,23 +130,33 @@ OpenROAD pads layout paths with delay buffers (`sky130_fd_sc_hd__dlybuf_*`) to f
 
 ## Quick checklist for PPA pass (run after C=1.0 confirmed)
 
-Apply ONE at a time, submit, check P delta. Each is a separate submission.
+Apply ONE at a time, submit, check P delta. Each is a separate submission. **Sequencing rule: timing slack is the currency — establish slack first (items 1–3), then spend it on area/power wins (items 4–11). Never stack two area-only wins without a timing win in between; the WNS cliff collapses P.**
 
-| Order | Action | Expected P gain | C risk |
-|-------|--------|----------------|--------|
-| 1 | Remove extra comparator term from deviation fix (free) | +0.05 to +0.10 | none |
-| 2 | Narrow masked registers (e.g., 32-bit IRQ with 0x0F0F mask → 12-bit) | +0.02 to +0.05 | none |
-| 3 | Replace `>=` with `==` where counter cannot overshoot | +0.02 to +0.05 per comparator | low (hidden tests may check cycle timing) |
-| 4 | Strip reset from datapath-only flops (counters with bounded values, captured data) | +0.01 to +0.03 | low-medium (reset value tests?) |
-| 5 | Homogenize reset style per module (all async OR all sync) | +0.01 to +0.03 | none |
-| 6 | Balance wide muxes (case → binary tree) | +0.01 to +0.05 (timing) | none |
-| 7 | Parenthesize multi-operand adders | +0.01 (timing) | none |
-| 8 | Clean clock-enable patterns for ICG inference | power reduction | none |
-| 9 | Replicate high-fanout control registers | +0.02 to +0.05 (routing) | none |
-| 10 | Operand isolation on idle math blocks | small power gain | low |
-| 11 | Pipeline deep combinational | timing gain | HIGH — cycle timing tests |
+| Order | Action | Expected P gain | C risk | Applies to |
+|-------|--------|----------------|--------|-----------|
+| 1 | Remove extra comparator term from deviation fix (free) | +0.05 to +0.10 | none | any |
+| 2 | **ICG-friendly 3-branch flop restructure** on counters (distinct load/step/hold): `if (load) q<=init; else if (step) q<=next; else hold;` instead of `q<=mux(...)` | +0.005 area-wash, but **timing +0.03 to +0.05** — biggest lever | none | any design with counters/timers |
+| 3 | Replace `>=` with `==` where counter cannot overshoot | +0.01–0.03 timing (area-wash alone, +0.008 bundled with item 4/6) | low | any counter with reset-on-bound invariant |
+| 4 | **AND-OR read mux with one-hot decode** (`rd = (dec[0]&v0) \| ...` instead of `unique case`) | −100 to −250 cells, WNS regression −0.2 ns → **must be bundled with item 2 or 3** | none | register files, 5+ source read paths |
+| 5 | Precompute config shifts/masks at latch-time (challenge-1 pattern) | +0.05 to +0.10 (power −30%+) | none | datapath with config |
+| 6 | **Operand isolation on idle adders** (`in_iso = en ? in : 0; sum = in_iso + 1`) | +0.002 area, +0.005 power | none | adders enabled <50% cycles |
+| 7 | Strip reset from datapath-only flops (≥64 bits, non-observable) | +0.01 to +0.03 | low-medium | large flop arrays only |
+| 8 | Homogenize reset style per module (all async OR all sync) | +0.01 to +0.03 | none | any |
+| 9 | Balance wide muxes / binary tree case | +0.01 to +0.05 (timing) | none | 8+ way mux |
+| 10 | Parenthesize multi-operand adders | +0.01 (timing) | none | 3+ operand sums |
+| 11 | Replicate high-fanout control registers (≥8 loads) | +0.02 to +0.05 (routing) | none | fanout ≥8, must not add delay |
 
-Risk profile: 1-9 are RTL-only restructurings that preserve functional behavior at the cycle level. C should remain 1.0 if hidden tests don't inspect internal signal names via formal (rare but possible).
+Skip items 4/5 without prior items 2/3 — the WNS cliff hits.
+
+**Anti-patterns (measured P-negative on challenge-2, do not retry):**
+- Narrow wide registers for area alone (IRQ 32→12: −42 cells, WNS 1.80→1.49, P −0.007)
+- Fuse submodules to enable CSE (V drops — mutations in now-unused source file become no-op equivalents)
+- Precompute small expressions into flops (`x-1`, masks) — flops cost more than saved adder (16 extra flops cost 149 cells, saved adder cost 60)
+- Register replication with inserted flops (adds cycle delay, breaks spec) — must use combinational buffers or replicate the source flop itself
+- Countdown counter where count-up was used — needs shrink-guard (OR conditions), usually more cells than original comparator
+- Strip small async resets (<64 bits) — costs more than saves
+
+Risk profile: 1–3, 5–10 are RTL-only restructurings that preserve functional behavior at the cycle level. C should remain 1.0 if hidden tests don't inspect internal signal names via formal (rare but possible).
 
 ## Common PPA failure modes
 

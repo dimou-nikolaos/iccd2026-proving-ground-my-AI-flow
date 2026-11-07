@@ -19,6 +19,13 @@ For a new design, capture:
 - Protocol summary (handshake, register map, data flow)
 - Change request summary
 - Confirmed deviations (populated after Phase 1 completes)
+- **PPA notes** (populated during Phase 4): baseline cells/area/WNS/power, best submission numbers, P-breakdown (a/t/p), stack of applied wins, rejected attempts
+- **V ceiling** (populated after Phase 4): typical V across archives, lucky-hit rate, observed equivalent-mutant locations
+
+For designs expecting heavy PPA iteration (>5 experiments), also create `docs/designs/<X>-ppa-plan.md` with:
+- Spec-freedom audit (see `docs/ppa-freedom-strategy.md` for the 8 categories to check)
+- Ranked 5–10 change candidates (targeted wins first, long-shots last)
+- Per-drop result log (RTL change, test count, V, P, breakdown, WNS, kept/reverted)
 
 ## When NOT to read these
 

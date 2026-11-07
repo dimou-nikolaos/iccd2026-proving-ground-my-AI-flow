@@ -4,7 +4,7 @@ mode: subagent
 permission:
   edit: allow
   bash:
-    "*": ask
+    "*": allow
     "make *": allow
     "verilator *": allow
     "python3 *": allow

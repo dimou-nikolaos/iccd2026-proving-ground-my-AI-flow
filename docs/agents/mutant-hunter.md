@@ -109,16 +109,18 @@ V_DELTA: 0.72 → 0.92
 
 ## V ceiling assessment methodology
 
-The mutation engine selects a random 40-mutant subset per flow run. V fluctuates between runs.
+The mutation set is **deterministic per submission archive** (seed = `f(submission_hash)`). The same tar gives the SAME 40 mutants and the SAME survivors every run — do NOT re-run an unchanged archive hoping V changes. V only changes when the RTL/tests/assertions change (changing the tar hash re-rolls a new 40-mutant set).
 
-1. Run fast flow (`--skip ppa`) 3-5 times with the same test/assertion suite
-2. If V ranges 0.95-1.00: remaining survivors are likely semantically equivalent
-3. Document each equivalent location (file:line + reason) in `docs/designs/<name>.md`
-4. Expected V ceiling = (40 - equivalent_count) / 40
+1. Run fast flow (`--skip ppa`) ONCE per archive; read the survivor list (note: a survivor row is a unique `file:line`; several operators can collapse onto one row, so count mutants via the `mutants`/`killed` fields, not row count)
+2. For each survivor: is it semantically equivalent? Document each equivalent location (file:line + reason) in `docs/designs/<name>.md`
+3. Expected V ceiling = (40 - equivalent_count) / 40 for THIS archive
+4. After any RTL change, RE-MEASURE — the new archive has a different mutant set; a prior 40/40 does not carry over, and a PPA refactor can move or drop mutants. Write behavior-based evidence, never line-targeted.
 
 **Identifying equivalent mutants** (common patterns):
 - Mutations in masked register slices (bits always forced to 0 by IRQ_BITS or similar)
 - Mutations in unreachable default branches (mux default, for-loop initialization before guaranteed overwrite)
+- Mutations on a register whose value is overwritten before any read (dead write)
+- Mutations on an operand gated by a design invariant that makes the mutated term unreachable (e.g. `x && !full` where the producer never asserts `x` while `full`)
 - Mutations on signals only active during TB-unchecked phases (prdata during setup phase)
 - `&&`↔`&` or `||`↔`|` on single-bit signals (identical semantics)
 
@@ -128,7 +130,7 @@ The mutation engine selects a random 40-mutant subset per flow run. V fluctuates
 
 **Round 2**: Targeted — individual survivors that weren't covered by the broad assertions. Usually boundary cases (relational, off_by_one), strobe lane mutants, or address range boundaries.
 
-**Round 3+**: Diminishing returns — check if remaining survivors are truly non-equivalent. May be equivalent mutants that the equivalence checker failed to filter (bounded timeout). Run multiple seeds to confirm stability.
+**Round 3+**: Diminishing returns — check if remaining survivors are truly non-equivalent. Likely equivalent mutants the equivalence checker failed to filter (bounded timeout). Do not re-run the same archive; instead change the evidence (add a broader behavior assertion) or accept as ceiling.
 
 **Fast iteration loop**:
 ```bash

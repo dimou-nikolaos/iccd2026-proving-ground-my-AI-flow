@@ -191,5 +191,17 @@ yosys -q -p "read_slang --top <top> $(cat rtl/filelist.f); hierarchy -check -top
 
 # Build assertions with design:
 verilator --assert -Wno-fatal --x-assign unique --x-initial unique \
-  --top-module <top> $(cat rtl/filelist.f) assertions/*.sv --cc <top> --exe
+   --top-module <top> $(cat rtl/filelist.f) assertions/*.sv --cc <top> --exe
 ```
+> NOTE: the three commands in this section are illustrative syntax. Run them **inside `proving-ground/flow:public`** (see AGENTS.md) — the host Verilator is too old for the SVA subset this flow uses. Never run verilator/yosys/sby/cocotb on the host.
+
+## Pitfalls (learned running challenge-1 end-to-end)
+
+- **C is not observable locally.** The Docker flow returns `C = null`; hidden checks exist only on the server. Use the local run for V + P and reasoning; the server report is the only C ground truth.
+- **PPA baseline = the `--design` dir's `rtl/`** (cached in `<cache>/baseline_ppa.json`). If you edit `rtl/` in place, point `--design` at a pristine released-baseline mirror (`rtl/`+`design.yaml`+`tb/`+`flow/`) with its own cache, or P is fixed-vs-fixed (≈0.5).
+- **Full flow (with PPA) > 2 min** (baseline+submission OpenROAD). Set the command timeout >600s; `--skip ppa` is ~30-90s.
+- **`ODB-0269` route crash at 0 DRC** ("unable to open … to write markers") is a nondeterministic OpenROAD bug, not a design failure. Re-run; the cached baseline means only the submission re-runs.
+- **Deterministic mutation**: same archive ⇒ identical mutants/survivors; RTL change re-rolls the set. Don't re-run an unchanged archive; re-measure V after any change.
+- **`rm -rf sim_build` before test runs** (and when switching `RTL_ROOT` between fixed and baseline) — Verilator caches/reuses `Vtop`, so a stale build silently tests the wrong RTL.
+- **Clean before tar**: `sim_build/`, `results.xml`, `__pycache__` get packaged otherwise.
+- **Verify evidence with `ASSERTIONS=1` (fresh build) before packaging** — one assertion firing on your own RTL ⇒ REJECTED at the public/evidence stage.

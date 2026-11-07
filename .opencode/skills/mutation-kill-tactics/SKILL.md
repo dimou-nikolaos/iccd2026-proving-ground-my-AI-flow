@@ -109,10 +109,10 @@ Some mutations produce identical observable behavior. You CANNOT kill them. Reco
 2. Read the RTL at each survivor line — infer operator class
 3. Check: is it semantically equivalent? (see table above). If YES → skip, accept.
 4. For killable survivors: write assertion/test (see recipes)
-5. Verify new evidence passes on fixed RTL (Docker):
+5. Verify new evidence passes on fixed RTL (Docker) — **`rm -rf sim_build` first** (Verilator caches and reuses `Vtop` otherwise):
    docker run --rm --cpus 12 -u $(id -u):$(id -g) -e HOME=/tmp \
      -v $PWD/challenge-N:/design --entrypoint bash proving-ground/flow:public \
-     -c "cd /design/tests && make RTL_ROOT=/design ASSERTIONS=1"
+     -c "cd /design/tests && rm -rf sim_build && make RTL_ROOT=/design ASSERTIONS=1"
 6. Repackage: tar czf runs/sub.tar.gz -C <dir> rtl tests assertions report.md
 7. Run: docker ... --skip ppa
 8. Check: V improved? Survivor gone?
@@ -124,10 +124,12 @@ Some mutations produce identical observable behavior. You CANNOT kill them. Reco
 
 ## V ceiling assessment (DO THIS EARLY)
 
-Since the mutation engine picks random 40 per run, V fluctuates. Run fast flow 3-5 times:
-- If V is consistently ≥0.95, remaining survivors are likely semantically equivalent
-- Document specific equivalent locations in `docs/designs/<name>.md`
-- Focus effort on BREADTH of assertion coverage, not chasing individual seeds
+**The mutation set is DETERMINISTIC per submission archive**, seed = `f(sub_hash)`:
+- The **same tar** → the **same 40 mutants + same survivors** on every run. Re-running an unchanged archive is wasted compute (no averaging; no run 3-5 times).
+- Any **RTL change** changes the hash → a **different 40-mutant set**. So write **behavior-based** evidence (never target a specific line number — it moves), and **re-measure V after every RTL change** (a PPA refactor can move or drop mutants; a set may even be 40/40 while a later one is not).
+- **Test/assertion changes ALSO re-roll the seed** (the hash covers the entire archive including tests/, assertions/, report.md). A test-only change can draw a set with MORE equivalent mutants than the previous set, dropping V from 1.0 to 0.975. **Do NOT assume that adding tests can only help V** — it's a coin flip. Only add tests for C-confidence (hidden test pass rate), not to chase V.
+- A survivor row is a unique `file:line`; several operator mutants can collapse onto one line, so `surviving` rows ≠ mutant count. Use the `mutants`/`killed` counts for V, not the survivor-row list length.
+- Document specific equivalent locations in `docs/designs/<name>.md`. Focus effort on **breadth of behavior coverage**, not on one seed.
 
 **Common equivalent mutant patterns (unkillable)**:
 | Pattern | Why | Location |
@@ -135,7 +137,9 @@ Since the mutation engine picks random 40 per run, V fluctuates. Run fast flow 3
 | Masked register bits (e.g., IRQ_BITS & 0xF0F slice at [7:4]) | Always 0 by design mask | Any masked register update expression |
 | `default` case value in unreachable mux branch | Branch never taken in any legal access | Read mux default, case default |
 | Signal driven only during non-checked phase | TB never samples during that phase | `prdata` outside access phase |
-| Dead-code default (`sig = 0;` before `for/if` that always overwrites) | Unreachable in practice | Combinational loop defaults |
+| Dead-code default / write overwritten before any read (`q<=X` where a later always-loaded path sets `q` before `q` is read) | Value never observed | Final-entry branches; init-before-overwrite |
+| Operand guarded by a design invariant (`x && !full` where the producer never asserts `x` while `full`) | Mutating the guarded operand is unreachable | Write-enable / handshake gating |
+| Async reset on a register that is functionally cleared on the first cycle after reset (e.g., `pcount_q` cleared by `!en_q || update` rule, and `en_q` resets to 0 via its own async reset) | Removing the async reset branch still yields correct value by the next clock edge | `if (!rst_n) reg <= 0` where a next-state path also forces 0 |
 
 ## PPA routing failure (blocks scoring — not a V issue)
 

@@ -113,7 +113,11 @@ For fast loops, the orchestrator calls this agent repeatedly. Each run:
 Keep `--cache /runs/cache` — baseline PPA is cached, reused across runs.
 Use unique `--out` names per iteration: `--out /runs/out2`, `--out /runs/out3`, etc.
 
-**IMPORTANT**: V fluctuates across runs (random 40-mutant selection). Run 3-5 fast iterations to establish V ceiling before spending effort on individual survivors.
+**PPA baseline source (critical)**: the flow computes the baseline PPA from the **`--design` dir's `rtl/`** and caches it in `<cache>/baseline_ppa.json`. If you edit `rtl/` in place, `--design` points at your modified RTL and P becomes fixed-vs-fixed (≈0.5, meaningless). To measure P honestly, run with `--design` at a **pristine released baseline mirror** (`rtl/` = released, plus `design.yaml`/`tb/`/`flow/`) and a matching cache dir; keep a separate cache per baseline.
+
+**Timing/crashes**: a full flow (with PPA) runs ~6-8 min — set the command timeout >600s. If PPA fails at `route` with `ODB-0269` ("write markers") at 0 DRC violations, it's a nondeterministic OpenROAD crash — just re-run (the baseline PPA is already cached, only the submission re-runs).
+
+**IMPORTANT**: The mutation set is **deterministic per archive** (seed = `f(sub_hash)`). Re-running an unchanged tar gives the identical V and identical survivors — never run 3-5 "iterations" of the same archive. V changes only when the RTL/tests/assertions change (new hash → new mutant set). Report V with its survivor list; the orchestrator re-measures after each change.
 
 ## PPA failure diagnosis
 
@@ -131,8 +135,8 @@ If full flow reports `place and route failed at step 'route'`:
 | Rejected at "build" | Filelist mismatch, forbidden construct, port change |
 | Rejected at "public" | Your tests fail on your RTL, or an assertion fires on your RTL |
 | V very low | Not enough tests/assertions; mutants not covered |
-| V fluctuates (0.8-1.0) | Random mutant selection — run multiple seeds to assess ceiling |
-| P = 0 | PPA failed: design doesn't synthesize or route |
+| V lower than a prior run | Expected — a different archive (RTL change) rolls a different 40-mutant set; not a regression to re-run |
+| P = 0 | PPA failed: design doesn't synthesize/route (or `ODB-0269` crash — re-run) |
 | P < 0.5 | Design worse than baseline in area/timing/power |
 | P = 0.5 | Design same as baseline (no netlist change vs baseline) |
 | Timing fail (P capped at 0.3) | Critical path exceeds clock period after routing |

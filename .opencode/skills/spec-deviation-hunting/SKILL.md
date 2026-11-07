@@ -59,7 +59,13 @@ Confidence: HIGH (clear contradiction), MEDIUM (suspect, need probe), LOW (subtl
 - Spec is truth. RTL is the suspect.
 - Seeded deviations are always single-line, local, in runtime logic (assign, always_ff, always_comb)
 - The public testbench doesn't catch them — it doesn't exercise the discriminating scenario
-- Each design has exactly 3 deviations. More findings might be correct implementations of ambiguous spec.
+- Each design has exactly 3 deviations (the design README usually states the count — use it as the exit target: if you find 3 HIGH that each map to a REQ, you likely have them all; more findings are probably correct readings of ambiguous spec).
+
+## Confirm a deviation before fixing it (two-sided probe)
+For each HIGH deviation, write ONE discriminating probe and check BOTH directions before committing the RTL fix:
+- **FAILS on baseline** (confirms the deviation is observable), AND
+- **PASSES on the proposed fix** (confirms the fix is correct, not just different).
+If a probe passes on baseline it isn't discriminating; if it fails on the fix the fix is wrong. This two-sided check caught nothing-wrong fixes and validated all three deviations on challenge-1 (probe set 0/5 on baseline, 5/5 on fix). Keep probes throwaway (delete before packaging) — real coverage goes in `tests/` in Phase 3.
 
 ## Confidence → next step decision
 

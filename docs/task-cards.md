@@ -66,6 +66,17 @@ EXIT: V >= 0.90 or no improvement after trying all 11.
 ### Parallel invocation (when possible)
 Phase 3a (test-writer) and Phase 3b (assertion-writer) can run in parallel — they produce different files and don't conflict. Phase 1b and 1c can run in parallel.
 
+## Orchestrator Verification Gate (mandatory before packaging)
+
+A subagent reporting `STATUS: done` is NOT sufficient — it cannot see the *combination* of its evidence with the rest, and it may emit next-state assertions that self-fire (observed repeatedly: counter/status and config-latch asserts off-by-one in `$past` alignment). Before any `tar`:
+
+1. **Lint + elaborate** the whole submission (design `rtl/` + all `assertions/`) in Docker — no warnings that break the build.
+2. **Run the participant tests with assertions bound on a FRESH `sim_build`** (`rm -rf sim_build` first — Verilator caches `Vtop` and reuses it otherwise): `make RTL_ROOT=/design ASSERTIONS=1`. Gate = **all tests PASS and 0 assertions fire.** A single fire ⇒ the server REJECTS the whole submission.
+3. Fix (or have the assertion-writer fix) any firing assert — almost always the mixed-cycle bug: `$past(enable)` paired with the *current* clear/config. Re-run the gate.
+4. Only then package. After any RTL (incl. PPA) change, re-run this gate AND re-measure V — the mutation seed is `f(tar-hash)`, so a changed RTL re-rolls a different mutant set.
+
+For assertion-writing task cards, put in FOCUS: *"next-state/registered asserts use the one-cycle-back identity (`q == en@past ? f(d@past) : q@past`; `cfg_q.f == $past(cfg_f)`); never pair `$past(event)` with the current clear/config."*
+
 ## Feedback Block Reference
 
 The orchestrator parses the feedback block to decide next steps. Standard fields:
