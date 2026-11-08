@@ -61,9 +61,9 @@ Structural moves plateau P at ~0.55-0.60 on datapath designs. To break 0.70 you 
 
 ### Yosys attributes (RTL hints that survive synthesis)
 
-- `(* fsm_encoding = "one_hot" *)` on FSM state reg — forces one-hot encoding even if `Yosys` default would pick binary.
+- `(* fsm_encoding = "one_hot" *)` on FSM state reg — forces one-hot encoding even if `Yosys` default would pick binary. **Strong P wildcard on small FSMs (4-8 states)**: challenge-1 measured +0.0049 P in one shot on FIR 4-state FSM. Higher hit rate (~1/2) than `(* keep *)` (~1/8). Cost: 1-2 extra flops. Risk: NONE (attribute-only). Try on every detected FSM. Other encodings (`"gray"`, `"binary"`, `"sequential"`) tend to tie at the Yosys-default optimum.
 - `(* keep = "true" *)` — prevents Yosys from constant-prop / merging / eliminating a signal. **Counter-intuitive use as P wildcard**: forcing a wire to survive often IMPROVES P (timing) via different downstream mux tree routing. Challenge-1: keep on dsp_rndsat.kept gained +0.0042 P; keep on dsp_fir.acc_q added another +0.0015 (different module — stacks). See § `(* keep *)` wildcards below.
-- `(* dont_touch = "true" *)` — prevents cell replacement / merging on this instance.
+- `(* dont_touch = "true" *)` — prevents cell replacement / merging on this instance. (Challenge-1: stacks with `keep` on same wire tend to tie or regress; redundant.)
 - `(* maxfreq = N *)` — timing hint for ABC. Rarely effective; OpenROAD's STA dominates.
 
 ### Clock/power
