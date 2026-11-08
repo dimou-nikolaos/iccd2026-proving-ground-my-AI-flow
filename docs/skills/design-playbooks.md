@@ -19,7 +19,15 @@ The six flow mutation classes are fixed (`arith`, `relational`, `constant`, `neg
 - Next-state identities on accumulators/saturators with the `$past` one-cycle-back pattern (pitfall 1a).
 - Boundary pins for saturation/overflow (`(a OP b) outside range |-> sat==1`) — only if spec-guaranteed.
 
-**PPA levers that pay:** move per-transaction config-derived shift/mask out of the hot path to load time (big power win); strip async reset from data-path-only flops/arrays (big area win — one at a time, can nudge timing); parenthesize adder trees. (Challenge-1 example: P 0.45→0.57.)
+**PPA levers that pay:** move per-transaction config-derived shift/mask out of the hot path to load time (big power win); strip async reset from data-path-only flops/arrays (big area win — one at a time, can nudge timing); parenthesize adder trees; **split the longest combinational path with a register pipeline** (challenge-1: 2-stage gain pipeline gave +2ns WNS which became +0.06 P — the biggest single P delta in the design). (Challenge-1 example: P 0.45→0.57.)
+
+**PPA levers that DIDN'T pay (challenge-1, measured):**
+- Spec-minimum width narrowing: FIR accumulator 40→35 bits increased area +656 µm², degraded WNS and power (P −0.014). Synthesis maps odd-width logic worse than power-of-2 widths.
+- Buffer elimination: removing input FIFO (DEPTH=2→0) degraded WNS by 1.65ns (s_ready combo path). P −0.005.
+- Stage fusion: fusing decim rndsat + limiter (BOUNDED param) degraded WNS by 1.34ns (variable comparator in fusion path). P −0.023.
+- Aggressive parallelism: 8-multiplier parallel FIR (replacing iterative MAC) crashed CTS at 2.5× baseline cell count. PPA-failed = not even a valid Explorer candidate.
+
+**Conclusion for datapath designs**: timing slack is the dominant P contribution (t-weight ≈ 1.2 vs a-weight ≈ 0.27, p-weight ≈ 0.28). **Protect WNS aggressively.** P gains come from pipeline splits (creating slack), not from micro-optimizations that trade timing for area.
 
 **V ceiling note:** datapaths max out cheaply — signal-def + next-state pins kill nearly all mutants; residual survivors are usually provably-equivalent (dead write, invariant-gated operand). See mutation skill.
 

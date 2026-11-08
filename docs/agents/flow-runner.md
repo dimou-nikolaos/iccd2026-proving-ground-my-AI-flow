@@ -141,6 +141,7 @@ If full flow reports `place and route failed at step 'route'`:
 | P = 0.5 | Design same as baseline (no netlist change vs baseline) |
 | Timing fail (P capped at 0.3) | Critical path exceeds clock period after routing |
 | Route DRC fail | Too congested: reduce cell count or simplify routing topology |
+| **CTS step crashes, P=null** | **Variant too dense (typically >2× baseline cell count). L14. NOT an OpenROAD bug — re-run confirms. Revert the Tier C change.** |
 
 ## Timeout considerations
 

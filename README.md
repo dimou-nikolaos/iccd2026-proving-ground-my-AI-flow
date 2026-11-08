@@ -44,17 +44,31 @@ docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp \
 
 ## Starting prompt (paste to the agent)
 
+Copy from `PROMPT-challenge.txt`, replace `<N>` with the design number.
+
 ```
-Work on challenge-<N> (dir: challenge-<N>/). It was just released.
-Follow docs/joint-flow.md (the cycle) and docs/flow.md (the 4 phases).
+Work on challenge-<N> (dir: challenge-<N>/). It was just released. Real competition mode.
+
+Read these first, in order:
+1. docs/joint-flow.md (the cycle: handoffs, file conventions, when you STOP and wait for me)
+2. docs/flow.md (the 4 phases and their gates)
+3. docs/skills/design-playbooks.md — classify the archetype (datapath / control+bus / pipelined core) and pull that section into every later task card
+4. docs/competition-strategy.md — scoring priorities, PPA iteration economy, What NOT to do
+5. docs/ppa-freedom-strategy.md — the 8 spec-freedom categories to audit before Phase 4b
+6. docs/task-cards.md — how to spawn subagents
 
 Rules:
-- Save a pristine copy of the released rtl/ before editing, so we can validate our tests fail on the baseline.
-- All tools via Docker proving-ground/flow:public, 12 cores. Never run verilator/yosys/sby on the host.
-- First deliverables: docs/designs/challenge-<N>.md and docs/state/challenge-<N>-progress.md.
-- First drop: fix the seeded deviations + implement the CR + report.md + rtl only → package runs/sub.tar.gz, then STOP for me to upload.
-- Keep docs/state/challenge-<N>-progress.md updated every step.
-- Spawn subagents per docs/task-cards.md. Priority: C=1.0, then P>0.5, then the V ceiling.
+- Save a pristine copy of the released rtl/ to challenge-<N>/baseline/ before editing (needed for accurate PPA baseline).
+- All tools via Docker proving-ground/flow:public, 12 cores, --jobs 12. Never run verilator/yosys/sby on the host.
+- First deliverables (before any subagent): docs/designs/challenge-<N>.md, docs/state/challenge-<N>-progress.md.
+- First drop (within 2h of release): fix seeded deviations + implement CR + report.md, rtl only. Package runs/sub.tar.gz, then STOP for me to upload. C is the free points — don't spend iterations on V/P yet.
+- After my feedback (C, V, P, failed hidden tests, surviving mutants, PPA stages): prioritize C=1.0 first, then P (target 0.50+, 0.55+ on datapath with precompute patterns), then V (target ceiling, not perfection).
+- Keep docs/state/challenge-<N>-progress.md updated every step (score history table + activity log).
+- PPA discipline: apply stacked recipe — timing wins FIRST (ICG restructure, `>=→==` bundle, comparators shortened), then area/power wins (AND-OR mux, operand isolation). Timing slack is the currency. Never stack two area-only changes. See .opencode/skills/sky130hd-ppa/SKILL.md.
+- V discipline: any archive change (RTL, tests, assertions, comments) re-rolls the seed. Keep the highest-projective-score archive. Don't chase V past the design ceiling.
+- Save runs/sub-best.tar.gz on every improvement; never overwrite with worse.
+
+Spawn subagents per docs/task-cards.md. STOP between phases that need my upload + feedback.
 ```
 
 Then: you upload `runs/sub.tar.gz`, paste the flow report back (C, V, P, failed hidden-test names, surviving mutants, PPA stages), and the agent iterates one change per submission (see `docs/joint-flow.md`).

@@ -4,6 +4,8 @@
 
 Analyze surviving mutants (file:line from the flow report), determine what mutation was applied, and write targeted assertions or tests that kill each survivor. This agent runs iteratively until V approaches 1.0.
 
+**First check the REQ coverage matrix** (`docs/designs/<name>-req-matrix.md`). If any REQ rows are GAP or partial: that's the primary V cause — fill the gap before line-hunting. Mutants cluster at REQ-implementing code; one test per missing REQ typically kills 2-5 mutants at once.
+
 ## Inputs
 
 - Surviving mutant list: `rtl/file.sv:LINE` for each survivor

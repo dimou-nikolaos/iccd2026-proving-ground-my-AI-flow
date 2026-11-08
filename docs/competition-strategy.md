@@ -62,12 +62,36 @@ Hidden regression tests and hidden formal properties may reference internal sign
 
 ### PPA iteration economy (how many changes per submission)
 
-Local runs are unbounded (only wall-clock); **server submissions are the scarce resource** (30/design, 30-min cooldown). So economize submissions differently locally vs on the server:
+Local runs are unbounded (only wall-clock); **server submissions are the scarce resource** (30/design, 30-min cooldown). So economize submissions differently locally vs on the server.
+
+**Tier-based budget** (see `docs/flow-ppa-and-v.md` for tier definitions):
+
+| Tier | Local verification per change | Server submissions |
+|------|------------------------------|-------------------|
+| A (provably-free) | synth + tests@ASSERTIONS=1 (~5 min each) | 0 — bundle into Tier B submission |
+| B (timing-neutral) | synth + tests + 1 local PPA (~6 min) | **1 C-check after stacking A+B changes** |
+| C (structural) | synth + tests + 1 local PPA + REQ re-audit | **1 C-check per Tier C variant** (one variant per submission) |
+
+Typical total per design: 3-5 submissions for full PPA optimization (1 initial C-check after Phase 2 + 1 stack-A+B + 1-3 Tier C trials + 1 final).
 
 - **P is not additive.** The PPA score combines area/timing/power with an achievable-period / timing-met gate. Two individually-safe edits can oppose each other (one shrinks area/power, the other lengthens the critical path) or compete for routing/cell rows and move the critical path. A bundle can tip WNS into a violation, which **caps P (~0.3)** and erases every gain at once. Measured: a FIFO datapath reset-strip gave +0.027, but a second strip bundled-or-not could mask it — measured separately it *hurt timing* (WNS 4.61→4.25, net −0.007). You only see that with single-variable measurement.
-- **Rule:** bundle changes that are **provably free / independent** (dead-code & extra-term deletion, the CR mux, config precompute — cannot tip timing or C). **Isolate** changes that trade power/area against timing or couple with a bound assertion or are borderline for C (reset-strips, deep restructuring, operand isolation).
+- **Bundle Tier A; isolate Tier B/C.** Tier A changes (provably-free / independent: dead-code & extra-term deletion, the CR mux, config precompute) cannot tip timing or C. Tier B changes (reset-strips, operand isolation, pipeline splits) MUST get a C-check submission before stacking further Tier B/C work — hidden tests can pin internal signal names or exact cycle counts. Tier C changes (deep restructuring, module fusion) MUST be one-per-submission because the failure mode is C regression (hidden assertion on internals).
 - **Pre-screen before spending a submission:** in Docker, `yosys ... synth` for cell count + a WNS/timing estimate, and lint/elab + `tests@ASSERTIONS=1` for C risk. Batch only the pre-screen survivors into one submission. A PPA flow run is ~4–6 min locally; a server submission is 30 min + a budget slot — don't burn one per micro-change.
-- **Locally** you may still isolate a technique once to *learn* its ΔP and update the skill docs (cheap, buys reusable rules); **on the server**, batch the safe survivors and keep the scarce one-at-a-time only for the C-/timing-critical set.
+- **Locally** you may still isolate a technique once to *learn* its ΔP and update the skill docs (cheap, buys reusable rules); **on the server**, batch the Tier A survivors and keep the scarce one-at-a-time for Tier B/C verification.
+- **Synthesis counter-intuition**: spec-minimum RTL widths aren't always synthesis-optimal. Yosys+OpenROAD on sky130hd maps odd-width registers (35, 40 → 35) and shift/mask logic worse than power-of-2 widths. Always measure before/after; don't "narrow to spec minimum" without PPA check. (challenge-1: FIR acc_q 40→35 increased area +656 µm² AND degraded timing AND degraded power.)
+- **Aggressive topology restructures can pass build+tests then fail PPA at CTS.** Validate Explorer-variant candidates by running the FULL Docker flow (synth → floorplan → place → CTS → route) and confirming non-null P. A PPA-failing variant scores C=0 on the server = rejected = doesn't count for Explorer award. Don't sink time into variants without a green full-flow run.
+
+## V seed uncertainty (per-design strategy)
+
+Mutant seed is derived from submission tar content hash — **any tar change rerolls the seed**. Local V is a single sample from a high-variance distribution. Strategy:
+
+| Don't | Do |
+|-------|----|
+| Tune tests to chase V=1.0 on the current seed | Cover all REQs with ≥1 test + ≥1 assertion (REQ matrix completeness) |
+| Treat V=1.0 as "we're done" | Treat V as expected value over seeds; maximize expected coverage |
+| Submit many near-identical variants | Submit one robust variant + a few genuinely-distinct Explorer variants |
+
+A submission with more REQ coverage beats one with a luckier seed. Measure local V only as a sanity check (no unexpected survivors on common classes), not as a target.
 
 ## Timing strategy
 
@@ -99,6 +123,10 @@ After C=1.0 and good V/P: submit microarchitectural variants:
 - Different area/speed tradeoffs
 
 Each must produce a distinct netlist (different gate count or connectivity).
+
+**MUST validate locally with the full flow before considering a variant as Explorer-eligible.** Synthesis-only or test-only validation is insufficient — aggressive topologies can build, pass tests, then crash OpenROAD at CTS (measured: 8-multiplier parallel FIR added 2.5× cell count and failed at CTS, would score C=0 on server = rejected = not a "valid submission" for Explorer counting). Run the full Docker flow (`pg-flow-commands` skill) and confirm `status: scored` with non-null P. Save survivors in `runs/ppa-candidates/`.
+
+**Realistic per-design count**: 3-5 distinct valid variants. Beyond that, diminishing returns vs. risk of accidentally submitting a low-C variant. Track in `docs/designs/<name>-ppa-plan.md`.
 
 ## Practical: always keep a valid submission ready
 

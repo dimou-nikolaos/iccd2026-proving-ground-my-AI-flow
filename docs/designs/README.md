@@ -22,10 +22,19 @@ For a new design, capture:
 - **PPA notes** (populated during Phase 4): baseline cells/area/WNS/power, best submission numbers, P-breakdown (a/t/p), stack of applied wins, rejected attempts
 - **V ceiling** (populated after Phase 4): typical V across archives, lucky-hit rate, observed equivalent-mutant locations
 
+## REQ coverage matrix (MANDATORY — Phase 3 exit gate)
+
+Per design, create `docs/designs/<X>-req-matrix.md` with one row per REQ from the spec (`grep -oE 'REQ-[0-9]+' spec.md | sort -u`). Columns: REQ id | short description | test name(s) | assertion id(s) | notes (untestable, partial, etc).
+
+Phase 3 is not done until every REQ row has at least one test and one assertion, OR is explicitly justified as untestable in simulation (e.g., synthesis-only "no latches", "synchronous to clk"). Untestable REQs still need a row.
+
+This matrix is also the **primary V driver** — filling REQ gaps raises V more than line-by-line mutant hunting. See `docs/flow.md` Phase 3a and 4c.
+
 For designs expecting heavy PPA iteration (>5 experiments), also create `docs/designs/<X>-ppa-plan.md` with:
 - Spec-freedom audit (see `docs/ppa-freedom-strategy.md` for the 8 categories to check)
 - Ranked 5–10 change candidates (targeted wins first, long-shots last)
-- Per-drop result log (RTL change, test count, V, P, breakdown, WNS, kept/reverted)
+- Tier classification per candidate (A/B/C — see `docs/flow-ppa-and-v.md`)
+- Per-drop result log (RTL change, tier, test count, V, P, breakdown, WNS, C-check result, kept/reverted)
 
 ## When NOT to read these
 

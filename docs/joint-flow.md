@@ -61,6 +61,9 @@ Single source of truth for how we work together during the competition window (N
 ┌──────────────────────────────────────────────────────────────┐
 │ T3  Agent autonomous block (continues during operator read)  │
 │     - Phase 3: golden model + cocotb tests + SVA assertions  │
+│     - Phase 3 exit gate: REQ coverage matrix complete         │
+│       (docs/designs/<name>-req-matrix.md), interface         │
+│       assertion module bound to top, 0 fires on fixed RTL    │
 │     - Run flow with tests+assert, --skip ppa → measure V     │
 │     - Run full flow → measure P                              │
 │     - Update state file                                      │
@@ -137,13 +140,22 @@ Agent writes `docs/sessions/<name>-session.md` retrospective.
 
 ## Resumption protocol (if session restarts)
 
-If a new agent session starts (context overflow, restart, etc.):
-1. Agent reads `docs/state/<name>-progress.md` — this tells phase status, score history, last action
-2. Agent reads `docs/joint-flow.md` — refreshes process
-3. Agent reads `docs/joint-strategy.md` — refreshes strategy
-4. Agent reads `docs/designs/<name>.md` — design knowledge (gated by current dir name)
-5. General lessons already live in `.opencode/skills/` and `docs/agents/` (always loaded); also check `docs/sessions/*-session.md` for any prior design retrospectives
-6. Continue from "Next action for operator" entry
+**The canonical resume recipe lives in `AGENTS.md` (top of file, "Resume recipe" section).** Short version:
+
+1. `ls docs/state/` — find current design's progress file
+2. Read its "Next action for operator" + score history
+3. `md5sum runs/sub-best.tar.gz` — confirm matches state file
+4. Read `docs/designs/<current>-req-matrix.md` and `<current>-ppa-plan.md`
+5. Take an action.
+
+Long version (full process refresh after restart):
+- `docs/joint-flow.md` — this file (process cycle, handoffs)
+- `docs/joint-strategy.md` — operator/agent division of labor
+- `docs/competition-strategy.md` — scoring priorities, tier budgets
+- `docs/flow.md` — workflow skeleton
+- `docs/flow-lessons.md` — measured pitfalls (read before starting new design)
+- `docs/flow-ppa-and-v.md` — Phase 4 detail (read on entering Phase 4)
+- General lessons live in `.opencode/skills/` (lazy-loaded) and `docs/agents/`
 
 ## Continuous logging (write incrementally, don't wait for end)
 

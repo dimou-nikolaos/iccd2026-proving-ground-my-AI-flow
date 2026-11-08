@@ -90,20 +90,23 @@ For each design:
 
 ## Iteration budget
 
-For competition, with 30 submissions per design and 10 drops in evaluation mode:
-- **Drop 1**: baseline fix (C=1.0, P whatever)
-- **Drop 2**: baseline + full evidence (tests + assertions)
-- **Drop 3-4**: safe micro-optimizations (precompute, narrow regs, strip obviously-redundant resets)
-- **Drop 5-7**: targeted freedom exploits (read-pipeline, comparator sharing, register folding)
-- **Drop 8-10**: long shots (aggressive reset-strip, output retiming, ICG)
-- **Drop 11-12**: revert any failed experiments
+For competition (30 submissions/design cap, ~10 realistic drops given 30-min cooldown + 15-min turnaround):
 
-For each freedom-exploit submission:
-1. Write RTL change (isolated, one per submission unless provably-independent)
-2. Verify existing tests PASS on new RTL (no test update needed → spec-freedom is real)
-3. If tests fail → spec pins that behavior → REVERT
-4. Run full flow, measure P delta
-5. If P improved: keep; if not: revert and log
+- **Drop 1** (after Phase 2): RTL-only — lock C=1.0. P whatever, V baseline.
+- **Drop 2** (after Phase 3): full evidence (tests + assertions + REQ matrix + interface assertions). V measurement.
+- **Drop 3**: Tier A bundle + Tier B changes. C-check required (Tier B may break hidden test on internal names/latency).
+- **Drop 4-7**: one Tier C freedom exploit per submission. C-check each. If C drops: revert.
+- **Drop 8**: revert any failed experiments, ship sub-best.
+
+For each Tier B/C submission:
+1. Write RTL change (Tier B can bundle, Tier C strictly one-per-submission)
+2. Verify existing tests PASS on new RTL with `ASSERTIONS=1` (local)
+3. Re-audit REQ matrix: any REQ pinned by an assertion you deleted? Replace with interface assertion.
+4. Run full flow locally, measure P delta
+5. **Submit to server — C-check is mandatory for Tier B/C** (hidden assertions on internal signals can fail)
+6. If C=1.0 AND P improved: bank as sub-best. If C<1.0: revert; the hidden test pinned what we thought was free.
+
+For Tier A only (no Tier B/C stacked): no submission needed; bundle and ship with next Tier B/C drop.
 
 ## Files to create per design
 - `docs/designs/<name>-freedoms.md` — spec-freedom audit, ranked exploit candidates

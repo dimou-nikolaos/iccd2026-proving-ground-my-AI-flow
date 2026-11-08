@@ -2,6 +2,18 @@
 
 SystemVerilog RTL design verification challenge. Each released design ships a seeded-deviation baseline RTL, spec, change request, and public cocotb testbench. See `README.md` for the operator quick-start (what to copy where, starting prompt).
 
+## Resume recipe (compaction-safe cold start)
+
+If you're a fresh agent (or returning after context compaction) and don't know where work left off:
+
+1. `ls docs/state/` — find the current design's progress file (e.g., `challenge-1-progress.md`).
+2. Read the file's **"Next action for operator"** section and the **score history** table.
+3. `md5sum runs/sub-best.tar.gz` — confirm it matches the md5 in the state file. If they diverge, trust `runs/sub-best.tar.gz` and update state.
+4. Read `docs/designs/<current>-req-matrix.md` (REQ coverage status) and `docs/designs/<current>-ppa-plan.md` (what PPA variants exist).
+5. Now you can take an action.
+
+If there is no state file for the current design, you're starting that design from scratch — read `docs/design-init.md` for the bootstrap checklist (copy baseline, init docs from templates, cache baseline PPA), then read the **"Start here"** list below.
+
 ## Critical constraints (violations = rejection)
 
 - Do NOT change: top module name, port names/widths, `rtl/filelist.f`, `flow/constraint.sdc`
@@ -25,17 +37,17 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 
 1. **Analyze** — find spec deviations via static analysis, formal, and probes
 2. **Fix** — correct RTL deviations + implement change request
-3. **Verify** — write golden model, cocotb tests, and SVA assertions
-4. **Iterate** — run flow, kill surviving mutants, optimize PPA
+3. **Verify** — write golden model, cocotb tests, SVA assertions, AND complete `docs/designs/<name>-req-matrix.md` (every REQ has ≥1 test and ≥1 assertion). Exit gate: REQ matrix complete + ≥3 tests fail on baseline + 0 assertions fire on fixed RTL.
+4. **Iterate** — Tier A (free) → Tier B (C-check 1 submission) → Tier C (C-check 1-2 submissions). See `docs/flow-ppa-and-v.md` for tier definitions and per-design submission budget. After Tier C is exhausted and C=1.0 is banked, **Phase 4e (wildcard exploration)** is available during cooldown time. See `docs/flow-wildcard.md`.
 
 ## Start here
 
 - **Operator+Agent process (source of truth)**: read `docs/joint-flow.md` FIRST — defines cycle, handoffs, file conventions, communication
-- **Competition strategy**: read `docs/competition-strategy.md` (scoring priorities, timing, PPA targets)
-- **PPA freedom audit**: read `docs/ppa-freedom-strategy.md` before Phase 4b PPA iterations (which spec-silences can be exploited, which are traps)
-- **Technical 4-phase workflow**: read `docs/flow.md`
+- **Competition strategy**: read `docs/competition-strategy.md` (scoring priorities, timing, PPA tier budget)
+- **PPA freedom audit + tiers**: read `docs/ppa-freedom-strategy.md` before Phase 4b (which spec-silences can be exploited, tier classification, C-check rules)
+- **Technical 4-phase workflow**: read `docs/flow.md` (skeleton + exit gates). For Phase 4 detail, see `docs/flow-ppa-and-v.md`. For prior pitfalls, see `docs/flow-lessons.md`.
 - **Spawning agents**: read `docs/task-cards.md`
-- **Design knowledge**: `docs/designs/` (see README for template; create per design)
+- **Design knowledge**: `docs/designs/` (see README for template; create per design — including the REQ matrix file). For upcoming designs, read pre-drafted playbooks: `docs/designs/challenge-2-playbook.md` (control+bus, predicted), `docs/designs/challenge-3-playbook.md` (pipelined core, predicted).
 - **Running the flow** (Docker, prompts, iteration): read `docs/running-the-flow.md`
 - **Session state** (where we left off): `docs/state/`
 

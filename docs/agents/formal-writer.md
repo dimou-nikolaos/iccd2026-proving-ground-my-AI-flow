@@ -137,3 +137,21 @@ docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp \
 - `default clocking @(posedge clk)` triggers timing warning — use `--ignore-timing` flag if needed
 - `@(*)` in property expressions: **NOT supported** by slang. Use immediate `assert(expr)` inside `always_comb` for purely combinational checks
 - Async-reset FFs get `$anyinit` treatment (no `setundef` needed); enables depth-0 CEX for state-dependent properties
+- **`read_verilog` (no slang) rejects modern SV** — unpacked-array ports (`output logic [15:0] x[8]`), `default disable iff`, etc. Always use `read_slang` for SV RTL.
+- **`read_slang` rejects `|=>` and `|->` SVA** — both raise "encountered unsupported SVA feature" in this slang version. Use immediate `always @(posedge clk) if (cond) assert(expr)` pattern instead.
+- **`setundef -zero` does NOT override `$anyinit`** — async-reset FFs and helper regs (one-cycle-back pattern) keep free init at step 0. Helper-reg-based `p_clear |-> ...` produces FALSE-POSITIVE CEX at step 1 because p_clear is $anyinit=1 while no real prior-cycle condition existed. Workaround: assert next-state DIRECTLY on D-input (expose `_n` signal via bind), or use `chformal -anyinit -remove` (requires RTL not using $anyinit semantics).
+
+### ROI judgment: formal vs simulation next-state assertions
+
+In simulation we routinely use the **one-cycle-back identity** as an immediate assertion inside `always @(posedge clk)` (`q == ($past(en) ? f($past(d)) : $past(q))`). This pins the next-state rule at EVERY cycle of EVERY test — effectively the same check SBY does, just over test inputs rather than all reachable states. For REQ-37/40 (priority collisions) the simulation assertion catches any next-state deviation visible in test stimulus.
+
+**Skip SBY formal when**:
+- The property is a per-cycle next-state rule (signal-def, range, next-state)
+- Simulation assertion already pins the same property
+- Static RTL inspection confirms the structure (e.g., `if (clear) reset; else if (event) increment;` ⇒ clear wins)
+
+**Use SBY formal when**:
+- Deep temporal property (>20 cycles, e.g., FIFO never overflows under any input sequence)
+- Reachability question (can we ever reach state X?)
+- Induction-style invariants unbounded in time
+- CEX needed to disambiguate MEDIUM-confidence deviation that simulation can't reach

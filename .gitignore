@@ -8,10 +8,25 @@ __pycache__/
 results.xml
 *.vcd
 
-# flow run outputs (regenerable; keep the dir via runs/.gitkeep)
-runs/out*/
-runs/cache/
-runs/*.tar.gz
+# flow run outputs and submission archives (regenerable; keep dir via runs/.gitkeep)
+runs/
+!runs/.gitkeep
+
+# Per-design analysis docs and state (templates + pre-release playbooks stay tracked)
+docs/designs/challenge-[0-9]*.md
+!docs/designs/challenge-[0-9]*-playbook.md
+docs/state/challenge-*.md
+
+# Released design source trees (one per challenge)
+challenge-[0-9]*/
+
+# Design-specific formal experiments
+formal/
+
+# Official competition kit (provided separately, not part of our workflow content)
+flow-image/
+SUBMISSION.md
+Specification Design Freedoms.pdf
 
 # OS
 .DS_Store

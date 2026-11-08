@@ -80,6 +80,21 @@ When suggesting fixes, note the area impact:
 
 These notes help the rtl-fixer prioritize PPA-favorable fixes.
 
+### Step 6: Output the complete REQ list (for downstream probe-per-REQ sweep)
+
+L1 (challenge-1): a 4th seeded deviation was missed by static analysis and only caught by writing one probe per REQ. After producing the findings table, **also output the full list of REQ-xx from the spec** so the orchestrator can spawn a probe-creator sweep — one probe per REQ — to catch any deviation your static analysis missed.
+
+Format:
+```
+| REQ | Implementing location (file:line) | Static analysis confidence | Needs probe? |
+|-----|------------------------------------|--------------------------|--------------|
+| REQ-04 | rtl/dsp_regs.sv:53 | HIGH | no (already pinned) |
+| REQ-12 | rtl/dsp_rndsat.sv (shared) | structural | yes |
+...
+```
+
+REQs where you have HIGH confidence and cited the exact implementing line: mark "no probe needed". All others: mark "probe needed" — these go to Phase 1c as a probe-per-REQ sweep.
+
 ## Output Format
 
 ```markdown

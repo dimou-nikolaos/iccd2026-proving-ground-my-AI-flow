@@ -2,6 +2,38 @@
 
 Task cards are how the orchestrator (Build agent) communicates with subagents. Each subagent invocation includes a task card as the prompt string. The agent's base behavior is defined by its `.opencode/agents/<name>.md` (identity and constraints). The task card provides **per-invocation specifics**.
 
+## Batched task card modes (added after challenge-1)
+
+When using batching tools, dispatch subagents with BATCH MODE cards instead of single-task cards:
+
+### `@ppa-optimizer` BATCH VARIANT mode
+```
+DESIGN: <name>
+PHASE: 4e-wildcard
+MODE: BATCH VARIANT (no validation, just produce)
+INPUTS: <baseline RTL dir>
+DELIVERABLE: /tmp/opencode/wild-variants/<id>/rtl/ with the wildcard applied. Do NOT lint, do NOT test, do NOT run flow. Just write the RTL and exit.
+WILDCARD: <one-sentence change description>
+```
+Orchestrator batches N such agents → tar each variant → ONE `scripts/pg-batch.sh` call validates them all in parallel. Saves ~30-50% wall vs serial agent-driven validation.
+
+### `@test-writer` VARIANT mode
+```
+MODE: VARIANT (Explorer candidate)
+INPUTS: current sub-best RTL dir
+VARIANT: <one-sentence cosmetic change: rename signal X, add comment, etc>
+DELIVERABLE: /tmp/opencode/explorer/<id>/rtl/ with the variant applied.
+DO NOT: change any boolean expression that affects output for some input combination.
+```
+
+### `@rtl-fixer` MULTI-VARIANT mode
+```
+MODE: MULTI (apply same fix to N variant dirs)
+INPUTS: list of variant dirs
+FIX: <description>
+```
+Avoids N separate agent invocations for the same fix.
+
 ## Task Card Template
 
 ```
@@ -116,12 +148,13 @@ INPUTS (read these before starting):
 DELIVERABLES:
 - tests/test_submission.py (all cocotb test functions)
 - tests/<design>_tb.py (reference model, driver class, helpers)
+- **`docs/designs/<name>-req-matrix.md`** — one row per REQ (`grep -oE 'REQ-[0-9]+' spec.md | sort -u`), columns: REQ, description, test name(s) covering it, notes. Every REQ must have ≥1 test or be marked untestable with justification.
 - Must pass on the fixed rtl/ (in challenge-1/rtl/)
 - At least 3 tests must FAIL on baseline RTL (proving deviations detected)
 
 FOCUS:
 - Event-driven model (this is a datapath: output per transaction/frame, not cycle-by-cycle)
-- Cover: all functional REQs, and the CR
+- **Cover ALL functional REQs (the matrix above), and the CR**
 - Boundary: max/overflow counter values, empty transfers, invalid-strobe cases, config scramble
 - Randomized: 20+ configs per test, seeded RNG, backpressure injection
 - Name tests after requirements: test_req05_<behavior>, test_cr1_<feature>

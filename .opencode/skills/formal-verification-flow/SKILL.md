@@ -10,6 +10,8 @@ Prove/disprove LOCAL invariants within bounded cycles (1-20):
 
 NOT for: multi-frame sequential behavior, deep temporal (needs >20 cycles), multi-module properties.
 
+**ROI caveat (L13 in flow-lessons)**: in our flow image, SBY formal has POOR ROI vs simulation next-state assertions for most properties. Flow Docker has SBY + slang, but slang's SVA support is limited (`|=>`, `|->`, `@(*)` rejected), and async-reset FFs use `$anyinit` so helper-reg patterns produce false-positive CEXs at step 1. A clean SBY run costs 1-2 hours of setup + iteration; the same property is pinned "for free" by a one-cycle-back identity assertion inside `always @(posedge clk)` that runs at every cycle of every cocotb test. **Default to simulation next-state assertions. Reserve formal for genuinely deep properties (>20 cycles) or unbounded induction.**
+
 ## When to SKIP formal (go directly to fix)
 
 If spec-analyst found HIGH confidence deviations:

@@ -72,3 +72,27 @@ make -C tb/public RTL_ROOT=<baseline-path> COCOTB_TEST_FILTER=test_probe_reqNN
 | Missing reset branch | Write a nonzero value to the register, assert reset for 2 cycles, deassert, read the register back |
 | Config not latched | Start a frame with config A, change config to mid-frame, check that frame still uses A |
 | Extra boolean term | Exercise the case where the extra term would make the output differ from spec |
+
+## Probe-per-REQ sweep mode (Phase 1 closing — L1)
+
+After static analysis identifies 3 high-confidence deviations, **the orchestrator may spawn you in a different mode**: write one minimal probe test per REQ (not per finding). This catches the 4th-seeded-deviation-that-hides-in-plain-sight.
+
+Inputs in this mode:
+- Full REQ list from spec-analyst's output (or directly from spec.md via `grep -oE 'REQ-[0-9]+' spec.md | sort -u`)
+- The REQ → implementing-line map from spec-analyst
+- Baseline RTL
+
+Method:
+- For each REQ, write a ~10-line probe that exercises the spec's stated behavior with one specific input combination and asserts the spec-expected output.
+- If the probe FAILS on baseline → **new deviation found**, even if static analysis missed it. Report to orchestrator.
+- If the probe PASSES → REQ verified behaviorally (also feeds Phase 3a's REQ coverage matrix as a starting test).
+
+Output:
+```markdown
+| REQ | Probe name | Result on baseline | Implies |
+|-----|-----------|---------------------|---------|
+| REQ-04 | test_probe_req04 | PASS | confirmed correct |
+| REQ-16 | test_probe_req16 | FAIL: expected -1, got -2 | NEW DEVIATION |
+```
+
+This mode produces 30-50 short probes per design, ~1 hour to write. ROI: high. challenge-1 caught REQ-16 (HALF_EVEN rounding bug) only via this sweep.

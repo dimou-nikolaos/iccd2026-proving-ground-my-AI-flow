@@ -77,5 +77,17 @@ If a probe passes on baseline it isn't discriminating; if it fails on the fix th
 
 **Key insight**: If the public TB passes on baseline AND the discriminating condition is never exercised (e.g., COMPARE >= PERIOD), confidence is HIGH without running formal. The public TB passing confirms the deviation is not in a commonly-hit path.
 
+## Phase 1 closing: probe-per-REQ sweep (L1 in flow-lessons)
+
+After the static analysis above, the count "exactly 3 deviations" can still miss one. **challenge-1's 4th seeded deviation (REQ-16 HALF_EVEN rounding) was caught only by writing one probe test per REQ** from spec text — not by hunting RTL line patterns.
+
+**Procedure** (orchestrator handles this, but spec-analyst should output the REQ list to enable it):
+1. Enumerate every REQ-xx from spec (`grep -oE 'REQ-[0-9]+' spec.md | sort -u`)
+2. For each, write a ~10-line cocotb probe that exercises the spec's stated behavior with one specific input combination
+3. Run all probes on baseline RTL
+4. Any FAIL = new deviation found (even if static analysis missed it)
+
+Time cost: ~1 hour for 30-50 REQs. ROI: catches the hidden 4th deviation. Also seeds Phase 3a's REQ coverage matrix.
+
 ## For deeper context
 Read `docs/skills/bug-hunting.md` (12KB, full pattern examples with code, pattern catalog + detection heuristics).

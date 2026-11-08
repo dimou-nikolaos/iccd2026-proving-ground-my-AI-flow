@@ -13,6 +13,8 @@ Write SystemVerilog assertion (SVA) modules that bind into the design and check 
 
 ## PROACTIVE STRATEGY: enumerate before writing
 
+**First-pass rule: cover every REQ up front.** Enumerate `grep -oE 'REQ-[0-9]+' spec.md | sort -u`, write at least one assertion per REQ (signal-def or interface or reset variant — see categories below) before the first mutation run. Each REQ-level assertion is a few lines; coverage is the V safety net. Do not write "high-value categories only" and iterate later — the matrix is mandatory, not optional.
+
 **BEFORE writing any assertion code**, produce a coverage plan:
 
 ### Step A: List all `always_ff` blocks and their reset signals
@@ -169,6 +171,28 @@ a_acc_base_def: assert property (
 ```
 
 Kills `negate` mutations on the select condition and arith/constant mutations on branch values. Without these, mutations at mux lines survive because no higher-level assertion distinguishes the paths.
+
+### 10. Interface assertions (MANDATORY for top + defensive for submodules)
+
+**Top-level interface module (one per design, mandatory)**: bind to the TOP module. Check every externally visible protocol contract. These survive internal refactors and catch handshake-violation mutants that signal-def assertions miss.
+
+```systemverilog
+// AXI-stream handshake stability (every valid/ready pair):
+a_svalid_stable: assert property (@(posedge clk)
+  (s_valid && !s_ready) |=> (s_valid && $stable(s_data) && $stable(s_last)));
+a_mvalid_stable: assert property (@(posedge clk)
+  (m_valid && !m_ready) |=> (m_valid && $stable(m_data) && $stable(m_last)));
+```
+
+For register maps: `cfg_we |=> $stable(cfg_addr)`. For irq: `irq == (irq_stat & irq_en)`. These are simple, low-effort, and catch drop_term + relational classes on the interface logic.
+
+**Submodule interface assertions (defensive, REQ-bound)**: when a submodule's interface is constrained by a REQ (e.g., REQ-12 says every stage uses RS, REQ-31 says limiter passes `last` through unchanged), bind a small assertion module to that submodule that checks the contract. Prefer these over signal-def assertions on internals when you plan Tier B/C PPA — interface assertions survive a restructure; signal-def assertions must be rewritten.
+
+Example (limiter passes last through, per REQ-31):
+```systemverilog
+// bound to dsp_limit
+a_last_passthrough: assert property (@(posedge clk) in_last |-> ##[0:1] out_last);
+```
 
 ## Bind Template
 

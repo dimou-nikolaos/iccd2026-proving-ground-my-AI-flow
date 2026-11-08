@@ -218,6 +218,17 @@ Sometimes a survivor appears in the report but is actually killed by existing ev
 
 **Key insight**: signal-definition assertions at intermediate points kill mutants that higher-level output assertions miss. Write assertions on EVERY non-trivial intermediate signal (muxes, conditions, counters), not just final outputs.
 
+## V seed uncertainty — robust V beats lucky V
+
+The mutant seed is derived from the **submission tar's content hash**. Changing ANY file (even adding one test) rerolls the seed and changes which 40 mutants get generated. **A local V=1.0 is a single-seed sample** — it does NOT mean the design has complete mutation coverage; it just means you got lucky that the 40 mutants drawn from that seed happened to all be killed.
+
+**Strategic implication**: optimize for **V robustness**, not for any single-seed V value:
+- A submission with 63 tests covering all 40 REQs is more robust than a 61-test submission even if the 61-test one shows V=1.0 locally and the 63-test one shows V=0.975. The 63-test submission kills more mutants on average across all possible seeds.
+- Don't chase V=1.0 on a local seed by tuning tests to that seed. That's overfitting.
+- **REQ-matrix completeness** is the right proxy for expected V — the spec is fixed, the mutant generator targets spec-implementing code, so REQ coverage correlates with mutation coverage.
+
+**V ceiling (per design)**: there's always a small residue of equivalent mutants (mutations producing identical behavior under observable I/O — e.g., removing an async reset on a register that's only used inside an already-reset context, or replacing `(x != 0)` with `(x > 0)` for an unsigned signal). Accept ~0.975-1.0 as the realistic ceiling.
+
 ## Reading the report
 
 ```json

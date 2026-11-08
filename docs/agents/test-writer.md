@@ -172,6 +172,15 @@ Required files in `tests/`:
 - `Makefile` — cocotb Makefile (with ASSERTIONS support)
 - `run.sh` — **required** convenience script (flow calls this)
 
+Required file in `docs/designs/`:
+- **`<name>-req-matrix.md`** — one row per REQ from spec (`grep -oE 'REQ-[0-9]+' spec.md | sort -u`). Columns: REQ id, description (truncated), test name(s) covering it, status (OK / GAP / UNTABLE). Every REQ must have ≥1 test, OR be marked untestable in simulation with justification (e.g., REQ-42 "no latches" is synthesis-time only).
+
+**Why this matters**: measured on challenge-1, switching from per-line mutant targeting to filling REQ gaps raised V from 0.85 → 1.0 in two iterations. The matrix is the spec-coverage audit — without it you cannot claim REQ completeness. Mutant hunting after the matrix is complete addresses residue only.
+
+## First-pass rule: cover every REQ up front
+
+Once the golden model is built, **writing one test per REQ is ~5 lines each — virtually free per test**, and the coverage is your V and C safety net. Do not write "representative tests" and iterate later. The first mutation run should be a *verification* of complete coverage, not a gap-finding exercise. Iterate to add coverage of edge cases the matrix missed (saturation, priority collisions, mid-stream reset), not to fill REQ gaps.
+
 ## Helper Module (`<name>_tb.py`)
 
 Sits alongside `test_*.py` in `tests/`. Importable by test files. Contains:
