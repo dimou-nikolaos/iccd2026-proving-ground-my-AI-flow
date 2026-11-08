@@ -56,8 +56,9 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Timing-slack asset / pipeline strategy**: L9, L10, L16
 - **Area counter-intuition / topology risks**: L11, L14
 - **Spec-freedom and external analysis**: L15
-- **Per-element wildcard results (operand isolation, sync-reset, keep)**: L17, L20, L27, L28
+- **Per-element wildcard results (operand isolation, sync-reset, keep)**: L17, L20, L27, L28, L29
 - **Tooling (Verilator vs Yosys frontend, OpenROAD reports)**: L19, L21
+- **Critical-path restructures (negative results)**: L30
 
 **L5. Any archive change rerolls the mutation seed.** V is deterministic per tar but unpredictable across tars. A "safe" P-neutral RTL change can lower V by rerolling to a worse seed.
 **Lesson**: only promote archive changes that measurably improve P (or V). Otherwise revert and keep sub-best.
@@ -131,6 +132,27 @@ Verilator lint PASSED (SystemVerilog allows textual forward-reference in continu
 - v24 (keep on kept + mask + dropped + half): P=0.604 (-0.008)
 All worse than v20. v20 alone remains best. The favorable timing effect is specific to keeping the `kept` wire (the output of `value >>> shift`); preserving downstream wires reverts the structural reorganization that gave the win.
 **Lesson**: when a `keep` wildcard wins, do NOT assume stacking more keeps helps. Treat each keep as an independent perturbation — find the single best or small best subset, not "all keeps". Batch design: try 1 keep per variant on each candidate wire (N variants), then try small combinations of winners only if single winners cluster in same module.
+
+**L29. Cross-module `(* keep *)` stacks DO compound; same-module stacks DO NOT.** Challenge-1 Batch A: after v20's single keep on dsp_rndsat.kept won at P=0.6118, tried single keeps on wires in OTHER modules:
+- v25 (kept + dsp_gain.product_q): P=0.6128 (+0.001)
+- v26 (kept + dsp_decim.sum_next): P=0.6018 (-0.010 LOSS)
+- v27 (kept + dsp_stream.lim_data): P=0.6118 (TIE)
+- **v28 (kept + dsp_fir.acc_q): P=0.6143 (+0.0025 WIN)**
+Then stacked more on top of v28:
+- v29 (kept + acc_q + gain.product_q): P=0.6097 (LOSS)
+- v30 (kept + acc_q + gain.centered_q): P=0.6143 (TIE)
+- v31 (kept + acc_q + stream.gain_data): P=0.6143 (TIE)
+- v32 (kept + acc_q + fir.prod_q): P=0.6143 (TIE)
+Pattern: the optimum is 2 keeps in **different modules** (rndsat + fir). Same-module second keep is neutral or negative. Three keeps across modules plateau.
+**Lesson**: when a keep wins, try cross-module single keeps on next-wave variants. Stop stacking once same-module attempts plateau. Optimum ≈ one keep per "critical" module in the design.
+
+**L30. Critical-path restructure experiments on `cfg_addr → cfg_rdata` mux tree all LOST P.** Challenge-1 Batch B (after L21 established critical path is the dsp_regs read mux tree at slack 6.49 ns): tried 4 restructures on top of v28 (P=0.6143):
+- v33 `(* parallel_case *)` pragma on read always_comb's case: P=0.6033 (-0.011)
+- v34 same pragma on both read AND write cases: P=0.6033
+- v35 parallel_case + `(* keep *)` on `word` and `is_coef` (preserve pre-decode wires): P=0.5907 (-0.024 BIG LOSS)
+- v36 explicit one-hot decode + AND-OR tree (manual parallel-mux rewrite, 16 sel/rd pairs OR-reduced): P=0.5948 (-0.019)
+All four WORSE than the unmodified `unique case`. Yosys's default lowering of `unique case` over a 6-bit selector to a 17-entry mux is already optimal; manual restructure (parallel_case pragma, AND-OR tree, keep on intermediate wires) all force WORSE netlist structures.
+**Lesson**: the reported critical path is NOT necessarily a recoverable P asset. If Yosys is already doing the obvious synthesis, hand-restructuring moves away from the optimum. Don't trust "this path is critical therefore we can shorten it" — measure. Tier B restructures on the cfg_addr→cfg_rdata path are a dead end for this design.
 
 ## Phase 4 — iterate (V: mutation kill, seed hedging, Explorer award)
 

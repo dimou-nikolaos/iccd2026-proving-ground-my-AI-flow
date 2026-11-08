@@ -62,7 +62,7 @@ Structural moves plateau P at ~0.55-0.60 on datapath designs. To break 0.70 you 
 ### Yosys attributes (RTL hints that survive synthesis)
 
 - `(* fsm_encoding = "one_hot" *)` on FSM state reg — forces one-hot encoding even if `Yosys` default would pick binary.
-- `(* keep = "true" *)` — prevents optimization of a signal (opposite of what you usually want, but useful to preserve a signal name for interface assertions).
+- `(* keep = "true" *)` — prevents Yosys from constant-prop / merging / eliminating a signal. **Counter-intuitive use as P wildcard**: forcing a wire to survive often IMPROVES P (timing) via different downstream mux tree routing. Challenge-1: keep on dsp_rndsat.kept gained +0.0042 P; keep on dsp_fir.acc_q added another +0.0015 (different module — stacks). See § `(* keep *)` wildcards below.
 - `(* dont_touch = "true" *)` — prevents cell replacement / merging on this instance.
 - `(* maxfreq = N *)` — timing hint for ABC. Rarely effective; OpenROAD's STA dominates.
 
@@ -87,6 +87,21 @@ Structural moves plateau P at ~0.55-0.60 on datapath designs. To break 0.70 you 
 | 9 | Register replication for fanout | none | medium |
 | 10 | Operand isolation | low | small |
 | 11 | Pipeline deep combinational | HIGH (cycle tests) | high (timing only) |
+
+## `(* keep *)` wildcards (low-risk PPA perturbation)
+
+`(* keep = "true" *)` on an internal wire prevents Yosys's constant-prop, structural hashing, and merging from eliminating it. This usually costs area but can WIN P via different downstream mux-tree routing. Pure attribute — no semantic change, no test impact, no C risk.
+
+**Challenge-1 measured** (22 keep variants tried across 4 batches):
+- v20: single keep on `dsp_rndsat.kept` → P +0.0042 vs sub-16
+- v28: stack on rndsat + single keep on `dsp_fir.acc_q` (DIFFERENT module) → P +0.0025 more
+- Same-module stacks (v21-v24 on rndsat internals): ALL regressed or plateaued
+- Cross-module stacks (v25, v27): tied or marginal; v26 (decim) regressed
+
+**Rules** (from L27, L28, L29):
+1. Try 1 keep per variant on each candidate wire in a wide batch (~16 signals = 16 variants, ~25 min wall in 4-parallel pg-batch mode). Hit rate ~1/8 wins, +0.001 to +0.005 P each win.
+2. **Cross-module stacks COMPOUND** (rndsat + fir wins → both stacks add). **Same-module stacks PLATEAU** (rndsat + rndsat loses).
+3. After 2 winning cross-module keeps, plateau usually reached. Don't try 3+ stacks without measurement.
 
 ## What Yosys does for free — don't fight it
 
@@ -115,6 +130,7 @@ Don't pre-optimize for these. Write RTL that EXPOSES structure (clean enables, c
 - Module fusion (inline submodule): no CSE win, hurts V (mutations on now-unused module file become no-op equivalents → survivors).
 - Precompute small expressions into flops (cmp_m1_q): 16 flops cost more than the 16-bit adder saved.
 - Spec-freedom counter reversals (countdown prescaler): may save comparator but need shrink-guards (OR conditions = more cells than the original).
+- **Critical-path restructure when Yosys is already optimal (challenge-1, L30):** if the OpenROAD critical path is a `unique case` mux tree on cfg_addr → cfg_rdata, hand-restructuring to one-hot decode + AND-OR tree (or adding `(* parallel_case *)`) makes P WORSE, not better. Challenge-1: 4 restructures all regressed P (−0.011 to −0.024). The reported "critical path" is NOT automatically a recoverable asset; Yosys's default may already be the best lowering for the chosen cells. Always measure one variant of a restructure before committing to a series.
 
 ## Proven PPA wins (control+bus, challenge-2)
 
@@ -122,7 +138,7 @@ Don't pre-optimize for these. Write RTL that EXPOSES structure (clean enables, c
 |-----------|-------------|----------|---------------|
 | **ICG-friendly 3-branch flop** | `if (load) q <= init; else if (step) q <= next; else hold;` instead of `q <= mux(load, step, init, next, q)` | Timing +0.03 to +0.04, area wash | Any counter/register with distinct load and step conditions |
 | **`>=` → `==` on wrap-style comparisons** | `count >= period` → `count == period` when invariant `count <= period` always holds | Timing −0.01 alone, +0.008 bundled | Any counter that resets on reaching bound |
-| **AND-OR read mux** | `one_hot_decode` + `assign rd = (bitsel[0] & val0) \| (bitsel[1] & val1) \| ...` instead of `unique case` | Area +0.03, WNS −0.2 (must be bundled) | Register file read paths with 6–10 sources |
+| **AND-OR read mux** | `one_hot_decode` + `assign rd = (bitsel[0] & val0) \| (bitsel[1] & val1) \| ...` instead of `unique case` | Area +0.03, WNS −0.2 (must be bundled) | Register file read paths with 6–10 sources. **Caveat (challenge-1, L30):** for some designs Yosys's default lowering of `unique case` is ALREADY optimal; manual AND-OR rewrite LOSES P (−0.019 to −0.024). Challenge-2 pwm_timer AND-OR was a win (−241 cells, P +0.03); challenge-1 dsp_regs AND-OR was a loss. **Measure first; don't trust "the critical path is the mux tree therefore restructure it."** |
 | **Operand isolation on idle adders** | `in_iso = en ? in : 0; sum = in_iso + 1` (adder input frozen when disabled) | Area +0.002, power +0.005 | Any adder enabled <50% of cycles |
 | **Wrap shortening + mux restructure bundle** | Combined: wrap `==` shortens hot path, AND-OR mux saves area | Net +0.008 (bundled); alone each loses | Only apply together |
 
