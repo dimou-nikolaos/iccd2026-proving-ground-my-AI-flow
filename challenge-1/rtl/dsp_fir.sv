@@ -24,7 +24,7 @@ module dsp_fir (
 
   typedef enum logic [1:0] {S_IDLE, S_MAC, S_ACC, S_DONE} state_t;
 
-  state_t             state_q;
+  (* fsm_encoding = "one_hot" *) state_t state_q;
   logic [15:0]        delay_q [dsp_pkg::MAX_TAPS];
   logic [3:0]         idx_q;
   logic signed [31:0] prod_q;

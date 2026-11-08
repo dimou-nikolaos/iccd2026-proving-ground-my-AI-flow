@@ -50,7 +50,7 @@
 - Lesson: REQ coverage is the primary V driver. After completing REQ matrix, V ceiling reached 1.0 on first try.
 
 ## Best submission
-- **runs/sub-best.tar.gz = runs/sub-e22.tar.gz** (md5 `8afb1c1c4425245c5aececdae2e465dd`)
+- **runs/sub-best.tar.gz = runs/sub-v39.tar.gz** (md5 `38ed9ccf2f16236d083c27954de59da3`)
 - RTL changes vs sub-13: gain 3-stage + FIR mult ISO + gain mult ISO + FIR delay_q sync reset
 - Locally: V=0.975, P=0.6076, C=unknown (server down)
 - P breakdown: a=−0.0235 (small area penalty), t=+0.2304 (timing win), p=+0.6625 (huge power win)
@@ -106,7 +106,7 @@ Implemented batching pattern: pre-build variant dirs → tar → ONE bash invoca
 - **Wildcard c (FIR rndsat S_OUT state)**: added FSM state to register FIR rndsat output. Hypothesis was to split rndsat combo path. Result: P=0.5773 (−0.0145 on top of gain3). FIR rndsat NOT on critical path after gain3 split, so extra flops = pure area+power penalty. Reverted.
 - Time: ~105 min wall-clock for two wildcard experiments + docs.
 - Lesson: **pipeline stages that are ON the critical path**; splitting non-critical stages is P-negative.
-- Current sub-best: **sub-e22**, P=0.6143, V=1.0 local (seed-lucky), projected score at C=1.0: 80.72.
+- Current sub-best: **sub-v39**, P=0.6192, V=1.0 local (seed-lucky), projected score at C=1.0: 80.96.
 
 ### sub-fir-parallel PPA experiment (Tier C restructure, FAILED)
 - Replaced iterative FIR FSM with parallel topology: 8 multipliers + adder tree + 1-cycle output register
@@ -198,10 +198,11 @@ Implemented batching pattern: pre-build variant dirs → tar → ONE bash invoca
 
 ## Next action for operator
 - **Server down**. While down, follow `docs/state/challenge-1-session-checkpoint-2026-11-08.md` (in-flight plan + resume recipe).
-- **Current best: sub-e22** (P=0.6143, V=1.0 local, C unknown). md5 `8afb1c1c4425245c5aececdae2e465dd`. Projected at C=1: 80.72.
-- V=1.0 lucky pool: 16 variants. Server V-reroll hedged well.
+- **Current best: sub-v39** (P=0.6192, V=1.0 local, C unknown). md5 `38ed9ccf2f16236d083c27954de59da3`. Projected at C=1: 80.96.
+- **NEW PPA lever found**: `(* fsm_encoding = "one_hot" *)` on small FSMs (+0.005 P in one shot). L31.
+- V=1.0 lucky pool: 18 variants. Server V-reroll well-hedged.
 - Server is down — cannot submit yet.
-- Once server is back: upload `runs/sub-e22.tar.gz` first. Wait for C. If C=1.0, done for challenge-1 (banked). If C<1.0, diagnose from failed hidden test names.
+- Once server is back: upload `runs/sub-v39.tar.gz` first. Wait for C. If C=1.0, banked. If C<1.0, bisect.
 - If C<1.0: use failed-test names to diagnose hidden-test deviations.
 - **Seed-luck hedge**: if V comes back low (say <0.95), also submit `runs/sub-e3.tar.gz`, `runs/sub-e6.tar.gz`, or `runs/sub-e7.tar.gz` (cosmetic variants with locally-confirmed V=1.0).
 - Explorer candidates on disk (21+): sub-16, sub-15, sub-14, sub-13, sub-11, sub-12, sub-w1/w6/w7/w9, sub-g2..g8 (6 of these), sub-e1..e8 (8 of these, 3 with V=1.0), sub-fifo-rm, sub-acc-narrow, sub-fuse-lim.
