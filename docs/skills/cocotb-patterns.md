@@ -232,6 +232,104 @@ Always seed the RNG: `rng = random.Random(seed)`. This makes test behavior deter
 - The flow builds with `+verilator+seed+<derived_from_submission_hash>`
 - A test that fails non-deterministically may pass on the flow and the mutant won't be killed
 
+## Test Taxonomy (8 categories, write one or more per REQ)
+
+Name each test after the requirement it pins. Categories by mutation-kill value:
+
+### 1. Deviation-targeted tests (one per confirmed deviation)
+```python
+@cocotb.test()
+async def test_op_order(dut):
+    """REQ-xx: operation order — apply A before B."""
+```
+- Designed to FAIL on baseline RTL, PASS on fixed RTL
+- Use asymmetric values that discriminate the two behaviors
+
+### 2. Change-request tests
+```python
+@cocotb.test()
+async def test_cr1_feature_check(dut):
+    """CR-1: width code 3 selects the narrower output width."""
+```
+- Use acceptance table values from `change_request.md`
+- Must pass on fixed RTL (which implements the CR)
+
+### 3. Boundary tests
+```python
+@cocotb.test()
+async def test_len_sat_boundary(dut):
+    """REQ-xx: boundary — no saturation just below max, saturation at/above it."""
+```
+- Hit the exact boundary where comparison operators flip behavior
+- Empty/zero cases, max-value cases, wraparound
+
+### 4. Protocol tests
+```python
+@cocotb.test()
+async def test_queue_order_and_backpressure(dut):
+    """REQ-xx: output ordering and backpressure."""
+```
+- Handshake correctness: valid/ready, setup/access phases
+- Backpressure: stall output, verify stability
+- Reset mid-operation: verify clean recovery
+
+### 5. Constrained-random tests
+```python
+@cocotb.test()
+async def test_random_transactions(dut):
+    """REQ-xx: random configs and data, model comparison."""
+```
+- Random configs within legal range (width ∈ {0,1,2,3}, key within W bits)
+- Random data lengths (0-100 bytes typical, occasional long)
+- Random backpressure and gaps
+- Seeded RNG for reproducibility (`tb = DesignTB(dut, seed=N)`)
+- Sweep multiple seeds for coverage
+
+### 6. Register-map tests (control designs only)
+```python
+@cocotb.test()
+async def test_register_map(dut):
+    """REQ-xx: full address-space coverage."""
+```
+- Read/write every mapped address
+- Read unmapped → `pslverr=1`, `prdata=0`
+- Read at address-decode BOUNDARY: last valid offset (e.g., CH_REPEAT at paddr[4:2]=5), first invalid offset (paddr[4:2]=6 → PSLVERR). Kills off-by-one decode mutants.
+- Write read-only → `pslverr=0`, no effect
+- Byte strobes: write with partial `pstrb`, verify un-strobed lanes unchanged
+- **Strobe discrimination**: write to register with WRONG lane (e.g., strb=0x2 for a register that requires lane 0). Verify register NOT updated. Kills wstrb-index mutations in write decode.
+- `paddr[1:0]` ignored
+
+### 7. Strobe discrimination tests (kill byte-lane mutations)
+```python
+@cocotb.test()
+async def test_strobe_discrimination(dut):
+    """Each register responds only to its required byte lane."""
+    # Write with WRONG lane → no effect
+    await tb.write(CH_CTRL, 0b111, strb=0x2)  # wrong lane
+    assert await tb.read(CH_CTRL) == 0, "CH_CTRL should NOT be written with strb=0x2"
+    # Write with CORRECT lane → updated
+    await tb.write(CH_CTRL, 0b101, strb=0x1)  # correct lane
+    assert await tb.read(CH_CTRL) == 0b101
+    # PRESCALE: test both lane 0 and lane 1 independently
+    await tb.write(PRESCALE, 0x00FF, strb=0x1)  # low byte
+    await tb.write(PRESCALE, 0x0100, strb=0x2)  # high byte
+    assert await tb.read(PRESCALE) == 0x01FF    # both preserved
+```
+
+### 8. Address boundary tests (kill decode range mutations)
+```python
+@cocotb.test()
+async def test_address_boundaries(dut):
+    """Read at the edge of valid/invalid address ranges."""
+    # Last valid channel offset (CH_REPEAT at offset 0x14 within 0x20 stride)
+    await tb.read(ch_addr(0, CH_REPEAT))  # mapped, no error
+    # First invalid offset within channel block (offset 0x18 → paddr[4:2]=6)
+    await tb.read(0x118)  # unmapped, PSLVERR=1
+    await tb.read(0x11C)  # unmapped, PSLVERR=1
+    # First unmapped channel number
+    await tb.read(0x180)  # channel 4, PSLVERR=1
+```
+
 ## Test Naming Convention
 
 ```python

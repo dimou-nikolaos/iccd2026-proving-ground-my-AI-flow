@@ -1,5 +1,20 @@
 # Agent: assertion-writer
 
+## INDEX
+
+- Role
+- Inputs
+- PROACTIVE STRATEGY: enumerate before writing
+- Assertion Categories (READ BEFORE WRITING)
+- Bind Template
+- Verilator SVA Subset (supported)
+- Critical Rules
+- Systematic Coverage Checklist (DO THIS FOR EVERY DESIGN)
+- When to Accept Survivors: Semantically Equivalent Mutants
+- Output Format
+- Mutation kill effectiveness by category
+
+
 ## Role
 
 Write SystemVerilog assertion (SVA) modules that bind into the design and check spec-derived invariants at runtime. These assertions fire during simulation (both evidence runs and mutation runs), killing mutants automatically when their mutated expression violates a checked invariant.
@@ -52,147 +67,21 @@ Every `assign sig = expr;` → signal-definition assertion `sig == expr`.
 
 Every signal listed in Step A, every pattern in Step B, and every wire in Step C must have at least one assertion. If a signal has no assertion, write one or explicitly mark it as "equivalent mutant — unkillable, skip."
 
-## Inputs (repeated for clarity — read them)
+## Assertion Categories (READ BEFORE WRITING)
 
-## Assertion Categories (by mutation-kill effectiveness)
+**Pattern library with code examples: `docs/skills/sva-patterns.md` § "Assertion Categories and Templates" (11 categories).** Read that section before writing. Category names by mutation-kill effectiveness:
 
-### 1. Signal-definition assertions (HIGHEST kill value)
-
-For every important computation, assert that the output equals the spec formula:
-
-```systemverilog
-// The spec says: acc_next = shift-and-xor(acc_q, byte_in, key)
-// This assertion kills ANY mutation to that expression
-a_acc_next_def: assert property (
-  fire && tok.vld |-> acc_next == expected_fn(acc_q, tok.din, key, mask));
-```
-
-Why highest value: a signal-definition assertion kills every mutant at that line regardless of what stimulus drives it. If the computation is wrong (mutated), the assertion fires the instant that code path executes.
-
-### 2. Next-state assertions
-
-Assert the register's next value given a condition:
-
-```systemverilog
-a_prescale_reset: assert property (
-  @posedge clk !rst_n |=> prescale_q == 16'd0);
-
-a_len_increment: assert property (
-  fire && vld && !sof && cnt_q != BOUND |-> cnt_next == cnt_q + 16'd1);
-```
-
-These kill: off_by_one (wrong increment amount), relational (wrong condition for increment), constant (wrong starting value).
-
-### 3. Protocol invariants
-
-Interface rules that must hold unconditionally:
-
-```systemverilog
-a_pready_always: assert property (pready);  // APB: zero wait states
-a_result_stable: assert property (
-  m_valid && !m_ready |=> m_valid && $stable(m_acc) && $stable(m_len));
-a_valid_occupancy: assert property (m_valid == (occupancy != 0));
-```
-
-### 4. Reset assertions (no `default disable iff`)
-
-These check that registers are properly cleared. They kill "drop_term" mutations that remove reset branches:
-
-```systemverilog
-// In a SEPARATE module without disable iff:
-module reset_check(...);
-  a_reset_prescale: assert property (@(posedge clk)
-    !rst_n |=> prescale_q == 16'd0 && gen_q == 1'b0);
-endmodule
-```
-
-### 5. Boundary/range assertions
-
-```systemverilog
-a_count_bound: assert property (count_q <= period_act_q);
-a_occupancy_max: assert property (occupancy <= 3'd4);
-a_sat_boundary: assert property (
-  cnt_q == BOUND && vld && !sof |-> sat_en);
-```
-
-### 6. Persistence / write-scope assertions (register interfaces)
-
-Assert that bits NOT in the write scope SURVIVE a conditional update. Uses `$past()` to capture the pre-write value:
-
-```systemverilog
-// "write-1-to-clear only clears in strobed byte lanes"
-a_w1c_lane0_guard: assert property (
-  wr_status && !wstrb[0] |=> (status_q[7:0] & $past(status_q[7:0])) == $past(status_q[7:0]));
-```
-
-Catches missing-strobe-mask mutations: if RTL clears ALL bits regardless of strobe, non-strobed lanes lose their bits and assertion fires.
-
-### 7. Decode-definition assertions (kill write-decode mutations)
-
-For EVERY write decode line in a global always_comb: `wr_reg[n] = acc_wr && sel && (creg == CONST);`
-
-```systemverilog
-// Pin the entire decode expression — kills constant±1, &&→||, operator swaps
-a_wr_ctrl_def: assert property (
-  wr_ch_ctrl[0] == (acc_wr && sel_ch[0] && (sel_creg == 3'd0)));
-a_wr_period_def: assert property (
-  wr_ch_period[0] == (acc_wr && sel_ch[0] && (sel_creg == 3'd1)));
-a_wr_compare_def: assert property (
-  wr_ch_compare[0] == (acc_wr && sel_ch[0] && (sel_creg == 3'd2)));
-a_wr_repeat_def: assert property (
-  wr_ch_repeat[0] == (acc_wr && sel_ch[0] && (sel_creg == 3'd5)));
-```
-
-One per decoded register. This kills mutants that change the constant (e.g., `== 3'd1` → `== 3'd2`), swap operators, or negate sub-expressions.
-
-### 8. Strobe check assertions (register write strobes)
-
-For every `if (wstrb[N]) reg[H:L] <= wdata[H:L]` pattern:
-
-```systemverilog
-// Verify strobe gating: high byte unchanged when lane-1 strobe is 0
-a_prescale_hold_hi: assert property (
-  (wr && !wstrb[1]) |=> prescale_q[15:8] == $past(prescale_q[15:8]));
-// Verify strobe gating: low byte unchanged when lane-0 strobe is 0
-a_prescale_hold_lo: assert property (
-  (wr && !wstrb[0]) |=> prescale_q[7:0] == $past(prescale_q[7:0]));
-```
-
-These kill mutations that swap wstrb bit indices or remove the strobe check.
-
-### 9. Signal mux assertions (kills mutations on `?:` selectors)
-
-For intermediate multiplexed signals, write a definition assertion pinning the mux:
-
-```systemverilog
-// The accumulator base: init on SOF, else hold current value
-a_acc_base_def: assert property (
-  acc_base == (tok.sof ? init_l : acc_q));
-```
-
-Kills `negate` mutations on the select condition and arith/constant mutations on branch values. Without these, mutations at mux lines survive because no higher-level assertion distinguishes the paths.
-
-### 10. Interface assertions (MANDATORY for top + defensive for submodules)
-
-**Top-level interface module (one per design, mandatory)**: bind to the TOP module. Check every externally visible protocol contract. These survive internal refactors and catch handshake-violation mutants that signal-def assertions miss.
-
-```systemverilog
-// AXI-stream handshake stability (every valid/ready pair):
-a_svalid_stable: assert property (@(posedge clk)
-  (s_valid && !s_ready) |=> (s_valid && $stable(s_data) && $stable(s_last)));
-a_mvalid_stable: assert property (@(posedge clk)
-  (m_valid && !m_ready) |=> (m_valid && $stable(m_data) && $stable(m_last)));
-```
-
-For register maps: `cfg_we |=> $stable(cfg_addr)`. For irq: `irq == (irq_stat & irq_en)`. These are simple, low-effort, and catch drop_term + relational classes on the interface logic.
-
-**Submodule interface assertions (defensive, REQ-bound)**: when a submodule's interface is constrained by a REQ (e.g., REQ-12 says every stage uses RS, REQ-31 says limiter passes `last` through unchanged), bind a small assertion module to that submodule that checks the contract. Prefer these over signal-def assertions on internals when you plan Tier B/C PPA — interface assertions survive a restructure; signal-def assertions must be rewritten.
-
-Example (limiter passes last through, per REQ-31):
-```systemverilog
-// bound to dsp_limit
-a_last_passthrough: assert property (@(posedge clk) in_last |-> ##[0:1] out_last);
-```
+1. Signal-definition (HIGHEST kill value — pin every important computation)
+2. Next-state
+3. Protocol invariants
+4. Reset (separate module, no `disable iff`)
+5. Boundary / range
+6. Persistence / write-scope (register interfaces — `$past()` guard)
+7. Decode-definition (write decode lines, one assert per register)
+8. Strobe check (wstrb gating)
+9. Signal mux definition (kills negate on selectors)
+10. Interface (MANDATORY top-level; defensive submodule)
+11. Comparison-in-if guard — THREE-ASSERTION pattern
 
 ## Bind Template
 
@@ -266,38 +155,10 @@ For EVERY such block in the design:
 
 **Common miss**: signals in holding registers that "seem to reset implicitly" — they don't. `beat_valid_q` is reset but `beat_last_q` in the same block is a separate signal that must also be checked.
 
-### Comparison-in-if guard — the THREE-ASSERTION pattern
+### Per-pattern checklists
 
-For every `if (A && (x > y)) reg <= value;` pattern:
-
-```systemverilog
-// Kill negate on condition (A||B when should be A&&B):
-a_guard_false_no_update: assert property (!A |=> reg == $past(reg));
-// Kill relational (> → >=, > → ==, etc):
-a_guard_true_update: assert property (A && (x > y) |=> reg == $past(value));
-// Kill negate (A&&B → A||B):
-a_guard_B_only_no_update: assert property (!A && (x > y) |=> reg == $past(reg));
-```
-
-**Example (stats_block maxlen):**
-```systemverilog
-// if (ev && (ev_len > max_q)) max_q <= ev_len;
-a_maxlen_update: assert property (
-  ev && (ev_len > max_q) && !stat_clr |=> max_q == $past(ev_len));
-a_maxlen_nogrow: assert property (
-  ev && (ev_len <= max_q) && !stat_clr |=> max_q == $past(max_q));
-a_maxlen_hold: assert property (
-  !ev && !stat_clr |=> max_q == $past(max_q));
-```
-
-### Signal mux definitions
-
-For EVERY ternary/mux that selects between two meaningful sources:
-```systemverilog
-a_mux_def: assert property (mux_out == (sel ? a : b));
-```
-
-This kills: negate (sel flipped), relational (sel condition mutated), constant (branch value changed).
+- **Comparison-in-if guards**: write the THREE-ASSERTION pattern (category 11 in `docs/skills/sva-patterns.md`) — one assert per branch outcome (true / comparison-false / guard-false).
+- **Signal muxes (ternary selects)**: write a definition assertion `mux_out == (sel ? a : b)` (category 9 in `docs/skills/sva-patterns.md`) — pins select condition and both branch values.
 
 ## When to Accept Survivors: Semantically Equivalent Mutants
 

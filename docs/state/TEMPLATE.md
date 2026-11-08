@@ -58,3 +58,24 @@ The two sections that must always be current for seamless restart: **Next action
 - `done` — all phases complete, final submission packaged
 - `in_progress` — currently working on the marked phase
 - `blocked` — needs human input (spec ambiguity, conflicting requirements, C<1.0 diagnosis)
+
+## Long-horizon plan file (create when time-per-design is large)
+
+When a design has more time than the workflow (e.g., 10-day window, server down for several days), keep a SEPARATE `<design>-longhorizon-plan.md` alongside `<design>-progress.md`. This pattern proved compaction-safe in challenge-1.
+
+Structure (in order):
+
+1. **Resume recipe** at top (md5 check on sub-best, where to read tracker, what to do)
+2. **Current state snapshot** (md5 of sub-best, total subs on disk, V=1.0 lucky pool, lessons count)
+3. **Phase status tracker table** — rows = phases (A, B, C...), columns = goal, time budget, status, findings. Update each phase completion.
+4. **Per-phase sections** with concrete sub-tasks, decision rationale, and "what we'd do differently next time"
+5. **Time/when table** mapping calendar slots to planned activity
+6. **"Next action for the agent reading this"** — single concrete next step, not a list
+7. **Append-only activity log** at bottom
+
+Key invariants:
+- Tracker table is the single source of "are we done with phase X"
+- "Next action" is short enough that a fresh agent can execute it without reading the whole file
+- Findings column summarizes lessons (with L-numbers) so future sessions inherit the why
+
+Don't conflate this with `<design>-progress.md`. The progress file is the LIVE running record (one cycle per server submission, score history table). The plan file is the STRATEGIC multi-day view. They coexist; cross-reference sub-best md5 between them.

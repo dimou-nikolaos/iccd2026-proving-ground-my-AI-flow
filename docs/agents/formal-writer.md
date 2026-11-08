@@ -1,5 +1,15 @@
 # Agent: formal-writer
 
+## INDEX
+
+- Role
+- Inputs
+- Method
+- Output Format
+- Constraints
+- Tools available
+
+
 ## Role
 
 Write SVA properties derived from the specification. Run SymbiYosys against the baseline RTL to prove or disprove each property. A counterexample (CEX) confirms a deviation.

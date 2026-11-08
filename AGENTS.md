@@ -51,6 +51,23 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 - **Running the flow** (Docker, prompts, iteration): read `docs/running-the-flow.md`
 - **Session state** (where we left off): `docs/state/`
 
+### What to read for what (phase routing)
+
+| You are at | Read first | Then |
+|---|---|---|
+| Cold start / resume after compaction | `docs/state/<design>-progress.md` + `md5sum runs/sub-best.tar.gz` | `docs/joint-flow.md` (cycle + handoff) |
+| Starting a new design | `docs/design-init.md` (bootstrap checklist) | `docs/designs/<design>-playbook.md` |
+| Phase 1 (analyze spec deviations) | `docs/flow.md` § Phase 1 | skill `spec-deviation-hunting`, `docs/skills/bug-hunting.md` |
+| Phase 2 (fix RTL) | `docs/flow.md` § Phase 2 | task-card `rtl-fixer` |
+| Phase 3 (write tests + assertions) | `docs/flow.md` § Phase 3 | skills `cocotb-test-writing`, `sva-assertion-writing`; deep refs `docs/skills/cocotb-patterns.md`, `docs/skills/sva-patterns.md` |
+| Phase 3 formal SBY (combinational modules) | skill `formal-verification-flow` | `docs/flow-lessons.md` L13, L24-L26 (gotchas before you start) |
+| Phase 4a (server C feedback / submission) | `docs/joint-flow.md` § cycle | `docs/competition-strategy.md` (sub budget) |
+| Phase 4b (PPA Tier A/B/C) | `docs/flow-ppa-and-v.md` § PPA | skill `sky130hd-ppa`, `docs/ppa-freedom-strategy.md`, `docs/skills/sky130hd-optimization.md` |
+| Phase 4c (mutation kill) | `docs/flow-ppa-and-v.md` § Mutation | skill `mutation-kill-tactics`, `docs/skills/mutation-strategies.md` |
+| Phase 4e (wildcard exploration) | `docs/flow-wildcard.md` | `docs/flow-lessons.md` (P section, L17/L20/L27/L28 wildcard catalogs) |
+| Running the scoring flow | skill `pg-flow-commands` | `scripts/pg-batch.sh` for parallel batches |
+| PPA failure diagnosis | `docs/flow-lessons.md` L11/L14/L16/L21 (synthesis + counter-intuition) | `scripts/{submodule-synth,critical-path}.sh` |
+
 ## Quick commands (all via Docker)
 
 Use `--cpus 12 --jobs 12` for all flow runs (12 cores available on this machine). Never use fewer.

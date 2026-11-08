@@ -229,3 +229,21 @@ If we burn through subs fast, slow down — don't hit 30 with P still at 0.5.
 | Design-specific knowledge (signals, addresses, deviations, V ceiling) | `docs/designs/<name>.md` ONLY |
 | Running state (current iteration) | `docs/state/<name>-progress.md` |
 | End-of-design retrospective | `docs/sessions/<name>-session.md` |
+
+### Convention: pattern lessons go to deep refs, not role prompts
+
+When you learn a new reusable pattern (assertion pattern, test pattern, RTL technique, PPA wildcard), append it to the **deep ref** for that topic, NOT to `docs/agents/<role>.md`.
+
+| Pattern type | Append to |
+|---|---|
+| SVA assertion pattern | `docs/skills/sva-patterns.md` § Assertion Categories (number it) |
+| cocotb test pattern | `docs/skills/cocotb-patterns.md` § Test Taxonomy |
+| RTL fix / synthesizability trick | `docs/agents/rtl-fixer.md` (this one IS the role; keep concise) |
+| Mutation-kill tactic | `docs/skills/mutation-strategies.md` |
+| PPA wildcard / optimization | `docs/skills/sky130hd-optimization.md` + `docs/flow-lessons.md` (L-number) |
+| Formal / SBY pattern | `.opencode/skills/formal-verification-flow/SKILL.md` + `docs/flow-lessons.md` |
+| Pitfall / decision rule | `docs/flow-lessons.md` (always L-numbered) |
+
+**Why**: `docs/agents/<role>.md` is loaded EVERY time the sub-agent is spawned. Deep refs are loaded ON DEMAND by sub-agents that need them. Keeping role prompts short keeps always-loaded cost low. Putting patterns in deep refs means they benefit ALL relevant roles (e.g., a new SVA pattern helps assertion-writer AND mutant-hunter AND rtl-fixer who all reference sva-patterns.md).
+
+**Role prompts contain**: role definition, workflow steps, INDEX, pointer to relevant deep refs. ~150-200 lines max.

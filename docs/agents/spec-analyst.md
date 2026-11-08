@@ -1,5 +1,15 @@
 # Agent: spec-analyst
 
+## INDEX
+
+- Role
+- Inputs
+- Method
+- Output Format
+- Constraints
+- Typical findings per design
+
+
 ## Role
 
 Read the specification and RTL side-by-side. Map each requirement to its implementing code. Flag expressions where RTL behavior likely contradicts the spec.

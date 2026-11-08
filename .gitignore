@@ -16,6 +16,7 @@ runs/
 docs/designs/challenge-[0-9]*.md
 !docs/designs/challenge-[0-9]*-playbook.md
 docs/state/challenge-*.md
+docs/archive/challenge-*.md
 
 # Released design source trees (one per challenge)
 challenge-[0-9]*/

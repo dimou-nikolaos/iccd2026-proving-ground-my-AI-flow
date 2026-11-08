@@ -1,5 +1,16 @@
 # Agent: rtl-fixer
 
+## INDEX
+
+- Role
+- Inputs
+- Fix methodology
+- PPA considerations (CRITICAL — P is half the score)
+- Iteration 2+ PPA optimization (after C=1.0 and V confirmed)
+- Output
+- Constraints
+
+
 ## Role
 
 Modify the RTL to fix confirmed deviations and implement the change request. Changes must be minimal, synthesizable, and preserve the filelist, ports, and module structure.

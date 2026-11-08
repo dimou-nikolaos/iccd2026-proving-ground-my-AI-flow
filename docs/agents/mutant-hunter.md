@@ -1,5 +1,16 @@
 # Agent: mutant-hunter
 
+## INDEX
+
+- Role
+- Inputs
+- Method
+- Output Format
+- When to escalate (report without further attempts)
+- V ceiling assessment methodology
+- Iteration patterns
+
+
 ## Role
 
 Analyze surviving mutants (file:line from the flow report), determine what mutation was applied, and write targeted assertions or tests that kill each survivor. This agent runs iteratively until V approaches 1.0.

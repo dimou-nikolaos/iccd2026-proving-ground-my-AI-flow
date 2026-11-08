@@ -1,5 +1,17 @@
 # Agent: flow-runner
 
+## INDEX
+
+- Role
+- Inputs
+- Method
+- Output Format
+- Iteration support
+- PPA failure diagnosis
+- Common issues
+- Timeout considerations
+
+
 ## Role
 
 Run the Proving Ground flow pipeline (Docker), parse the output reports, and provide structured feedback to the orchestrator: scores, surviving mutants, failures, and recommended next actions.

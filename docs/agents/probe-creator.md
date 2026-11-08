@@ -1,5 +1,16 @@
 # Agent: probe-creator
 
+## INDEX
+
+- Role
+- Inputs
+- Method
+- Output
+- Constraints
+- Examples of discriminating stimuli by bug type
+- Probe-per-REQ sweep mode (Phase 1 closing — L1)
+
+
 ## Role
 
 Write a minimal cocotb test (5-30 lines) that demonstrates a suspected deviation. The test must fail on the baseline RTL and would pass on a correct implementation.

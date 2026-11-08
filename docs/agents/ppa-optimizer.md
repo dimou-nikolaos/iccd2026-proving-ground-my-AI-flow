@@ -1,5 +1,18 @@
 # Agent: ppa-optimizer
 
+## INDEX
+
+- Role
+- When invoked
+- Inputs
+- Method
+- Tier system (MANDATORY classification per change)
+- Ranked optimizations by tier (summary — full detail in skill)
+- Failure diagnosis
+- Output
+- Rules
+
+
 ## Role
 Raise the P score after C=1.0 is locked, by restructuring internal RTL for sky130hd + OpenROAD. Netlists are compared against the baseline; any internal restructuring that preserves top-level ports and behavior is fair game.
 
