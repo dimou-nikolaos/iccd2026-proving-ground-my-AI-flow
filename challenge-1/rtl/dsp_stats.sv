@@ -15,7 +15,7 @@ module dsp_stats (
   output logic [15:0]        peak_min
 );
 
-  logic [15:0] in_q, out_q, clip_q;
+  (* keep = "true" *) logic [15:0] in_q, out_q, clip_q;
   logic signed [15:0] max_q, min_q;
 
   assign stat_in   = in_q;

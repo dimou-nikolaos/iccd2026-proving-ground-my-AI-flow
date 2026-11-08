@@ -12,7 +12,7 @@ SIM ?= verilator
 TOPLEVEL_LANG = verilog
 TOPLEVEL = dsp_stream
 COCOTB_TOPLEVEL = dsp_stream
-COCOTB_TEST_MODULES = test_submission
+COCOTB_TEST_MODULES = test_submission test_async_reset
 VERILOG_SOURCES = $(addprefix $(RTL_ROOT_ABS)/,$(shell grep -v '^\s*\(//\|#\|$$\)' $(RTL_ROOT_ABS)/rtl/filelist.f))
 ASSERTIONS ?= 0
 ifeq ($(ASSERTIONS),1)

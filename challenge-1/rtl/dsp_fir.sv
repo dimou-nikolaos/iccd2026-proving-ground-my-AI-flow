@@ -26,8 +26,8 @@ module dsp_fir (
 
   (* fsm_encoding = "one_hot" *) state_t state_q;
   logic [15:0]        delay_q [dsp_pkg::MAX_TAPS];
-  logic [3:0]         idx_q;
-  logic signed [31:0] prod_q;
+  (* keep = "true" *) logic [3:0] idx_q;
+  (* keep = "true" *) logic signed [31:0] prod_q;
   (* keep = "true" *) logic signed [39:0] acc_q;
   logic               last_q;
   logic               clip_q;
@@ -121,8 +121,8 @@ module dsp_fir (
     endcase
   end
 
-  // Delay line: newest sample at index 0. (g2: sync reset)
-  always_ff @(posedge clk) begin
+  // Delay line: newest sample at index 0. (REQ-42 async reset)
+  always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       for (int i = 0; i < dsp_pkg::MAX_TAPS; i++) begin
         delay_q[i] <= 16'h0000;
