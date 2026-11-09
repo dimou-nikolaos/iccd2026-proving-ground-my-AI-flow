@@ -9,7 +9,7 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
 - **Phase 4 — iterate (C: correctness risk)**: L4
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35
-- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43
+- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44
 
 ## Phase 1 — analysis
 
@@ -226,6 +226,9 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 
 **L43. Serialized simple AXI models make some response-clause mutants equivalent; use the mutation batch to find model blind spots, then extend the VIP.** With a one-outstanding AXI4-Lite model that queues the response value at AR/AW time, mutants that drop the `m_rvalid` qualifier inside a state-gated `set_err` clause never differ (the response lane is already OKAY in every wait state). Adding `resp_when_idle` to the VIP made the *other* clause shapes killable, but `VALID`-dropping clauses inside read-wait states stay equivalent under serialization.
 **Lesson**: the evidence suite can only kill mutants the *stimulus model* can express. When two survivors look equivalent "under our model", ask what real slave could break the equivalence (out-of-order responses, latched resp lanes, multi-outstanding), and add that knob to the VIP rather than to per-test hacks. For challenge-2 hidden tests, assume a real interconnect can do both.
+
+**L44. Mechanical Explorer-variant generation: cheap classes and their empirical fate.** Gated batch generation (`scripts/explorer-variants.sh` + `explorer-check.sh`, ~20 s/candidate) classifies outcomes reliably. Measured on the DMA fixture: internal-signal rename, `(* keep *)`-buffer duplication, and `(* keep *)` on a register → GREEN (proven + distinct); `(* fsm_encoding = "one_hot" *)` on a small (4-state) FSM → semantically fine but **netlist-identical** (no Explorer value; C1's win was an 11-state FSM); renaming a net inside an arithmetic feedback loop (`cnt * stride` feeding the FSM next-state) → the name-based `equiv_make` matching **fails to prove** — rejected, correctly. Comment-only edits = V-seed rerolls, identical fingerprint by construction.
+**Lesson**: run generation in class order rename→buffer→keep-reg, expect ~50% collapse/reject, and force `--ident` for hand-picked nets that stay out of multiplier/FSM feedback when a rename is needed there.
 
 ## How to use this file
 

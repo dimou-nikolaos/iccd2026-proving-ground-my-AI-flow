@@ -119,6 +119,24 @@ New assets:
   `run.sh` does not re-copy rtl (submission differs from baseline by the fix).
 - `prep/bus_vip/axi4lite.py` gained `resp_when_idle` (latched error lane) config knob.
 
+### Item F (Nov 9): Explorer variant generator — DONE
+
+- `scripts/explorer-variants.py` — pure-python mechanical edit classes: `rename`
+  (internal signals only, consistent across rtl/+assertions/), `buffer`
+  (`(* keep *) wire net_bx = net;` + consumer redirect), `keep-reg`, `fsm-onehot`,
+  `reroll` (comment-only V-seed reroll, deliberately not gate-checked).
+  `--pick N` rotates candidates for multi-variant batches; `--name` forces one.
+- `scripts/explorer-variants.sh` — batch driver: generate → `explorer-check.sh` gate
+  → tables + `runs/explorer-green.txt` (submit queue) + collapsed/rejected accounting.
+- Tested on `prep/flowcheck/dma/design` (real gate, docker): rename#0/buffer#0/keep-reg
+  → **GREEN** (proven + fingerprint-distinct); `fsm_encoding one_hot` on the 4-state FSM
+  → **COLLAPSED** (equiv OK, netlist identical — fixture FSM too small to re-encode;
+  C1's win was on an 11-state FSM); rename#1 (`cnt`) → **REJECTED**: pure rename became
+  unprovable (9 unproven $equiv cells) because the renamed net feeds `cnt*stride`
+  multipliers inside the state feedback loop, and yosys equiv matching is name-based.
+  Doctrine holds: unprovable → discard. Day-1 tuning: prefer rename candidates with low
+  fan-in into arithmetic feedback loops; the gate classifies cheaply (≈20 s/variant).
+
 ### E/D findings (day-1 relevant)
 
 1. Yosys `check` (flow's equiv/slang path) flags multi-block sequential writers that

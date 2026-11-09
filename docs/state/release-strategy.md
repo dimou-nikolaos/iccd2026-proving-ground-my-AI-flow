@@ -80,8 +80,13 @@ equiv_simple/induct -seq 5) + post-synth netlist fingerprint duplicate check. Ve
 DUPLICATE caught); `>=`→`==` (semantically equal here!) → PROVEN; observable change →
 2 unproven $equiv cells → rejected.
 
-Candidate generation (write `scripts/explorer-variants.sh` once core RTL is banked —
-inputs: banked core dir):
+Candidate generation: gate script built and tested (**`scripts/explorer-check.sh
+<core> <variant> [hashfile]`**) + batch generator built and tested
+(**`scripts/explorer-variants.sh --core <dir> [--class C] [--n N] [--ident X]`**,
+Nov 9): classes rename / buffer(+keep) / keep-reg / fsm-onehot / reroll, each candidate
+passing equiv+fingerprint before entering the green list. On real RTL expect to tune the
+candidate pickers (see prep-plan Item F findings — e.g. renames of nets inside multiply
+feedback loops fail the prover):
 1. Apply mechanical edit classes (L23 audit list): **internal-signal** renames (NOT ports:
    ports are matched by name in instantiations and our bind maps), literal formats,
    always-block reordering, statement order within `always_comb`, extra intermediate wires,
