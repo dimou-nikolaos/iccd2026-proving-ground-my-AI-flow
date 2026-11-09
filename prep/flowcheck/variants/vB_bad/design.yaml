@@ -1,0 +1,11 @@
+id: flowcheck
+top: flowcheck_top
+clock_port: clk
+reset_port: rst_n
+clock_period_ns: 10.0
+filelist: rtl/filelist.f
+sim: verilator
+lines: 120
+ppa:
+  CORE_UTILIZATION: 55
+  PLACE_DENSITY_LB_ADDON: 0.20
