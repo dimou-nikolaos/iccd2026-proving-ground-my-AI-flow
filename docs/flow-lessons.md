@@ -5,11 +5,11 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 ## Index by sub-section (use Ctrl-F for L-number)
 
 - **Phase 1 — analysis**: L1
-- **Phase 3 — verify (testing/assertions)**: L2, L3, L12
+- **Phase 3 — verify (testing/assertions)**: L2, L3, L12, L36, L37, L38, L39, L40, L41
 - **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
 - **Phase 4 — iterate (C: correctness risk)**: L4
-- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28
-- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23
+- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35
+- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43
 
 ## Phase 1 — analysis
 
@@ -26,6 +26,24 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 
 **L12. Phase 3 must cover every REQ up front, not iteratively.** Test and assertion writing is ~5 lines per REQ after the golden model exists. Treating this as "fill gaps after the first mutation run" wastes 2-3 iterations of cooldown waiting on work that was always going to be required. The mutation run is verification, not gap-finding.
 **Lesson**: in Phase 3a and 3b, enumerate the REQ list mechanically and write ≥1 test + ≥1 assertion per REQ before the first flow run.
+
+**L36. A declaration initializer is not a continuous assignment — SVA observers silently compare stale values.** Found while building `prep/rvcore/` (2026-11-08): an observer wrote `logic [6:0] id_opcode = id_instr[6:0];` at module level. Verilator 5.048 applies that initializer **once** (at time 0), so `id_opcode` never tracked `id_instr`: assertions either never fired or fired against the wrong operand. Same trap inside a procedural block (`logic [2:0] f3 = ex_instr[14:12];` as the first line of an `always_comb`) — the branch comparator then used a **stale** funct3 and produced a wrong `bgeu` decision that the observer dutifully failed to flag.
+**Lesson**: in observer/monitor modules, declare `logic ...;` and drive it with an explicit `assign` (module level) or as the first statement of the block. When an assertion behaves impossibly (passes on a broken DUT, or fires on values the DUT never had), suspect a stale observer signal before suspecting the simulator; print the observer's own view of its inputs with `$display` alongside the DUT's.
+
+**L37. `?:` collapses signedness across both branches — the silent-RV32 (and silent-datapath) bug generator.** `x = c ? ($signed(a) % $signed(b)) : (a % b);` computes an **unsigned** `%` in the signed branch, because the unsigned branch makes the whole conditional unsigned and that context is pushed into the operands. Verified on Verilator 5.048: `f7[5] ? (a >>> sh) : (a >> sh)` makes `>>>` a *logical* shift (srai returns a positive number); the same pattern silently breaks `div/rem`/`sra`. Related and independent: `>>>` on a plain `logic [31:0]` is already logical — signed shift needs `$signed(a) >>> n`.
+**Lesson**: never mix signed and unsigned arms of the same operator inside one conditional or one expression. Split into `if/else` or separate `case` arms. Seed an operand pair of opposite sign (e.g. `0x8000_0000 / -1`, `srai` of a negative value, `rem` with a negative dividend) into every directed test for ALU/shift/divide REQs — positive-only operands make this mutant class invisible, so it is also a *test-quality* rule, not just a coding rule.
+
+**L38. Uninitialized memories turn a green negative test red and a red DUT green.** A pipelined core fetches wrong-path words; a harness whose imem/dmem are not initialized returns X for them, so (a) assertions fire for reasons unrelated to the injected deviation ("PASS: observer fired" means nothing) and (b) in a multi-program cocotb module, dmem is *not* in the reset domain, so the next program reads the previous program's stores and a correct DUT looks deviant (seed-12 random program "failed" at commit #326 for exactly this reason).
+**Lesson**: before releasing reset, NOP-fill the instruction memory to past the program end and zero the whole data memory. Never let a run contain X on a memory read path. Treat a memory array that is not reset as an explicit testbench step, not as a design property.
+
+**L39. BUSY clearing before the bus drains is an observation race, not a DUT bug — and Yosys `check` forbids two sequential drivers where Verilator accepts them.** From `prep/dma_vip` (2026-11-08): (a) a DMA-style engine can drop BUSY one cycle before the last B/R handshake is *applied inside the memory model*; reading destination memory right after BUSY clears saw a missing last word (LEN=2 "failure" that was pure testbench). (b) Writing `done` from the engine FSM *and* the register block passed Verilator elaboration (it merges always_ff writers) but `yosys -check` (used by the flow's slang/equiv path) reported 33 "multiple conflicting drivers" warnings.
+**Lesson**: `wait_done`-style helpers must drain the bus (wait for the model's queues idle + settle cycles) before memory is inspected. Write each register from exactly one always_ff block; cross-block set/clear requests go through combinational wires consumed by the owner.
+
+**L40. A constant-1 `PREADY` trips protocol observers; gate it with `PSEL`.** An ungated `assign pready = 1'b1` fires the `p_pready_implies_psel` rule (PREADY high while PSEL low) in any correctly bound APB4 SVA — the *checker* is right, not wrong: AMBA requires the slave to qualify its response with the selection.
+**Lesson**: slave-side response signals are qualified by their channel's selection/valid. When our own design is a slave, gate pready/pslverr with psel (and remember the reverse: `pready = psel` makes an unselected probe see pready=0 — never assert "PREADY always high" style properties without qualifying on psel&&penable).
+
+**L41. Don't-care lanes are mutation gold: PWDATA during reads, PWRITE without PSEL, RRESP/BRESP while idle.** The dma fixture rehearsal (V 0.675→0.825 in one session) showed the biggest kill-class gaps were not data-path checks but *decode qualifiers* that legal traffic never exercises: start_req decoding without the APB write qualifier (fires on a CTRL read whose stale PWDATA carries START), W1C clearing without strobe gating, `set_err` acting on a latched RRESP while RVALID=0, and re-applying a config (EN=1, START=0) silently restarting the engine.
+**Lesson**: for any register/status interface suite include: (1) reset read-back of every RW register before any write; (2) bit-position read-back (write CTRL with all writable bits, read it); (3) hand-driven READ with PWDATA deliberately set (BFMs zero it — hiding this class); (4) PWRITE held with PSEL=0 for a few cycles; (5) a slave config that holds RRESP/BRESP=SLVERR while idle (`resp_when_idle` in the AXI4-Lite VIP) plus a clean-run ERR==0 assertion — in BOTH block and chain/descriptor modes (separate decode sites); (6) mid-chain LEN=0 descriptor (kills wrong-word decode of length checks); (7) a completed-status probe after unrelated config writes carrying the status-bit patterns.
 
 ## Phase 3 — formal / SBY tooling
 
@@ -202,6 +220,12 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 
 **L23. Be careful which "cosmetic" variants you keep as Explorer candidates — some have subtle SEMANTIC changes that look cosmetic.** Challenge-1 Explorer variant e13 rewrote dsp_limit's `clipped = over || under` to `clipped = over != under`. With LIM_HI < LIM_LO (inverted window), `over` and `under` can both be 1; original `||` returns clipped=1, modified `!=` returns clipped=0. Public tests still pass (test_req29_lim_hi_wins_when_inverted doesn't check clipped flag on inverted window), but a hidden test might. Risk not worth the Explorer benefit.
 **Lesson**: when generating Explorer variants, audit each for SEMANTIC change. Allowed: comments, named blocks, signal renames, `unique case` → `case`, literal format (0x0000 vs 'd0), assign reorder (continuous assigns are unordered), extra unused params. NOT allowed: any change to boolean expressions that affect output for some input combination, removing or adding conditions.
+
+**L42. Dead code and constant-tied test hooks are an unkillable-mutant tax on V.** The dma rehearsal RTL carried a `bug[7:0]` selector tied to `8'd0` at the top, an unused-in-effect shadow register, and reset values that the engine always reloads on every path. Across four mutation batches, 6-8 of 40 selected mutants hit those sites and were provably unkillable (equivalence checker failed to prove them, so they stayed counted in the V denominator). Fixture V ceiling ≈0.85 with an otherwise excellent suite.
+**Lesson**: the mutator samples *sites*, not behaviors — dead/masked code dilutes V permanently. On released RTL: if the baseline carries tie-off constants or unused branches that our fix removes, the submission's mutant pool shrinks toward live code (good). Never add test-only hooks to submission RTL; keep them in prep fixtures only. When V plateaus, classify survivors as dead/equivalent before writing more tests (extends L7/L8).
+
+**L43. Serialized simple AXI models make some response-clause mutants equivalent; use the mutation batch to find model blind spots, then extend the VIP.** With a one-outstanding AXI4-Lite model that queues the response value at AR/AW time, mutants that drop the `m_rvalid` qualifier inside a state-gated `set_err` clause never differ (the response lane is already OKAY in every wait state). Adding `resp_when_idle` to the VIP made the *other* clause shapes killable, but `VALID`-dropping clauses inside read-wait states stay equivalent under serialization.
+**Lesson**: the evidence suite can only kill mutants the *stimulus model* can express. When two survivors look equivalent "under our model", ask what real slave could break the equivalence (out-of-order responses, latched resp lanes, multi-outstanding), and add that knob to the VIP rather than to per-test hacks. For challenge-2 hidden tests, assume a real interconnect can do both.
 
 ## How to use this file
 

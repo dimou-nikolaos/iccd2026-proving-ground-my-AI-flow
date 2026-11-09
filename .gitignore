@@ -12,6 +12,9 @@ results.xml
 runs/
 !runs/.gitkeep
 
+# flowcheck rehearsal: run.sh regenerates the submission RTL copy
+prep/flowcheck/sub/rtl/
+
 # Per-design analysis docs and state (templates + pre-release playbooks stay tracked)
 docs/designs/challenge-[0-9]*.md
 !docs/designs/challenge-[0-9]*-playbook.md

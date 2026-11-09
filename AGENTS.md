@@ -6,6 +6,8 @@ SystemVerilog RTL design verification challenge. Each released design ships a se
 
 If you're a fresh agent (or returning after context compaction) and don't know where work left off:
 
+0. If no design is released yet (pre-release prep period), read `docs/state/prep-plan.md` — it
+   holds the prep roadmap for challenge-2/3, open checkboxes, and verified environment facts.
 1. `ls docs/state/` — find the current design's progress file (e.g., `challenge-1-progress.md`).
 2. Read the file's **"Next action for operator"** section and the **score history** table.
 3. `md5sum runs/sub-best.tar.gz` — confirm it matches the md5 in the state file. If they diverge, trust `runs/sub-best.tar.gz` and update state.
@@ -65,7 +67,7 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 | Phase 4b (PPA Tier A/B/C) | `docs/flow-ppa-and-v.md` § PPA | skill `sky130hd-ppa`, `docs/ppa-freedom-strategy.md`, `docs/skills/sky130hd-optimization.md` |
 | Phase 4c (mutation kill) | `docs/flow-ppa-and-v.md` § Mutation | skill `mutation-kill-tactics`, `docs/skills/mutation-strategies.md` |
 | Phase 4e (wildcard exploration) | `docs/flow-wildcard.md` | `docs/flow-lessons.md` (P section, L17/L20/L27/L28 wildcard catalogs) |
-| Running the scoring flow | skill `pg-flow-commands` | `scripts/pg-batch.sh` for parallel batches |
+| Running the scoring flow | skill `pg-flow-commands` | `scripts/pg-batch.sh` for parallel batches; `docs/skills/flow-internals.md` for what each stage checks and how to iterate V locally |
 | PPA failure diagnosis | `docs/flow-lessons.md` L11/L14/L16/L21 (synthesis + counter-intuition) | `scripts/{submodule-synth,critical-path}.sh` |
 
 ## Quick commands (all via Docker)
