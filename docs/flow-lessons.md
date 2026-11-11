@@ -259,6 +259,8 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 
 **L58. Final-route WNS is pinned ~2.5–2.7 ns in EVERY challenge-2 family regardless of which RTL path is cut** (abar2 2.546, W6 with BOTH input walls cut 2.567; floorplan estimated 3.71 for W6, routing parasitics ate it back). The t-term plateau (~0.52 P) is PLACE/ROUTE-bound, not logic-depth bound. Deeper pipelining cannot pay; only area/power deltas move P now.
 
+**L59. Verilator sim is 2-STATE: `sig === 1'bx` never matches (x-initial becomes a concrete random value). Reset-value assertions on reset-less FFs must be REMOVED (with a justification comment), not "relaxed" with `=== x` — the relaxed form fires false failures.** Proactively grep the assertion set for reset checks on any reg you de-reset.
+
 ## How to use this file
 
 When you hit one of these situations mid-task, jump here for the prior decision. New lessons: append at the bottom of the appropriate section; don't renumber existing lessons (cross-refs from other docs use L-numbers).

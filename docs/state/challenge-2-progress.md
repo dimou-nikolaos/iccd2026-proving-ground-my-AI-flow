@@ -182,6 +182,22 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   elab fail → C=0. DEAD.
 - Bank list UNCHANGED: #1 c2-sub-32 (abar2 0.5184). Explorer queue += w6, R1-lite.
 
+#### 2026-11-11 ~23:40 / R1 SCORED: V=1.0 (1st seed), P=0.5102 → Explorer entry
+- Reset-slim (11 internal engine FFs, load-before-read proven per FSM path): area
+  **45552 µm² (−251 vs abar2, UNDER baseline 45710)** — reset tree + slim cells pay
+  more than the 25 µm² FF estimate. But final WNS 2.118 vs 2.546 (place dice for this
+  netlist) → net −0.008. md5 a6c9c4b7…; out runs/out-c2-sub-r1.
+- Own-assertion fix required: 2-STATE Verilator `=== 1'bx` checks are vacuous-WRONG on
+  x-initial regs — reset assertions for reset-less FFs must be REMOVED, not relaxed
+  (engine_reset_sva updated in r1 tree).
+- r1b dice-resample SKIPPED: micro-edit resamples historically lose ≥0.017 to placer
+  shuffle vs +0.003 area upside. Bank stays c2-sub-32.
+- CARRY TO C3: reset-slimming of unobservable datapath/pipeline flops is a REAL
+  ~0.5% area lever where the design has wide registers (c2's register map pinned by
+  REQ-02 blocked most of it). Audit C3 pipeline stage regs vs its reset REQ early.
+- C2 status: 46 archives in pool, ~18 distinct netlists; exploration closed; upkeep
+  + C3 readiness until server opens.
+
 ### Flow-conformance audit (2026-11-11 ~22:45, vs docs/flow.md)
 - Phase 0/design-init: DONE (bootstrap, baseline PPA cache, public smoke).
 - Phase 1: 1a static + 1c probes DONE (D1–D5 confirmed; probe tests runs/c2-probe cover
