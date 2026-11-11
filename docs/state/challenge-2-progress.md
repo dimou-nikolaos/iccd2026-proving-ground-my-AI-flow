@@ -133,14 +133,27 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   netlist — one entry), arb2, abar2, abar5, abar8, abar9, a3, arb3, abar3, keep0-2, w1, w2b
   ≈ 12-13 distinct + w3/e05/e06 pending. Well above typical field.
 
+#### 2026-11-11 ~21:30 / waves M–N + rejects; C2 exploration FROZEN
+- e05/e06 (buffer entries): scored V=1.0, P=0.5058/0.5055 — netlist-distinct, added to
+  Explorer queue. w5 (fsm_encoding one_hot): P=0.5184 with **byte-identical PPA to abar2**
+  → attr ignored by flow synth → netlist DUPLICATE, do not submit (L54).
+- Dropped: v6 (flags-at-ctrl: 1-cycle-stale flag = real deviation, L56), w2c (gated gi_q
+  load: equiv gate can't induct the pairing; provably safe by hand but doctrine holds).
+- w3 (len flags in chan, equiv-PROVEN): V=1.0, P=0.4999 — Explorer entry, not bankable.
+- **C2 final state: bank#1 = c2-sub-32 (abar2, V=1.0, P=0.5184; spares -33/-34; md5 per
+  progress file). Pool: 36 archive rows, ~16 distinct netlists (Explorer-ready).**
+  27+ PPA tries. All wildcards logged (L54–L56). Remaining time → C3 readiness + upkeep.
+
 ### Next action for operator
-- Nothing blocking. Agent executing plan v4 (waveG crit-path → WNS-attack variants →
-  freedom pass → explorer pool). Pool: runs/c2-best.md. Best bankable now: c2-sub-32/33/34
-  (abar2, V=1.0, P=0.5184, proj 75.9). Operator task: watch for submission server.
+- Nothing blocking. C2 exploration FROZEN (plateau); pool complete and current in
+  runs/c2-best.md. Bank #1 when server opens: **c2-sub-32** (abar2, V=1.0, P=0.5184,
+  md5 d3d0381f7d7ca0c73157a416d6b80e8c; copy at runs/sub-best.tar.gz). Spares: -33/-34.
+  Agent now on low-interval upkeep + C3 readiness. Operator task: watch submission server.
 
 ### Best submission
-- c2-sub-1 (family A, md5 c81fe01b41880bf0ca506b0608172185) — proj 74.35 — LIKELY
-  superseded by a2/arb2/abar2 (waveC) and their V rerolls; nothing banked (server down).
+- **c2-sub-32** (abar2 core, V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c) —
+  proj 75.9 @C=1.0. Nothing banked yet (server down). Earlier: c2-sub-1 (family A,
+  proj 74.35) kept as the C-safest fallback if hidden asserts bind arbiter internals.
 
 ### V ceiling
 - Observed: family A **V=1.0 on 6 seeds**; a2 **4/4 seeds**; abar2 **3/4 seeds** (miss = equiv site
