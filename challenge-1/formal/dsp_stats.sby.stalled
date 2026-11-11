@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 6
+timeout 240
+
+[engines]
+smtbmc yices
+
+[script]
+read_slang --top dsp_stats dsp_pkg.sv dsp_stats.sv dsp_stats_sva.sv
+prep -top dsp_stats -flatten
+
+[files]
+rtl/dsp_pkg.sv
+rtl/dsp_stats.sv
+formal/dsp_stats_sva.sv
