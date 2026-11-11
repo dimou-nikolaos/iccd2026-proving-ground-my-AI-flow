@@ -25,7 +25,11 @@
 | c2-sub-18/19/20 | ~11:00 | ? | 1.0 | 0.486/0.486/0.490 | 74.3–74.5 | keep-reg ×A: ≈no-op (+0.003 max) |
 | c2-sub-21 arbbar | ~11:00 | ? | 0.975 | 0.5089 | 75.9 | P best (case-swap encoder equiv site → superseded by arb2) |
 | c2-sub-22 abar | ~11:00 | ? | 0.95 | 0.4959 | — | superseded by abar2 |
-| c2-sub-23/24/25 | ~12:00 | ? | queued | queued | — | a2 / arb2 / abar2 (waveC, expected P 0.49–0.52, V pool after) |
+| c2-sub-23/24/25 | ~12:00 | ? | 1.0/0.975/0.975 | 0.487/0.4984/**0.5184** | — | a2/arb2/abar2; abar2 = P best, survivors all EQUIV |
+| c2-sub-29/30/31 | ~13:15 | ? | 1.0/1.0/0.975 | 0.4886/0.5037/0.5043 | — | a3/arb3/abar3 (equiv-site removal); P shuffles ±0.014 — place/route luck |
+| c2-sub-26..28 | ~13:40 | ? | **1.0×3** | (0.487)* | — | a2 V-pool 4/4 |
+| c2-sub-32..34 | ~13:45 | ? | **1.0×3** | (0.5184)* | — | abar2 V-pool 3/4 — best defensive core candidate |
+| c2-sub-35/36/37 | ~14:00 | ? | queued | queued | — | waveF: abar5 (strobe-slim), abar8 (gate-enc), abar9 (keep len_q) |
 
 Full pool table with md5s: **runs/c2-best.md** (single source of truth for archives).
 
@@ -89,10 +93,17 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   superseded by a2/arb2/abar2 (waveC) and their V rerolls; nothing banked (server down).
 
 ### V ceiling
-- Observed: family A **V=1.0 on 6 distinct seeds** (sub-1 + sub-12..16). arb2/abar2 pool pending.
-- Equivalent (unkillable) mutants: A had 2 (prdata default arms) → REMOVED in a2/arb2/abar2;
-  arbpar case-rotate family had ≥3 (avoided); barrel encoder keeps 1 fallback site
-  (harmless: reachable only when grant_valid=0).
+- Observed: family A **V=1.0 on 6 seeds**; a2 **4/4 seeds**; abar2 **3/4 seeds** (miss = equiv site
+  selected); arb3 V=1.0 (1 seed); a3 V=1.0 (1 seed).
+- Equivalent (unkillable) mutants (permanent tax wherever present):
+  1. prdata unreachable default arms ×2 — REMOVED (a2+ families).
+  2. arbiter case-rotate dup sources — family avoided (barrel since arbbar).
+  3. IRQ strobe redundant `glob_sel` ×2 — removed in a3/arb3/abar3 (effect on P mixed).
+  4. rk encoder fallback const — removed in arb3/abar3/abar8 gate-form.
+  5. `dma_chan wmask[0]→[1]` — lane0 bits indistinguishable under byte-strobe invariant:
+     present in EVERY family, cannot be engineered out safely (wmask expansion invariant).
+     Budget: ~8.8% of archives of any family lose 0.025 V → pool-reroll and pick clean seeds.
+- Strategy: score 3–4 rerolls per finalist family; bank V=1.0 archives.
 
 ### PPA
 - Baseline (cached, `runs/challenge-2-baseline-out`): area **45710.1 um2**, final WNS **+2.367 ns**

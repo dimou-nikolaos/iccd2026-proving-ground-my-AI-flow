@@ -186,24 +186,25 @@ defensive batches, then freedom exploration; (4) keep docs updated (compaction-s
   critical-path.sh DOCKER env, explorer-variants keep-comma-split bug fixed.
 - Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
 
-## NEXT STEPS (v3, Nov 11 — execute top to bottom)
+## NEXT STEPS (v4, Nov 11 afternoon — execute top to bottom)
 
-1. **[done] crit path** → dreq→arbiter→engine state/own/last cone (1.48), via arb serial
-   compare + ch_len[grant_idx] 16-bit mux+compare.
-2. **[in flight] V-pool wave A**: sub-12..16 (A + v2 suite rerolls) skip ppa → record V
-   distribution; survivors → kill-by-class (expect rotation/gap mutants now dead).
-3. **Wave B (queued)**: full flow sub-18/19/20 (keep-reg ×A), sub-21 (arbbar), sub-22
-   (abar) with --keep-work for 21/22 → crit-path.sh on 22 → WNS status of barrel arbiter.
-4. **Wave C candidates** from crit-path of E/F: target WNS ≥ 2.2; ideas: state-D cone
-   slimming, eligible-fanout buffers, keep on winning register, prdata mux untouched.
-5. Ceiling decision at ~15–20 PPA tries (L18 sub-linear stacking).
-6. Freedom pass: spec-silence restructures (latency free) — after defensive ceiling.
-7. Explorer GREEN queue on best core; pool target 40–70 archives; runs/c2-best.md updated
-   after every scored batch.
-8. Main-branch cherry-pick of L45–L50 + script fixes when no flow reads the tree.
-9. Nov 13: challenge-3 bootstrap per playbook, interleaved.
+1. **[in flight] waveF**: abar5/abar8/abar9 full-flow → decide defensive winner family
+   (abar2 core P=0.5184, V pool 3/4; stack only edits that pay).
+2. **Defensive ceiling check** (L18): if waveF gains <0.005 over abar2, STOP PPA defensive
+   (~20 tries counted) and move on.
+3. **Freedom pass (AMBER, 2–4 variants)**: spec-silence restructures for area/power
+   (fetch/FD path trims, ctrl_wr width trims, decode sharing); full-flow each; naming
+   doctrine hard; each keeps 58/58 + 0 assertion fires.
+4. **Explorer GREEN queue** on winning core (explorer-variants classes; ~50% collapse L44)
+   → 10–15 distinct-fingerprint archives (skip-ppa for V, P from core) — feeds pool +
+   Explorer award (most distinct netlists with C>0.9).
+5. **Final pool selection**: 37 archives packaged / 30 scored; when server opens bank
+   best-P V=1.0 archive immediately, budget per release-strategy §3.
+6. **Main reflection**: re-run worktree cherry-pick (flow-lessons + scripts) once freedom
+   pass lessons land.
+7. Nov 13: challenge-3 bootstrap per playbook, interleaved with C2 pool maintenance.
 
 ## Next action (single step)
 
-Collect wave A results (runs/logs/pgbatch_waveA.out), append to c2-best.md; launch Wave B
-(full flow, --keep-work on sub-21/22); then crit-path.sh runs/out-c2-sub-22.
+Collect waveF (runs/logs/pgbatch_waveF.out) → winner decision vs abar2 (P=0.5184) → if a
+hybrid wins, reroll-pool it; start freedom-pass RTL candidates meanwhile.
