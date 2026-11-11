@@ -1,0 +1,88 @@
+// dsp_stats formal verification (Phase A3).
+// Uses immediate assertions inside always @(posedge clk) for state-transition
+// checks (SBY/SVA limitation: |=> and concurrent SVA with SVA-local regs are not
+// supported). All checks compare "now" state against "prior-cycle sampled" p_* signals.
+
+module dsp_stats_sva (
+  input  logic               clk,
+  input  logic               rst_n,
+  input  logic               clear,
+  input  logic               in_fire,
+  input  logic               out_fire,
+  input  logic signed [15:0] out_data,
+  input  logic               clip_event,
+  input  logic [15:0]        stat_in,
+  input  logic [15:0]        stat_out,
+  input  logic [15:0]        stat_clip,
+  input  logic [15:0]        peak_max,
+  input  logic [15:0]        peak_min,
+  input  logic [15:0]        in_q,
+  input  logic [15:0]        out_q,
+  input  logic [15:0]        clip_q,
+  input  logic signed [15:0] max_q,
+  input  logic signed [15:0] min_q
+);
+
+  logic        p_clear, p_in_fire, p_out_fire, p_clip_event;
+  logic [15:0] p_in_q, p_out_q, p_clip_q;
+  logic signed [15:0] p_max_q, p_min_q;
+  logic signed [15:0] p_out_data;
+  logic        p_rst_n;
+  logic        started;
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      p_clear      <= 1'b0;
+      p_in_fire    <= 1'b0;
+      p_out_fire   <= 1'b0;
+      p_clip_event <= 1'b0;
+      p_in_q       <= 16'd0;
+      p_out_q      <= 16'd0;
+      p_clip_q     <= 16'd0;
+      p_max_q      <= $signed(16'sh8000);
+      p_min_q      <= $signed(16'sh7FFF);
+      p_out_data   <= 16'sh0;
+      p_rst_n      <= 1'b0;
+    end else begin
+      p_clear      <= clear;
+      p_in_fire    <= in_fire;
+      p_out_fire   <= out_fire;
+      p_clip_event <= clip_event;
+      p_in_q       <= in_q;
+      p_out_q      <= out_q;
+      p_clip_q     <= clip_q;
+      p_max_q      <= max_q;
+      p_min_q      <= min_q;
+      p_out_data   <= out_data;
+      p_rst_n      <= rst_n;
+    end
+  end
+
+  always @(posedge clk) begin
+    if (p_rst_n && started) begin : blk_chk
+      // REQ-37: clear wins
+      if (p_clear) begin
+        a_req37_in:   assert (in_q   == 16'd0);
+        a_req37_out:  assert (out_q  == 16'd0);
+        a_req37_clip: assert (clip_q == 16'd0);
+        a_req37_pmax: assert (max_q == $signed(16'sh8000));
+        a_req37_pmin: assert (min_q == $signed(16'sh7FFF));
+      end else begin
+        // REQ-33 + REQ-34: counter increments by 0/1, saturates at FFFF
+        a_inc_in:   assert (in_q   == p_in_q   + ((p_in_fire    && p_in_q   != 16'hFFFF) ? 16'd1 : 16'd0));
+        a_inc_out:  assert (out_q  == p_out_q  + ((p_out_fire   && p_out_q  != 16'hFFFF) ? 16'd1 : 16'd0));
+        a_inc_clip: assert (clip_q == p_clip_q + ((p_clip_event && p_clip_q != 16'hFFFF) ? 16'd1 : 16'd0));
+        // REQ-35: peak capture
+        a_pmax_upd: assert (max_q == ((p_out_fire && p_out_data > p_max_q) ? p_out_data : p_max_q));
+        a_pmin_upd: assert (min_q == ((p_out_fire && p_out_data < p_min_q) ? p_out_data : p_min_q));
+      end
+    end
+  end
+
+  // Skip cycle 0 (transition assertions need a prior cycle). started starts 0
+  // (SBY default for FFs without reset). Set to 1 after first posedge.
+  always @(posedge clk) started <= 1'b1;
+
+endmodule
+
+bind dsp_stats dsp_stats_sva u_stats_sva (.*);

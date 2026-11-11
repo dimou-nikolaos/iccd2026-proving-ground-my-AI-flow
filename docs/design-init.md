@@ -2,6 +2,31 @@
 
 Run this at the start of each new design (challenge-2, challenge-3). ~15 min, ensures all per-design artifacts exist with the right shape before spawning sub-agents.
 
+## 0. Read prior challenge retro docs (5-10 min — don't skip)
+
+For each completed challenge, scan the retro docs to pick up proven patterns and dead-ends:
+
+- `docs/designs/<completed-design>-flow-log.md` — what worked chronologically; what we'd do differently
+- `docs/designs/<completed-design>-tool-inventory.md` — which agents/skills/scripts to invoke per phase
+- `docs/designs/<completed-design>-ppa-plan.md` — measured ΔP per wildcard class; PPA dead-ends not to repeat
+- `docs/designs/<completed-design>-sub-catalog.md` — patterns of successful sub chains; how the winning stack was built up
+
+For challenge-1 specifically, the highest-ROI findings to carry over:
+- `(* fsm_encoding = "one_hot" *)` is a strong P lever on small FSMs (L31)
+- `(* keep = "true" *)` cross-module stacks compound (L29)
+- Pipeline stage splits at natural boundaries are the BIGGEST P lever (challenge-1 +0.060 single-shot)
+- Spec-compliance probe tests before committing wildcards (L35)
+- Critical-path mux restructure on Yosys-decoded readback is dead-end (L30)
+- Operand ISO on adders/comparators loses (L17)
+
+For challenge-2 (control+bus, Nov 12) specifically, the highest-ROI findings to carry over:
+- Golden-assertion audit per PPA family BEFORE banking (L60) — modified-goldens = contract-change = C-risk
+- Attr wildcards can be fully INERT on a design (c2: byte-identical netlists, L54) — prove netlist delta first
+- Equivalence-site removal (case default arms, observable encoders) = V win + area win class
+- Shared-datapath (single-writer walk computed once) = big area lever; preserve baseline next-state semantics (L60)
+- Never register raw request inputs (L57); registered decisions with commit re-check are safe
+- V reroll via tar-byte variation; pool 3–4 archives per netlist, pick clean seeds
+
 ## 1. Copy baseline RTL into workspace
 
 ```bash

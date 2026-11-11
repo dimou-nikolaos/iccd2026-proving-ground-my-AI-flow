@@ -1,0 +1,15 @@
+[options]
+mode prove
+depth 1
+timeout 120
+
+[engines]
+smtbmc yices
+
+[script]
+read_slang --top dsp_limit dsp_limit.sv dsp_limit_sva.sv
+prep -top dsp_limit -flatten
+
+[files]
+rtl/dsp_limit.sv
+formal/dsp_limit_sva.sv
