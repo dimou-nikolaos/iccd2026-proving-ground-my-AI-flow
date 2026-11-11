@@ -255,6 +255,10 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 
 **L56. Registering comparison FLAGS is placement-sensitive: a flag FF is equivalent ONLY if it mirrors the compared register's NEXT value (flag_next == cmp(q_next), provable by induction flag(t)==cmp(q(t))).** In-chan registration (can see `len_m`) = equivalent (equiv-proven via `explorer-check.sh` yosys gate — a fast pre-screen for RTL restructures: PROVEN + fingerprint-distinct in ~90 s, before spending full-flow time). Top-level registration from the current value (`cmp(q)` delayed) = a REAL 1-cycle deviation — the equiv gate rejects it.
 
+**L57. dreq/sampling-input pipelines break handshake semantics: any stale copy of a request input lives ONE CYCLE AFTER the peripheral drops it (shadow past dack), which re-passes eligibility/commit guards → spurious second transfer (REQ-27 class).** Registering an arbiter DECISION is safe (guard re-checks live inputs at commit); registering the raw REQUEST input is not. Rejected W6 sub-idea; do not retry.
+
+**L58. Final-route WNS is pinned ~2.5–2.7 ns in EVERY challenge-2 family regardless of which RTL path is cut** (abar2 2.546, W6 with BOTH input walls cut 2.567; floorplan estimated 3.71 for W6, routing parasitics ate it back). The t-term plateau (~0.52 P) is PLACE/ROUTE-bound, not logic-depth bound. Deeper pipelining cannot pay; only area/power deltas move P now.
+
 ## How to use this file
 
 When you hit one of these situations mid-task, jump here for the prior decision. New lessons: append at the bottom of the appropriate section; don't renumber existing lessons (cross-refs from other docs use L-numbers).

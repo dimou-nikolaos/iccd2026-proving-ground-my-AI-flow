@@ -32,7 +32,10 @@ Cutting BOTH collapses period_min toward the internal floor (~5.8–6.2 ns) → 
 | W2b registered grant + commit guard (spec §11 latency freedom) | P=0.4974 | cut wall 1, exposed wall 2; Explorer entry, W6 base |
 | W3 registered LEN-zero flags | P=0.4999 | Explorer entry (equiv-proven) |
 | W5 `(* fsm_encoding one_hot *)` | P=0.5184, PPA byte-identical | flow IGNORES fsm attrs (L54) → netlist duplicate, dropped |
-| W6 = W2b + `word_d` SETUP-boundary decode register | in flight (Nov 11 ~22:30) | kills wall 2; target P≥0.60 |
+| W6 = W2b + `word_d` SETUP-boundary decode register | P=0.5082, V=1.0 (1st seed) | both walls cut, final WNS still 2.567 (L58 route pin); area +1100, pwr +0.39 → Explorer entry, not bankable |
+| R1-lite = abar2 + reset-less internal engine FFs (own_q,words_q,moved_q,aw/w_done_q,fd_idx_q = 11 FF; data_q/state_q keep reset) | queued | ~20–26 µm2 P≈+0.001; cell-swap netlist → Explorer diversity; C-risk ≈ 0 (reads all state_q-decode-gated) |
+| FSM one-hot manual (11 states → state_q 11b) | REJECTED | bind `.*` width check: hidden SVA declaring `[3:0] state_q` fails ELAB → C=0. Same-width re-encode: zero gain. attrs: ignored (L54). DEAD |
+| Reset removal incl. data_q (32b) | REJECTED for bank | data_q drives m_wdata top pin → x after reset (hidden all-outputs-low check could read x → ValueError). Not worth +0.002 |
 | e05/e06 buffer-entry variants | 0.5058/0.5055 | Explorer entries |
 | keep0-2, arb2, a3/arb3/abar3 micro-families | 0.49–0.52 spread | Explorer breadth only |
 

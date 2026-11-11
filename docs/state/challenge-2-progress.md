@@ -168,6 +168,20 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   internals see stale decode outside access. Containment: exploratory slot AFTER
   bank #1 c2-sub-32; failure costs 1 slot + hidden test names.
 
+#### 2026-11-11 ~23:15 / W6 SCORED: V=1.0 (1st seed), P=0.5082 → Explorer entry, not bank
+- Full flow: public+tests+assertions green; mutation V=1.0 seed 1. PPA: area 46903.7
+  (+1100 vs abar2), FINAL WNS 2.567 (abar2 2.546 — floorplan said 3.71, route ate it),
+  power 6.08 mW (+0.39). md5 95a2d13d…, out at runs/out-c2-sub-w6.
+- **L58: final-route WNS pinned ~2.5–2.7 in every family** ⇒ t-term plateau is
+  place/route-bound; RTL pipelining cannot move P. P ceiling for this design ≈ 0.52.
+- Area/power audit (user questions): (1) reset removal — only 11 truly-internal engine
+  FFs safe (own_q/words_q/moved_q/aw_done_q/w_done_q/fd_idx_q; state_q+map regs must
+  reset; data_q drives m_wdata top pin → x-after-reset C-risk) → ~25 µm², P +0.001 →
+  build as R1-lite Explorer-only (queued); (2) FSM re-encode — attrs ignored (L54),
+  same-width encodings = zero gain, one-hot = state_q width change → hidden bind `.*`
+  elab fail → C=0. DEAD.
+- Bank list UNCHANGED: #1 c2-sub-32 (abar2 0.5184). Explorer queue += w6, R1-lite.
+
 ### Flow-conformance audit (2026-11-11 ~22:45, vs docs/flow.md)
 - Phase 0/design-init: DONE (bootstrap, baseline PPA cache, public smoke).
 - Phase 1: 1a static + 1c probes DONE (D1–D5 confirmed; probe tests runs/c2-probe cover
