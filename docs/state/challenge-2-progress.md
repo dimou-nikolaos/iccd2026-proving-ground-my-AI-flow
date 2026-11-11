@@ -56,8 +56,9 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   then local full-flow scoring `runs/c2-sub-1`.
 
 ### Next action for operator
-- Phase 3 underway (agent building evidence suite). Review deviation list + fixes
-  (`git diff` in challenge-2/rtl) if desired; D5 fix is the one judgment call.
+- Nothing blocking. Agent executing plan v3 NEXT STEPS (critical path -> V-lock
+  reroll batch -> defensive PPA batches -> freedom pass -> explorer). Pool table:
+  runs/c2-best.md. Operator task: watch for submission server availability.
 
 ### Best submission
 - (none yet — local scoring pending)

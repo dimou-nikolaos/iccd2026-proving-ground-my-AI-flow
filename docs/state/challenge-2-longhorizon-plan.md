@@ -154,9 +154,52 @@ fingerprint-distinct set for Explorer; V=1.0 lucky pool for rerolls (L22).
 - Next: confirm D1–D4 with quick targeted probe tests run against BASELINE (expect fail),
   then Phase 2 fixes.
 
+### Nov 11 ~09:00 / Phase 3 done + first score (L45-L49 added)
+- Did: evidence suite (53 tests: 53/53 fixed, 16 fail baseline) + assertion set
+  (1264 lines, 0 fires; neg fixtures moved OUTSIDE assertions/ — flow rglobs it, L45);
+  REQ matrix 100%; c2-sub-1 full local score: **V=1.0 (seed luck, L49), P=0.487**,
+  proj 74.35; baseline PPA cached; keep-work rerun (c2-out-1k) in flight for crit path.
+- Found: fixes cost 0.9 ns WNS → biggest P recovery target (L48).
+- Next: see Next action section.
+
+### Nov 11 ~09:10 / operator directive (pool breadth + V lock)
+Directives: (1) reflect lessons into main (L45–L49 committed on challenge-2 branch;
+CHERRY-PICK that commit to main when no flow reads the tree — branch switch mid-flow
+would delete tracked challenge-2/ files under running containers); (2) run MUTATION
+REROLL BATCH to lock V and hunt C-improving gaps; (3) critical-path fixing, complete
+defensive batches, then freedom exploration; (4) keep docs updated (compaction-safe).
+
+## NEXT STEPS (v3, Nov 11 — execute top to bottom)
+
+1. **[in flight] c2-out-1k keep-work rerun** → `scripts/critical-path.sh runs/c2-out-1k`
+   → identify the degraded path (expect grant/next-state/ev_desc cone).
+2. **V-lock reroll batch**: 6 content-distinct variants of sub-1 (comment-marker rerolls
+   ×3 + single-keep ×3 via `scripts/explorer-variants.sh` + manual tar) scored with
+   `--skip ppa` (~1–2 min each, parallel); count V=1.0 pool; ANY survivor on any seed →
+   `scripts/mutant-report.py` → kill-by-class → update tests/assertions (this also hunts
+   C-gaps: a mutant surviving in a REQ area means a hidden test may hit the same blind
+   spot). Then rebuild archives + refresh c2-best.md.
+3. **Defensive PPA batch 1 (WNS recovery + quick wins, ~8 variants)**: timing as-is only;
+   candidates from crit-path: registered grant helper (NEW names, keep baseline names
+   intact), arbiter loop unroll/parallel compare, ev_desc/dack logic slimming, input-FIFO
+   -style reset strips on datapath regs (len/src/dst_q — status names MUST stay),
+   single keep on the worst-register, fsm_encoding (measure; 11-state FSM may differ
+   from ch1 fixture). Batch via pg-batch (~20 min wall). Update c2-best.md each round;
+   iterate toward ceiling (target P ≥ 0.55 while WNS ≥ 2.2).
+4. **Defensive batch 2 (+7–12)**: stack winners sub-linearly (L18), try remaining
+   catalog items until two consecutive batches gain <0.005.
+5. **Freedom pass**: spec-silence restructures (pipeline register-read mux / fetch path —
+   latency free per spec): AMBER-class, full flow each, naming doctrine hard rule.
+6. **Explorer GREEN queue**: explorer-variants.sh on the best PPA core → distinct
+   fingerprints → batch PPA; feed pool.
+7. **Pool maintenance**: runs/c2-best.md rows for every archive (V, P, proj, md5, kind,
+   fingerprint); target 40–70 archives. When server opens: pick ≤30 (best-P distinct +
+   V pool), C-fixes priority over everything.
+8. **Main-branch reflection**: cherry-pick L45–L49 commit + any new scripts to main;
+   keep playbooks current for challenge-3 (rv_core releases Nov 13 09:00).
+
 ## Next action (single step)
 
-Phase 3 underway: test-writer + assertion-writer agents are building
-`challenge-2/tests/` and `challenge-2/assertions/` per the evidence plan above.
-When they finish: run the full local pipeline → `runs/c2-sub-1.tar.gz` (first pool row),
-triage V with scripts/mutant-report.py, then start PPA defensive batches.
+When c2-out-1k completes: `scripts/critical-path.sh runs/c2-out-1k` (report top paths),
+then build + score the 6-archive V-lock reroll batch with --skip ppa (log V per seed
+into runs/c2-best.md).
