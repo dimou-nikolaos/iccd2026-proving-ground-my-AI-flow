@@ -30,6 +30,20 @@ cp -r challenge-N/{rtl,tb,flow,design.yaml} challenge-N/baseline/
 
 The `challenge-N/baseline/` mirror lets `pg-flow-commands` cache the baseline PPA without re-elaborating each time. Without it, every PPA run is fixed-vs-fixed (≈0.5, meaningless).
 
+**Force-add the released + baseline content to git (L36):** `.gitignore` has the broad rule `challenge-[0-9]*/` which silently blocks everything inside the design dir. Remember to explicitly `git add -f`:
+
+```bash
+git add -f challenge-N/rtl/ challenge-N/spec.md challenge-N/change_request.md \
+  challenge-N/design.yaml challenge-N/flow/constraint.sdc \
+  challenge-N/tb/public/Makefile challenge-N/tb/public/dsp_tb.py challenge-N/tb/public/test_dsp_public.py \
+  challenge-N/baseline/rtl/ challenge-N/baseline/flow/ \
+  challenge-N/baseline/tb/public/Makefile challenge-N/baseline/tb/public/dsp_tb.py challenge-N/baseline/tb/public/test_dsp_public.py \
+  challenge-N/baseline/design.yaml
+git commit -m "Bootstrap challenge-N: released RTL + spec + CR + operator public testbench"
+```
+
+As you produce them later in the campaign, also force-add: `challenge-N/tests/`, `challenge-N/assertions/`, `challenge-N/formal/*.sby`, `challenge-N/formal/*_sva.sv`. Stay ignored: `sim_build*/`, `__pycache__/`, `results.xml`, `challenge-N/formal/<run>/` (SBY run artifacts, regenerable).
+
 ## 2. Initialize per-design docs from templates
 
 ```bash
