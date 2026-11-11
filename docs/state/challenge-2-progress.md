@@ -83,10 +83,23 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - Next: Phase 3 evidence suite in `challenge-2/tests/` (+ vendored VIPs) and `assertions/`;
   then local full-flow scoring `runs/c2-sub-1`.
 
+#### 2026-11-11 ~14:30 / waves D–F + V pools + defensive ceiling
+- Did: waveD a3/arb3/abar3 (V 1.0/1.0/0.975; P 0.4886/0.5037/0.5043 — P shuffles ±0.014,
+  equiv-site-removal not free); waveE rerolls (a2 4/4 V=1.0, abar2 3/4); waveF isolation
+  hybrids (abar5 strobe-slim P=0.4959 HURT; abar8 gate-enc P=0.5019 HURT; abar9 keep-len_q
+  P=0.5169 ~flat: area −135µm² below baseline but WNS −0.14).
+- Decided: defensive PPA STOPPED at abar2 (P=0.5184, 23 tries). Two counterintuitive facts:
+  semantically-neutral micro-edits reshuffle P&R and often LOSE (±0.02); keep-reg buys area
+  but spends WNS.
+- Insight (from P_breakdowns): t-term ≈ −0.01 per 1% worse achievable period, LINEAR and
+  uncapped while timing met → WNS maximization is the highest-value remaining lever
+  (+0.9 ns WNS ≈ +0.12 P). waveG = abar2 keep-work rerun for crit-path extraction.
+- Ops gotcha: pkill -f 'pg-batch.sh' matches your own shell command line — use pgrep -f
+  'scripts/pg-batch' with care or kill by PID.
 ### Next action for operator
-- Nothing blocking. Agent executing plan v3 NEXT STEPS (critical path -> V-lock
-  reroll batch -> defensive PPA batches -> freedom pass -> explorer). Pool table:
-  runs/c2-best.md. Operator task: watch for submission server availability.
+- Nothing blocking. Agent executing plan v4 (waveG crit-path → WNS-attack variants →
+  freedom pass → explorer pool). Pool: runs/c2-best.md. Best bankable now: c2-sub-32/33/34
+  (abar2, V=1.0, P=0.5184, proj 75.9). Operator task: watch for submission server.
 
 ### Best submission
 - c2-sub-1 (family A, md5 c81fe01b41880bf0ca506b0608172185) — proj 74.35 — LIKELY
