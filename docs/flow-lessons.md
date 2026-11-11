@@ -203,6 +203,20 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 **L23. Be careful which "cosmetic" variants you keep as Explorer candidates — some have subtle SEMANTIC changes that look cosmetic.** Challenge-1 Explorer variant e13 rewrote dsp_limit's `clipped = over || under` to `clipped = over != under`. With LIM_HI < LIM_LO (inverted window), `over` and `under` can both be 1; original `||` returns clipped=1, modified `!=` returns clipped=0. Public tests still pass (test_req29_lim_hi_wins_when_inverted doesn't check clipped flag on inverted window), but a hidden test might. Risk not worth the Explorer benefit.
 **Lesson**: when generating Explorer variants, audit each for SEMANTIC change. Allowed: comments, named blocks, signal renames, `unique case` → `case`, literal format (0x0000 vs 'd0), assign reorder (continuous assigns are unordered), extra unused params. NOT allowed: any change to boolean expressions that affect output for some input combination, removing or adding conditions.
 
+## Process / tooling — git and bookkeeping hygiene
+
+**L36. The broad per-design dir pattern in `.gitignore` silently drops baseline mirror + operator-released files unless force-added.** Challenge-1 retro audit found `challenge-1/baseline/` (pristine mirror of released RTL+design.yaml+flow/constraint.sdc+tb/public, 16 files) and `challenge-1/tb/public/{Makefile,dsp_tb.py,test_dsp_public.py}` (operator's public cocotb testbench, 3 files) were never committed because the broad rule `challenge-[0-9]*/` blocks everything inside. We force-added rtl/ tests/ assertions/ formal/ but missed baseline/ and tb/. Result: 19 files (~1500 lines) recovered post-retro; without them, "what did we change vs the release?" can't be reconstructed from git history alone.
+**Lesson**: at design bootstrap (`docs/design-init.md` step 1), force-add **all** of these explicitly:
+```bash
+git add -f challenge-N/rtl/ challenge-N/spec.md challenge-N/change_request.md \
+  challenge-N/design.yaml challenge-N/flow/constraint.sdc \
+  challenge-N/tb/public/{Makefile,dsp_tb.py,test_dsp_public.py}
+# plus, as you produce them:
+git add -f challenge-N/baseline/{rtl,flow,tb,design.yaml} challenge-N/tests/ \
+  challenge-N/assertions/ challenge-N/formal/*.sby challenge-N/formal/*_sva.sv
+```
+Stay ignored inside the design dir: `sim_build*/`, `__pycache__/`, `results.xml`, `*.pyc`, `challenge-N/formal/<run>/` (SBY run artifacts, regenerable from the tracked .sby + _sva.sv).
+
 ## How to use this file
 
 When you hit one of these situations mid-task, jump here for the prior decision. New lessons: append at the bottom of the appropriate section; don't renumber existing lessons (cross-refs from other docs use L-numbers).
