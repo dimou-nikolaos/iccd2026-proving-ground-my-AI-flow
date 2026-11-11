@@ -17,7 +17,8 @@ if [ ! -f "$ODB" ] || [ ! -f "$SDC" ]; then
   exit 1
 fi
 PARENT=$(dirname "$OUT_ABS")
-docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp \
+DOCKER=${DOCKER:-docker}
+$DOCKER run --rm -u $(id -u):$(id -g) -e HOME=/tmp \
   -v "$PARENT":"$PARENT" --entrypoint bash proving-ground/flow:public -c "
 cat > /tmp/checks.tcl <<TCL
 read_lef /OpenROAD-flow-scripts/flow/platforms/sky130hd/lef/sky130_fd_sc_hd.tlef

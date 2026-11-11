@@ -5,11 +5,12 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 ## Index by sub-section (use Ctrl-F for L-number)
 
 - **Phase 1 — analysis**: L1
-- **Phase 3 — verify (testing/assertions)**: L2, L3, L12, L36, L37, L38, L39, L40, L41
+- **Phase 3 — verify (testing/assertions)**: L2, L3, L12, L36, L37, L38, L39, L40, L41, L45, L46, L47
 - **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
 - **Phase 4 — iterate (C: correctness risk)**: L4
-- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35
-- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44
+- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48
+- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
+- **Flow running / tooling ops**: L50
 
 ## Phase 1 — analysis
 
@@ -229,6 +230,24 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 
 **L44. Mechanical Explorer-variant generation: cheap classes and their empirical fate.** Gated batch generation (`scripts/explorer-variants.sh` + `explorer-check.sh`, ~20 s/candidate) classifies outcomes reliably. Measured on the DMA fixture: internal-signal rename, `(* keep *)`-buffer duplication, and `(* keep *)` on a register → GREEN (proven + distinct); `(* fsm_encoding = "one_hot" *)` on a small (4-state) FSM → semantically fine but **netlist-identical** (no Explorer value; C1's win was an 11-state FSM); renaming a net inside an arithmetic feedback loop (`cnt * stride` feeding the FSM next-state) → the name-based `equiv_make` matching **fails to prove** — rejected, correctly. Comment-only edits = V-seed rerolls, identical fingerprint by construction.
 **Lesson**: run generation in class order rename→buffer→keep-reg, expect ~50% collapse/reject, and force `--ident` for hand-picked nets that stay out of multiplier/FSM feedback when a rename is needed there.
+
+**L45. The flow compiles EVERY .sv under `assertions/` recursively (`assertion_files()` = rglob) — negative-check fixtures must live OUTSIDE that dir.** Our mutation self-checks live in `challenge-2/neg/brk_*/rtl/` (top-level, never packaged); anything under `assertions/` ships and compiles into the evidence build.
+
+**L46. cocotb async-reset harness rules ( dma_tb pattern).** (a) drive `rst_n` a couple of ns AFTER the falling edge to avoid same-timestep races with models sampling on the edge; (b) a protocol `valid-hold` checker must attribute each sample to that cycle's RESET state — async reset legitimately drops held valids and would otherwise show as a violation; (c) late AXI responses across a reset: keep `m_rvalid/m_bvalid` pending in the model after reset and assert nothing gets latched (outstanding-transaction coverage).
+
+**L47. A probe that PASSES on the baseline did not test the deviation — fix the stimulus, not the spec.** Three of five ch2 probes passed baseline on first attempt because the stimulus never reached the deviant path: arbitration tests must program channels BEFORE raising GEN (engine grants immediately otherwise); abort must land while the engine OWNS the channel (burst>1 words, abort mid-burst — abort between bursts takes a clean no-DONE path); dack-chain probes must HOLD dreq through the whole chain. Conversely Verilator aborts sim at the FIRST failed assertion, so one mutation fixture shows one fire — that is expected.
+
+**L48. Seeded-deviation fixes cost timing; budget PPA recovery against the FIXED RTL, not the baseline.** The five functional fixes (+CR) cost ~0.9 ns WNS (2.367→1.478) and +0.7% area but −12% power: the timing term alone was −0.117 of P. Measure baseline PPA once (needs a `report.md` stub in the self-compare archive — the build stage rejects archives without it), then plan the defensive batch to recover WNS ≥ baseline while cutting area/power. PPA stage ≈ 450–600 s (route-dominated); mutation+public ≈ 45 s with cache; use `--keep-work` rerun for `scripts/critical-path.sh`.
+
+**L49. First-try V=1.0 happened (ch2 sub-1, seed 781680318306230417) — treat as seed luck, not suite proof.** Lock V by scoring 4–6 content-distinct reroll archives (comment markers / single `keep`) with `--skip ppa` (~1–2 min each) and counting the V=1.0 pool; survivors on OTHER seeds reveal real coverage gaps (kill by class, L7/L8/L41/L42).
+
+**L50. Parallel pg-batch runs sharing one `--cache` dir can race and reject builds spuriously** ("top-level ports changed" on an archive that builds clean in isolation). Use per-submission caches (`/runs/cache-<name>`); a "rejected" archive must be rebuilt solo before you trust the rejection.
+
+**L51. RTL restructuring can introduce FUNCTIONALLY-EQUIVALENT mutants (unkillable) that permanently tax V for that archive.** ch2's arbiter rewrite to a `case (start)` rotate produced constant sites (duplicated `match[k]` at unobservable rotate positions) no test can kill — survivors in 2 of 2 scored seeds of that family. Prefer encodings where every constant is observable (barrel conditional-swap rotate; explicit if/else first-set encoder) and mutation-test your own restructure on 2–3 reroll seeds before adopting a rewritten family.
+
+**L52. The BASELINE RTL itself can contain unreachable arms that breed equivalent mutants.** ch2's `prdata` mux had `default: 32'h0` arms in both case blocks, but the dma_apb decode (`is_glob/is_chan` gate reg indices ≤ 5) makes those arms unreachable — a constant mutant there (0→1) survived every seed of every archive (sub-22 #4). Fix: delete the unreachable arm's constant (`default: ;`) — semantically identical, removes the site. Diagnose survivors by exhaustively modeling the small cone in Python (arbiter: 16 elig × 4^4 prio × 4 last = 16k cases) — decides equivalent-vs-stimulus-gap in seconds.
+
+**L53. A mis-granted inactive channel self-heals — grant mutants need ACTIVE wrong targets or immediate LAST_GRANT checks.** Arbiter granting ch2 (inactive) instead of ch1: the engine re-arbitrates next cycle, ch1 finishes its burst, and LAST_GRANT is re-fixed by the later correct grant — completion order + final LAST_GRANT stayed CLEAN. Two robust oracles: (a) assert the grant register after EVERY grant in a rotation sweep (phase-3 pairs), (b) stage a PRIO-monopoly channel with an ACTIVE lower-prio neighbor so the wrong grant moves real data (order breaks visibly).
 
 ## How to use this file
 
