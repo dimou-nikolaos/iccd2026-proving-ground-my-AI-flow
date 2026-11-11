@@ -1,5 +1,15 @@
 # challenge-1: dsp_stream — Streaming Fixed-Point Sample Conditioner
 
+## Companion documents (campaign retrospective)
+
+- **`challenge-1-flow-log.md`** — narrative of the 4-phase workflow as executed
+- **`challenge-1-tool-inventory.md`** — agents, skills, scripts, configs used per phase
+- **`challenge-1-sub-catalog.md`** — every submission archive: parent chain, V/P, status
+- **`challenge-1-sub-diffs.md`** — rebuild diff per submission vs its parent
+- **`challenge-1-ppa-plan.md`** — PPA experiments, wins, dead-ends
+- **`challenge-1-req-matrix.md`** — REQ ↔ test/assertion coverage
+- **`challenge-1-formal-findings.md`** — SBY formal results
+
 ## Archetype: Datapath (streaming / transformation)
 
 Pipeline: `s_* -> input FIFO -> gain -> FIR -> decimator -> limiter -> output FIFO -> m_*`
