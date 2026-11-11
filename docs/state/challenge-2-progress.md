@@ -217,6 +217,22 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   internals would see x. R1 Explorer-only CONFIRMED. W8 unaffected (all internals
   keep defined values every cycle).
 
+#### 2026-11-12 ~01:30 / c1-inspired rolls + W9: campaign CLOSED, W8 bank stands
+- f1 (fsm one_hot c1 syntax) + k1 (cross-module keeps): both BYTE-IDENTICAL netlists
+  (P/area/WNS equal abar2 exactly) → attrs inert on c2 synth path; V-reroll spares for
+  abar2 family, NOT Explorer entries.
+- W9 (shared APB write-merge on W8 base): local 58/58 clean; scored V=0.975 (survivor
+  = provably-equivalent wr_ctrl&&wmask[0] lane mutant), P=0.5195 vs W8 0.5212: area
+  +600 vs W8 — q-mux trees + bus exceeded removed merges. Explorer entry only.
+  Lesson: sharing pays for wide carry-chain ops with existing taps (W8 −4.3k µm2),
+  not for cheap per-bit mask ops (W9 +600).
+- FINAL C2 pool: 49 archives, ~19 distinct netlists. **Bank: c2-sub-w8 (P=0.5212,
+  V=1.0, md5 2068f7e1…; proj 76.1@C=1)**. Spares: c2-sub-32/-33/-34 (abar2, 0.5184).
+- P campaign exhausted (W6/W8/W9/f1/k1 + 30 micro-rolls). C3 carries the levers:
+  shared-dp from Phase 2, reset-slim audit, W6-style input pipelining (check its
+  spec for pinned latencies first), attrs only after proving netlist delta (w5/f1
+  double-negative now documented).
+
 ### Flow-conformance audit (2026-11-11 ~22:45, vs docs/flow.md)
 - Phase 0/design-init: DONE (bootstrap, baseline PPA cache, public smoke).
 - Phase 1: 1a static + 1c probes DONE (D1–D5 confirmed; probe tests runs/c2-probe cover
@@ -235,10 +251,11 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   — regenerate report.md when next bank/spare is packed.
 
 ### Next action for operator
-- In flight: **W6 freedom-pipeline** (operator-approved wildcard, see log 22:30). If it
-  scores P>=0.60 locally, it becomes an exploratory slot AFTER bank #1; bank #1 stays
-  **c2-sub-32** (abar2, V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c; copy at
-  runs/sub-best.tar.gz). Spares: -33/-34. Operator task: watch submission server.
+- Nothing blocking. C2 P-campaign CLOSED (W6/W8/W9/f1/k1 + 30 micro-rolls; W8 won).
+  Bank #1 when server opens: **c2-sub-w8** (shared writeback; V=1.0, P=0.5212,
+  md5 2068f7e12db77d005a8c00ebdb1b8c22; copy at runs/sub-best.tar.gz). Spares:
+  c2-sub-32/-33/-34 (abar2 0.5184) if W8 takes a hidden hit. Breadth queue per
+  runs/c2-best.md. Agent: C3 readiness + upkeep. Operator task: watch server.
 
 ### Best submission
 - **c2-sub-w8** (abar2 + shared writeback datapath; V=1.0 first seed, P=0.5212, md5
