@@ -10,7 +10,7 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 4 — iterate (C: correctness risk)**: L4, L60
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48, L54, L55, L56, L60
 - **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
-- **Flow running / tooling ops**: L50
+- **Flow running / tooling ops**: L50, L61
 
 ## Phase 1 — analysis
 
@@ -262,6 +262,19 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 **L59. Verilator sim is 2-STATE: `sig === 1'bx` never matches (x-initial becomes a concrete random value). Reset-value assertions on reset-less FFs must be REMOVED (with a justification comment), not "relaxed" with `=== x` — the relaxed form fires false failures.** Proactively grep the assertion set for reset checks on any reg you de-reset.
 
 **L60. Microarch-contract changes (strobes/next-state functions of baseline-named regs) hide behind self-referential assertion sets.** W8 (shared writeback dp) folded word-walk updates into `load_*` strobes: bank regs update on `load_x && word_done` (baseline: `word_done && !load_x` decrement). The flow DOES compile the tar's assertions/ (evidence stage rejects on assertion failure), but variant packs ship goldens RE-ANCHORED to their own microarch → flow silence proves only self-consistency, never baseline-contract compatibility. The UNMODIFIED family-A goldens (`a_len_q_next`) fire on W8 deterministically at 875ns (both x-init modes); W6 fires them at 65ns. Hidden tests are baseline-anchored (c1: they probe internals) → such families are hidden-assert C risks. Gate every RTL rewrite with: **full suite + UNMODIFIED golden assertions compiled in** (recipe in tool-inventory); a family needing modified goldens = contract-change → Explorer/late-slot only until a probe proves C. abar2 bank family verified goldens-silent. Side-lesson: the evidence stage catches family-A-golden-on-contract-change fires (w10 first attempts rejected) — a free LOCAL classifier: ship unmodified goldens and let the flow reject it, or pre-run the local audit.
+## Process / tooling — git and bookkeeping hygiene
+
+**L61. The broad per-design dir pattern in `.gitignore` silently drops baseline mirror + operator-released files unless force-added.** Challenge-1 retro audit found `challenge-1/baseline/` (pristine mirror of released RTL+design.yaml+flow/constraint.sdc+tb/public, 16 files) and `challenge-1/tb/public/{Makefile,dsp_tb.py,test_dsp_public.py}` (operator's public cocotb testbench, 3 files) were never committed because the broad rule `challenge-[0-9]*/` blocks everything inside. We force-added rtl/ tests/ assertions/ formal/ but missed baseline/ and tb/. Result: 19 files (~1500 lines) recovered post-retro; without them, "what did we change vs the release?" can't be reconstructed from git history alone.
+**Lesson**: at design bootstrap (`docs/design-init.md` step 1), force-add **all** of these explicitly:
+```bash
+git add -f challenge-N/rtl/ challenge-N/spec.md challenge-N/change_request.md \
+  challenge-N/design.yaml challenge-N/flow/constraint.sdc \
+  challenge-N/tb/public/{Makefile,dsp_tb.py,test_dsp_public.py}
+# plus, as you produce them:
+git add -f challenge-N/baseline/{rtl,flow,tb,design.yaml} challenge-N/tests/ \
+  challenge-N/assertions/ challenge-N/formal/*.sby challenge-N/formal/*_sva.sv
+```
+Stay ignored inside the design dir: `sim_build*/`, `__pycache__/`, `results.xml`, `*.pyc`, `challenge-N/formal/<run>/` (SBY run artifacts, regenerable from the tracked .sby + _sva.sv).
 
 ## How to use this file
 
