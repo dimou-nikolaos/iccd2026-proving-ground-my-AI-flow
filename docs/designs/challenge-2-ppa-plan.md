@@ -22,8 +22,11 @@ Cutting BOTH collapses period_min toward the internal floor (~5.8–6.2 ns) → 
   0.4974 — cut wall 1 but exposed wall 2 + 1010 um2).
 
 ## Champion
-- **abar2** family: P=0.5184 (area 45803.9, WNS 2.546, 5.692 mW) — unbeaten across 27+
-  scored tries. Bank #1: c2-sub-32 (V=1.0).
+- **W8** family (abar2 + shared writeback datapath): **P=0.5212** (area 41521.1,
+  WNS 2.061, 5.90 mW). Bank #1: c2-sub-w8. Prev champion abar2: 0.5184 (45803.9).
+- Winning lever: REQ-13 single-outstanding engine ⇒ compute +4/−1 walk arithmetic ONCE
+  for owned channel; banks load. −4283 um2 (−9.4%)! (est was 2.5k — yosys also folded
+  the four le1 comparators and per-bank mux trees). WNS −0.49 acceptable (still +2.0).
 
 ## Wildcards tried (Phase 4e; doctrine: spec-silenced freedoms per docs/ppa-freedom-strategy.md)
 | Move | Result | Verdict |
@@ -32,7 +35,8 @@ Cutting BOTH collapses period_min toward the internal floor (~5.8–6.2 ns) → 
 | W2b registered grant + commit guard (spec §11 latency freedom) | P=0.4974 | cut wall 1, exposed wall 2; Explorer entry, W6 base |
 | W3 registered LEN-zero flags | P=0.4999 | Explorer entry (equiv-proven) |
 | W5 `(* fsm_encoding one_hot *)` | P=0.5184, PPA byte-identical | flow IGNORES fsm attrs (L54) → netlist duplicate, dropped |
-| W6 = W2b + `word_d` SETUP-boundary decode register | P=0.5082, V=1.0 (1st seed) | both walls cut, final WNS still 2.567 (L58 route pin); area +1100, pwr +0.39 → Explorer entry, not bankable |
+| W6 = W2b + `word_d` SETUP-boundary decode register | P=0.5082, V=1.0 (1st seed) | both walls cut, final WNS still 2.567 (L58 route pin); area +1010, pwr +0.39 → Explorer entry, not bankable |
+| **W8 = shared writeback datapath (wb_* buses, (len<=1)=NOR(dec==0))** | **P=0.5212, V=1.0 (1st seed)** | **WIN — NEW BANK c2-sub-w8**; −4283 um2; WNS −0.49 OK |
 | R1 = abar2 + reset-less internal engine FFs (11 FF) | P=0.5102, V=1.0 (1st seed) | area −251 µm² (45552, UNDER baseline) but WNS 2.118 place-dice loss → net −0.008; Explorer entry. Reset-slim saves ~250 µm²: BIG idea for challenge-3 datapath/pipeline regs |
 | FSM one-hot manual (11 states → state_q 11b) | REJECTED | bind `.*` width check: hidden SVA declaring `[3:0] state_q` fails ELAB → C=0. Same-width re-encode: zero gain. attrs: ignored (L54). DEAD |
 | Reset removal incl. data_q (32b) | REJECTED for bank | data_q drives m_wdata top pin → x after reset (hidden all-outputs-low check could read x → ValueError). Not worth +0.002 |

@@ -186,7 +186,21 @@ defensive batches, then freedom exploration; (4) keep docs updated (compaction-s
   critical-path.sh DOCKER env, explorer-variants keep-comma-split bug fixed.
 - Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
 
-## NEXT STEPS (v6, Nov 11 ~22:30 — W6 wildcard open again per operator directive)
+## NEXT STEPS (v7, Nov 12 ~00:40 — W8 WON: bank promoted to c2-sub-w8)
+
+0. **[WON] W8 shared writeback datapath: P=0.5212, V=1.0 — NEW BANK #1**
+   (runs/sub-best.tar.gz = c2-sub-w8, md5 2068f7e1…). Spares if C-risk materializes:
+   c2-sub-32/33/34 (abar2). L60: shared-dp is THE lever for single-writer banks —
+   apply to c3 from Phase 2 onward.
+0b. **[IN FLIGHT] c1-inspired rolls on abar2 base**: f1 (fsm_encoding one_hot on
+   engine FSM — c1 exact syntax; re-test w5's null result) + k1 (keep words_q +
+   keep ch_len, cross-module stack). If wins → stack onto W8 base (w8f1/w8k1) and
+   re-bank. Keep-hits can also recover W8's −0.49 WNS (lottery rolls).
+0c. **W9 candidate (if time)**: shared APB write-merge (compute (q&~wmask)|(d&wmask)
+   once in ctrl — APB writes ≤1 register/cycle; banks export q values already).
+   Est −1.5–3k um2 more; stack behind W8.
+
+## (v6, superseded) NEXT STEPS — W6 freedom-pipeline
 
 1. **[done] PPA plateau (abar2-only) declared**: 27+ scored tries; abar2 (P=0.5184)
    unbeaten within combinational-edit space. Walls: (a) dreq→arbiter-cone (cut by W2b

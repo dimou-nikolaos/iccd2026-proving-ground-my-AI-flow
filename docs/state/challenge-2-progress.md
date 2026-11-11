@@ -198,6 +198,25 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - C2 status: 46 archives in pool, ~18 distinct netlists; exploration closed; upkeep
   + C3 readiness until server opens.
 
+#### 2026-11-12 ~00:30 / W8 shared-writeback: **NEW BANK #1 — P=0.5212, V=1.0 (1st seed)**
+- Idea (read between REQ-13 + REQ-15/19): engine is the SOLE writer of the walking
+  regs and single-outstanding → compute ch_src[own]+4, ch_dst[own]+4, ch_len[own]−1
+  ONCE in engine (own_q muxes already existed for m_araddr/m_awaddr), banks LOAD
+  (new wb_* buses + fix_src/fix_dst gating at ctrl), (len<=1) = free NOR of dec.
+  load_data/load_* fetch semantics UNCHANGED (hidden-assert-friendly); kill power
+  preserved via engine_sva wb-def assertions + patched chan_sva goldens.
+- Result: area **41521 µm² (−4283 vs abar2 = −9.4%, −4189 vs baseline!)**, cells −907,
+  WNS 2.061 (−0.49 bus-depth cost, still deeply positive — no cap risk), power 5.90mW.
+  **P=0.5212 > abar2 0.5184 → PROMOTED. sub-best.tar.gz = c2-sub-w8 (md5 2068f7e1…).**
+- L60 lesson: shared writeback datapath on single-writer-per-cycle banks is the BIG
+  area lever for bus/register designs (est 2.5k, delivered 4.3k µm²). Carry to c3.
+- In flight: f1 (fsm_encoding one_hot, c1 v39 syntax) + k1 (keep words_q + keep ch_len)
+  on abar2 base (component measurement); if either wins → stack on W8 (c1 stacking rule).
+- L35-transfer note: c1 hidden tests PROBE internals (test_async_reset reads
+  u_fir.delay_q) → R1 (reset-less FFs) C-risk ↑: hidden REQ-02 probe on u_engine
+  internals would see x. R1 Explorer-only CONFIRMED. W8 unaffected (all internals
+  keep defined values every cycle).
+
 ### Flow-conformance audit (2026-11-11 ~22:45, vs docs/flow.md)
 - Phase 0/design-init: DONE (bootstrap, baseline PPA cache, public smoke).
 - Phase 1: 1a static + 1c probes DONE (D1–D5 confirmed; probe tests runs/c2-probe cover
@@ -222,9 +241,12 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   runs/sub-best.tar.gz). Spares: -33/-34. Operator task: watch submission server.
 
 ### Best submission
-- **c2-sub-32** (abar2 core, V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c) —
-  proj 75.9 @C=1.0. Nothing banked yet (server down). Earlier: c2-sub-1 (family A,
-  proj 74.35) kept as the C-safest fallback if hidden asserts bind arbiter internals.
+- **c2-sub-w8** (abar2 + shared writeback datapath; V=1.0 first seed, P=0.5212, md5
+  2068f7e12db77d005a8c00ebdb1b8c22) — proj 76.1 @C=1.0. Copy at runs/sub-best.tar.gz
+  (verified md5). **NEW BANK #1.** Spares: c2-sub-32/-33/-34 (abar2 family, 0.5184) if
+  W8 shows hidden-test fallout (values cycle-identical; C-risk judged low: only new
+  module ports + load timing internals, no spec-observable behavior change).
+- Earlier: c2-sub-1 (family A, proj 74.35) remains C-safest exotic fallback.
 
 ### V ceiling
 - Observed: family A **V=1.0 on 6 seeds**; a2 **4/4 seeds**; abar2 **3/4 seeds** (miss = equiv site
