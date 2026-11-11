@@ -4,7 +4,50 @@
 All facts below are from the public blurb, not from the spec/release zip (not yet available).
 On release, re-derive; the spec text is the only authority.
 
-## Confirmed design shape
+## See also: retro docs
+
+Challenge-1 and challenge-2 completed end-to-end. When working challenge-3, **read before Phase 4**:
+
+- `docs/designs/challenge-1-flow-log.md` — wave-by-wave narrative of how we iterated
+- `docs/designs/challenge-1-tool-inventory.md` — agents/skills/scripts per phase
+- `docs/designs/challenge-1-ppa-plan.md` — PPA wins/losses with measured ΔP
+- `docs/designs/challenge-1-sub-catalog.md` + `challenge-1-sub-diffs.md` — rebuild recipes
+- `docs/designs/challenge-2-flow-log.md` — control/bus design record (local-iteration mode)
+- `docs/designs/challenge-2-tool-inventory.md` — incl. the golden-assertion audit recipe
+- `docs/designs/challenge-2-ppa-plan.md` — wildcard ledger + sharing economics
+- `docs/designs/challenge-2-sub-catalog.md` + `challenge-2-sub-diffs.md` — c2 rebuild recipes
+
+Challenge-3 is **pipeline-heavy**, which is challenge-1's strongest area (the gain 2→3 stage split was the single biggest P win, +0.060 P). Apply that lesson aggressively here.
+
+## Challenge-2 IN FIELD adds (Nov 12 — newest priors, from the control/bus campaign)
+
+What challenge-2's fresh experience adds on top of challenge-1's priors (measured c2 verdicts):
+
+- **Attr wildcards are design-dependent**: `(* keep *)` / `(* fsm_encoding *)` produced
+  BYTE-IDENTICAL netlists on c2 (L54) — zero value. Verify netlist delta (area/WNS tuple per
+  report) before spending submission rolls anywhere.
+- **Golden-assertion audit before banking anything** (L60): run the full suite with the
+  UNMODIFIED family-A goldens compiled against each PPA variant RTL. A family that needs
+  modified goldens = microarch-contract change → hidden-assert C-risk (hidden tests probe
+  baseline internals — c1 proved). 15 min per family; it cost c2 the −9.2% area W8 win as a bank.
+- **Shared-datapath pattern = the area lever** (W8: −9.2% area, best P of c2): when one
+  single-outstanding unit is the sole writer of walking registers, compute the walk once and
+  broadcast. BUT keep baseline next-state/strobe semantics observable (bank mux priority and
+  strobe meaning must stay baseline-legal) — c2's version violated that and got demoted.
+- **Equivalence-site removal** (case default-arm arms that spawn unkillable constant mutants,
+  observable barrel encoders): kills mutants AND shaves area — c2's bank family. Expect the same
+  class in rv_core decode/CSRM logic.
+- **V-reroll economics**: identical-netlist archives reroll the hidden mutant seed set
+  (tar bytes differ); pool 3–4 per netlist and pick clean seeds. ~1/9 archives pay a
+  provable-equivalent-mutant tax (c2: wmask[0] lane invariant).
+- **Input pipelining**: never register raw request inputs (L57 stale-shadow spurious-transfer
+  class); registering DECISIONS with live-input re-check at commit is safe.
+- **Route-pinned WNS plateau** (L58, at 10 ns): cutting the logic wall didn't move final-route
+  WNS in any family. At 15 ns (c3) timing is probably not binding at all — go straight to area
+  (multiplier/divider/regfile) per the c1 pipeline-split table below.
+- Server-down fallback worked: ~51 local flow archives ≈ full iteration freedom; keep it.
+
+## Confirmed design shape (superseded the Nov-8 "expected shape" prior)
 
 | Fact | Value |
 |---|---|
@@ -23,6 +66,7 @@ Implications:
 - The verification surface is the largest of the three designs. Half of it (traps, interrupts,
   CSRs) is **hard to drive pin-by-pin** — it needs assembly test programs. The public assembler
   helps; our own assembler + ISS removes the dependency on its feature coverage.
+
 - **Differential random-program testing is the primary deviation finder.** A 1,200-line pipeline
   has a small state space per instruction and a large instruction space; lockstep comparison
   against a Python ISS catches almost every seeded deviation without reading RTL line by line.
@@ -32,6 +76,31 @@ Implications:
 - The core likely uses **multi-cycle divide** (or a serial divider) — that FSM is a rich
   seeded-deviation site (stall propagation into forwarding/flush, reissue, CSR interaction).
 
+## Predicted REQ categories (map to spec on release)
+## PPA levers (CORRECTED with challenge-1 measured data)
+
+| Pattern | Verdict (from challenge-1) | Measured evidence |
+|---------|----------------------------|-------------------|
+| **Pipeline stage splits at natural boundaries** | **STRONG WIN** | challenge-1 gain 2→3 stage split: **+0.060 P single-shot**. Biggest single P lever in campaign. |
+| **Operand isolation on multiplier** | WIN on multipliers only | FIR mult ISO +0.0121, gain mult ISO +0.0145 (stack) |
+| **Operand isolation on adder/comparator** | LOSS | FIR adder ISO −0.007, decim sum ISO −0.015, rndsat ISO −0.025 |
+| **`(* fsm_encoding = "one_hot" *)` on small FSMs** | STRONG WIN (high hit rate) | FIR 4-state FSM: +0.0049 single-shot (L31) |
+| **`(* keep = "true" *)` on wires (cross-module stacks)** | WIN, hit rate ~1/8 per wire | cumulative +0.012 across 4 wires in different modules (L29) |
+| **Forwarding mux restructure** | **LIKELY LOSS** — see L30 | challenge-1 cfg_addr→cfg_rdata read mux restructure ALL LOST P by −0.01 to −0.03. Yosys's default lowering already optimal. |
+| Register file RAM inference | Not tested in challenge-1 | Try on challenge-3 if reg-file present. |
+| Per-stage always_ff consolidation | Likely neutral (Yosys opt_dff already does it) | Skip unless profile shows specific issue. |
+| Async → sync reset wildcards | LOSS unless spec allows; creates C-risk if spec mandates async-only | L32 — challenge-1 lost 4h undoing this. |
+
+### New for challenge-3 (predicted but unverified)
+- Multi-port register file RAM inference: try `(* ram_style = "block" *)` or yosys `memory_libmap` directives.
+- Branch predictor FSM (if present) — apply fsm_encoding one_hot.
+- Forwarding MUX operand isolation — gate to 0 when no-forward active. Challenge-1 pattern suggests this MIGHT lose (comparators lose from gating mux delay), but pipeline forwarding mux trees are bigger than challenge-1's small comparators. Worth 1 experiment.
+
+### Challenge-3 specific PPA opportunity
+Pipeline cores have MORE natural split points than datapath. Each stage boundary is a split candidate. Challenge-1 found +0.060 from ONE split. **Challenge-3 should have 4-6 split candidates**. Try aggressively:
+1. Identify WNS path with `scripts/critical-path.sh` after baseline flow.
+2. If path crosses multiple stages, try splitting at each stage boundary (one variant per boundary, batch via `scripts/pg-batch.sh`).
+3. If path stays within one stage, look at the intra-stage combinational block for ISO / fsm_encoding opportunities.
 ## Predicted REQ categories (map to spec on release)
 
 1. **RV32I base**: every opcode class — LUI/AUIPC/JAL/JALR/branches/loads/stores/ALU/immediates,

@@ -1,0 +1,17 @@
+[options]
+mode prove
+depth 1
+timeout 240
+
+[engines]
+smtbmc yices
+
+[script]
+read_slang --top dsp_rndsat dsp_pkg.sv dsp_rndsat.sv dsp_rndsat_sva.sv
+prep -top dsp_rndsat -flatten
+setundef -zero
+
+[files]
+rtl/dsp_pkg.sv
+rtl/dsp_rndsat.sv
+formal/dsp_rndsat_sva.sv

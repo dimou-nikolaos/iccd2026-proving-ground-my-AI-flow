@@ -1,0 +1,14 @@
+id: design-2
+title: "Four-channel DMA controller with APB4 and AXI4-Lite interfaces"
+top: dma_ctrl
+clock_port: clk
+reset_port: rst_n
+reset_active: low
+reset_type: async
+clock_period_ns: 10.0
+hdl: systemverilog
+filelist: rtl/filelist.f      # paths inside are relative to the design root
+sim: verilator
+public_tests: tb/public       # cocotb, run with: make -C tb/public
+constraint: flow/constraint.sdc
+lines: 777                 # lines of RTL in rtl/ (baseline)

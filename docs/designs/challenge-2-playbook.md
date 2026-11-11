@@ -4,7 +4,36 @@
 All facts below are from the public blurb, not from the spec/release zip (not yet available).
 On release, re-derive; treat this file as the prior that tells us what to prepare.
 
-## Confirmed design shape
+## See also: challenge-1 retro docs
+
+Challenge-1 completed end-to-end (datapath, 138 submissions, 34h agent time). When working challenge-2, **read these before Phase 4**:
+
+- `docs/designs/challenge-1-flow-log.md` — what we did, wave-by-wave
+- `docs/designs/challenge-1-tool-inventory.md` — what tools/agents/skills each phase used
+- `docs/designs/challenge-1-ppa-plan.md` — PPA wins/dead-ends with measured ΔP per wildcard class
+- `docs/designs/challenge-1-sub-catalog.md` + `challenge-1-sub-diffs.md` — how to rebuild any historical variant; useful as pattern for batch-generated P variants
+
+Below we update PPA predictions with challenge-1 measured results (correcting some Nov 8 guesses).
+
+## Challenge-2 IN FIELD RESULT (campaign complete Nov 12 — playbook priors vs reality)
+
+Challenge-2 ran end-to-end locally (server down; ~51 archives, bank c2-sub-32 abar2 V=1.0
+P=0.5184, proj 75.9@C=1.0). Retro docs: `challenge-2-flow-log.md`,
+`challenge-2-tool-inventory.md`, `challenge-2-ppa-plan.md`, `challenge-2-sub-catalog.md`.
+What the priors above got right/wrong on THIS design:
+
+- Right: L21 config-read-mux prior (paddr→prdata wall was global in c2 too); deviation hunt
+  list (D1/D2/D4/D7/D14-class all present as D1–D5); protocol SVA + per-REQ probes plan.
+- Wrong: **attr wildcards (fsm_encoding, keep) were INERT on c2 synth — byte-identical
+  netlists (L54)**. c1's top levers did not transfer. Always prove netlist delta first.
+- New winner class: **equivalence-site removal + observable encoder restructures** (abar2
+  family = bank; removed case-default arms that generated unkillable constant mutants).
+- New ceiling: final-route WNS pinned ~2.5 ns in EVERY family (L58) — P plateau ~0.52 is
+  place/route bound; only AREA moves P. W8 shared writeback dp: −9.2% area, P=0.5212 best,
+  but DEMOTED for microarch-contract violation (L60 — keep shared-dp idea, fix contract).
+- dreq input pipelining: never (L57, spurious-burst class).
+
+## Confirmed design shape (superseded the Nov-8 "expected shape" prior)
 
 | Fact | Value |
 |---|---|
@@ -30,6 +59,20 @@ Implications:
   status/interrupt bits, and APB read/write corner cases.
 - 10 ns with a wide register file behind APB: challenge-1's L21 (critical path = config read
   mux tree `cfg_addr → cfg_rdata`, not the datapath) is the prior to check first.
+
+## PPA levers (CORRECTED with challenge-1 measured data)
+- **FSM encoding wildcards — STRONG**: `(* fsm_encoding = "one_hot" *)` on small FSMs (2-4 states) is one of the highest hit-rate P levers. Challenge-1 measured +0.0049 P single-shot on FIR 4-state FSM (L31). Hit rate ~1/2. Cost: 1-2 extra flops. **Try this FIRST** on every FSM in the design.
+- **Wire `(* keep = "true" *)` — RELIABLE**: counter-intuitive P wildcard. Challenge-1 measured +0.0042 (rndsat.kept) +0.0025 (fir.acc_q) +0.0045 (stats counters) +0.0013 (fir.idx_q) = ~+0.012 cumulative. Hit rate ~1/8 per wire. **Stack across modules** (L29: cross-module keeps compound; same-module stacks plateau). Try on each module independently.
+- **Bus mux trees**: address decoder fanout can dominate timing — check critical path early (use `scripts/critical-path.sh`). Challenge-1 cfg_addr→cfg_rdata read mux was on critical path; **Yosys's default `unique case` lowering was already optimal** (L30). Don't waste time restructuring the mux tree — try Yosys attribute wildcards first.
+- **Operand isolation**: only multipliers/wide adders benefit; small ALU ops lose (L17). Challenge-1 measured: FIR mult ISO +0.012, gain mult ISO +0.015; FIR adder ISO −0.007, rndsat ISO −0.025.
+- **Async → sync reset**: only pays on WIDE flop arrays (>64 bits, L20). **But creates REQ-42-class C-risk if spec mandates async-only reset** (L32). Challenge-1 lost 4h undoing this. Check spec text before applying.
+
+### New PPA dead-ends discovered in challenge-1 (don't waste time)
+- Critical-path mux-tree restructure (parallel_case, AND-OR tree, keep on read word) — all LOST (L30)
+- Operand isolation on adders/comparators (already covered above)
+- Fusing rndsat + limiter (variable comparator wider, slower)
+- Narrow accumulator bits (sky130 standard-cell mapping often WORSE for non-power-of-2 widths)
+- Same-module stacked keeps (plateau after 2 in same module — go cross-module)
 
 ## Predicted REQ categories (map to spec on release)
 

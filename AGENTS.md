@@ -60,7 +60,7 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 | You are at | Read first | Then |
 |---|---|---|
 | Cold start / resume after compaction | `docs/state/<design>-progress.md` + `md5sum runs/sub-best.tar.gz` | `docs/joint-flow.md` (cycle + handoff) |
-| Starting a new design | `docs/design-init.md` (bootstrap checklist) | `docs/designs/<design>-playbook.md` |
+| Starting a new design | `docs/design-init.md` (bootstrap checklist) | `docs/designs/<design>-playbook.md` + prior challenge's `*-flow-log.md`, `*-tool-inventory.md`, `*-ppa-plan.md` |
 | Phase 1 (analyze spec deviations) | `docs/flow.md` § Phase 1 | skill `spec-deviation-hunting`, `docs/skills/bug-hunting.md` |
 | Phase 2 (fix RTL) | `docs/flow.md` § Phase 2 | task-card `rtl-fixer` |
 | Phase 3 (write tests + assertions) | `docs/flow.md` § Phase 3 | skills `cocotb-test-writing`, `sva-assertion-writing`; deep refs `docs/skills/cocotb-patterns.md`, `docs/skills/sva-patterns.md` |
@@ -71,6 +71,8 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 | Phase 4e (wildcard exploration) | `docs/flow-wildcard.md` | `docs/flow-lessons.md` (P section, L17/L20/L27/L28 wildcard catalogs) |
 | Running the scoring flow | skill `pg-flow-commands` | `scripts/pg-batch.sh` for parallel batches; `docs/skills/flow-internals.md` for what each stage checks and how to iterate V locally |
 | PPA failure diagnosis | `docs/flow-lessons.md` L11/L14/L16/L21 (synthesis + counter-intuition) | `scripts/{submodule-synth,critical-path}.sh` |
+| Rebuild any historical submission | `docs/designs/<design>-sub-catalog.md` (parent chain + V/P/status) | `docs/designs/<design>-sub-diffs.md` (per-sub diff vs parent) |
+| Review our workflow for a new design | `docs/designs/<design>-flow-log.md` | `docs/designs/<design>-tool-inventory.md` |
 
 ## Quick commands (all via Docker)
 

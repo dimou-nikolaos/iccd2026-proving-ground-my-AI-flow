@@ -1,0 +1,32 @@
+# Smoke scaffold for the assertion set — NOT part of the submission.
+#
+# It compiles rtl/filelist.f + assertions/*.sv with --assert (exactly like pgflow's
+# evidence build) and runs an existing cocotb module against it.
+#
+#   make -f Makefile.smoke                                    # public tests + assertions
+#   make -f Makefile.smoke TEST_DIR=/design/probe TEST_MODULE=test_probe
+#   make -f Makefile.smoke RTL_ROOT=/design/neg/brk_arb ASSERT_DIR=/design/assertions
+
+RTL_ROOT ?= /design
+RTL_ROOT_ABS := $(abspath $(RTL_ROOT))
+ASSERT_DIR ?= /design/assertions
+TEST_DIR ?= $(RTL_ROOT_ABS)/tb/public
+TEST_MODULE ?= test_dma_public
+
+SIM ?= verilator
+TOPLEVEL_LANG = verilog
+COCOTB_TOPLEVEL = dma_ctrl
+COCOTB_TEST_MODULES = $(TEST_MODULE)
+
+RTL_FILES := $(shell grep -v '^\s*\(//\|#\|$$\)' $(RTL_ROOT_ABS)/rtl/filelist.f)
+VERILOG_SOURCES = $(addprefix $(RTL_ROOT_ABS)/,$(RTL_FILES)) $(wildcard $(ASSERT_DIR)/*.sv)
+
+EXTRA_ARGS += -Wno-fatal --x-assign unique --x-initial unique --assert
+# Match the scoring flow's runtime options (pgflow.public.sim_plusargs):
+# registers and inputs start at zero, deterministic seed.
+SIM_ARGS ?= +verilator+seed+4242 +verilator+rand+reset+0
+SIM_BUILD ?= /tmp/sb_$(notdir $(RTL_ROOT_ABS))_$(notdir $(ASSERT_DIR))
+
+export PYTHONPATH := $(PYTHONPATH):$(TEST_DIR):$(EXTRA_PYTHONPATH)
+
+include $(shell cocotb-config --makefiles)/Makefile.sim
