@@ -7,6 +7,13 @@ Extensions over the probe harness (names of existing helpers preserved):
                 (ready=0 / valid=0) until the test unblocks it; survives reset
   mem.keep_pend : if True, pending rq/bq/aw/w are NOT discarded at reset, so the
                 slave delivers late m_rvalid/m_bvalid after the DUT was reset
+  mem.aw_gap_after_ack : if set to N, m_awready is forced 0 for the N cycles after
+                the first observed AW handshake. (The model already holds awready
+                0 until the AW+W pair merges; this knob extends that gap PAST the
+                merge, so awready stays 0 for the rest of the word's write.)
+                Default None = old behavior.
+  mem.w_gap_after_ack  : symmetric for m_wready: forced 0 for the N cycles after
+                the first observed W handshake. Default None = old behavior.
   mem.cycle   : falling-edge cycle counter (shared clock base with the APB driver)
   mem.log     : W entries carry the strobe: ("W", addr, data, strb)
   mem.dack_count / mem.dack_width : dack pulse counting and max pulse width
@@ -72,6 +79,10 @@ class Memory:
         self.violations = []
         self.block = set()
         self.keep_pend = False
+        self.aw_gap_after_ack = None  # None = off; N = awready=0 for N cycles after AW ack
+        self._aw_gap = 0
+        self.w_gap_after_ack = None   # None = off; N = wready=0 for N cycles after W ack
+        self._w_gap = 0
         self.cycle = 0
         self.irq_seen_at = None
         self.b_accept = None
@@ -131,8 +142,12 @@ class Memory:
             r_blk = "r" in self.block
             b_blk = "b" in self.block
             d.m_arready.value = 0 if ar_blk else self._ready()
-            d.m_awready.value = 0 if (aw_blk or self.aw is not None) else self._ready()
-            d.m_wready.value = 0 if (w_blk or self.w is not None) else self._ready()
+            d.m_awready.value = 0 if (aw_blk or self.aw is not None or self._aw_gap > 0) else self._ready()
+            if self._aw_gap > 0:
+                self._aw_gap -= 1
+            d.m_wready.value = 0 if (w_blk or self.w is not None or self._w_gap > 0) else self._ready()
+            if self._w_gap > 0:
+                self._w_gap -= 1
             rv = 1 if (self.rq and not r_blk and self._ready()) else 0
             d.m_rvalid.value = rv
             if rv:
@@ -160,8 +175,12 @@ class Memory:
                 self.log.append(("R", addr))
             if aw_v and aw_r:
                 self.aw = int(d.m_awaddr.value)
+                if self.aw_gap_after_ack is not None and self._aw_gap == 0:
+                    self._aw_gap = self.aw_gap_after_ack
             if w_v and w_r:
                 self.w = (int(d.m_wdata.value), int(d.m_wstrb.value))
+                if self.w_gap_after_ack is not None and self._w_gap == 0:
+                    self._w_gap = self.w_gap_after_ack
             if rv and int(d.m_rready.value):
                 self.rq.pop(0)
             if bv and int(d.m_bready.value):

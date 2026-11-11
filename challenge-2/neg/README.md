@@ -50,6 +50,21 @@ sudo -n docker run --rm --cpus 12 -u $(id -u):$(id -g) -e HOME=/tmp \
 | `brk_arhold` | `dma_engine.sv`: `S_RD_ADDR` advances without `m_arready` (drop_term on a handshake guard) | `axi_sva.a_req14_ar_hold` | `micro/test_req14.py` |
 | `brk_wdata` | `dma_engine.sv`: `m_wdata = data_q + 1` (arith) | `engine_sva.a_wdata_def` | public + probes |
 | `brk_decswap` | `dma_ctrl.sv`: `.wr_next` strobe generated from `chan_reg == R_CTRL` (swap in the per-channel write decode) | `ctrl_sva.a_wr_next_<n>` | probes |
+| `mut_g1` | `dma_engine.sv:211`: S_WR advance `(aw_done_q \|\| m_awready)` → `(m_awready)` (drop_term reroll survivor) | **test** `test_req13_aw_done_gap` (deadlock oracle: ACTIVE never clears); no SVA needed | `tests/test_bus_protocol.py` with knob `mem.aw_gap_after_ack` |
+| `mut_g2` | `dma_ctrl.sv:197`: prdata read mux `psel && penable && !pwrite` → `penable && !pwrite` (drop_term reroll survivor) | `apb_sva.a_req06_prdata_zero` + test assert in `test_req06_penable_without_psel` (drives penable=1, psel=0) | `tests/test_bus_protocol.py` |
+| `mut_g3a` | ORIGINAL `dma_arb.sv:13`: rotation-advance constant `start = last + 2'd1` → `2'd2` (constant, reroll-equivalent) | **test** `test_req24_rotation_4way` order check; `engine_sva.a_req24_grant_golden` also fires | `tests/test_rotation.py` |
+| `mut_g3b` | ORIGINAL `dma_arb.sv:22`: first-set tie-break `> best_prio` → `>=` (tie takes LAST in rotation; first-set-encoder equivalent) | **test** `test_req24_rotation_4way`; `a_req24_grant_golden` also fires | `tests/test_rotation.py` |
+| `mut_g4a` | `arbpar` rewrite `dma_arb.sv:13`: `start = last + 2'd1` → `2'd2` | **test** `test_req24_rotation_4way` (dst-signature order, no arbiter internals) | `tests/test_rotation.py` |
+| `mut_g4b` | `arbpar` rewrite `dma_arb.sv:52`: first-set encoder index `rk = 2'd0` → `2'd1` | **test** `test_req24_rotation_4way` | `tests/test_rotation.py` |
+| `mut_wdone` | `both1` rewrite `dma_engine.sv:218`: S_WR advance `(w_done_q \|\| m_wready)` → `(m_wready)` (mirror drop_term survivor) | **test** `test_req13_w_done_gap` (deadlock oracle, knob `mem.w_gap_after_ack`) | `tests/test_bus_protocol.py` |
+| `clean_arbpar`, `clean_both1` | UNmutated copies of `runs/variants/{arbpar,both1}` (controls: new tests must PASS on rewrites) | – | all 57 tests pass on the fixed original RTL; the two new tests pass on both clean rewrites |
+
+**Equivalence note (mut_g4 literal lines 42/43)**: the reroll's literal element swaps on the rotate-case rows
+(`2'd0:` row `match[3]`→`match[2]`; `2'd1:` row `match[0]`→`match[1]`) were analyzed as **functionally
+equivalent** — they only duplicate an rmatch bit at a position that can never be the first-set bit (the
+`grant_valid=|match` fallback rk=3 reproduces the same roidx). No test can kill them. The fixtures above
+instead mutate the three real constant degrees of freedom of the same logic (rotation advance, first-set
+index, tie direction) and are killed on BOTH the original loop arbiter and the arbpar rewrite.
 
 All 9 fire; the same fixtures produce **0** fires on the unmutated RTL. Because
 Verilator 5.048 aborts the simulation at the **first** failed assertion

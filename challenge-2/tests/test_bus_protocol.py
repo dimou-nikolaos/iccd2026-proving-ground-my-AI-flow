@@ -288,3 +288,115 @@ async def test_req13_awvalid_arvalid_exclusive(dut):
     await tb.wait_idle()
     assert len(tb.mem.violations) == 0, tb.mem.violations[:3]
     tb.check_bus()
+
+
+@cocotb.test()
+async def test_req13_aw_done_gap(dut):
+    """REQ-13 (AW and W may complete in either order): the AW channel handshakes
+    FIRST while m_wready is held 0, then m_awready is stuck 0 for the rest of the
+    word's write (mem.aw_gap_after_ack), and the W data handshakes later. The
+    engine must latch its AW acceptance and still advance to the write-response
+    phase; an engine that waits to re-observe m_awready deadlocks even though
+    both write addresses and data were accepted."""
+    tb = DmaTB(dut, seed=13)
+    await tb.start()
+    tb.mem.aw_gap_after_ack = 10**6  # awready forced 0 after the first AW handshake
+    tb.mem.block = {"w"}             # ... while the W data cannot yet complete
+    tb.mem.load(0x2400, [0xA5A500CD])
+    await tb.program(0, 0x2400, 0x2800, 1, EN)
+    await tb.write(GCTRL, 1)
+    for _ in range(300):             # wait until AW is accepted, W still stalled
+        await FallingEdge(dut.clk)
+        if tb.mem.aw is not None:
+            break
+    else:
+        raise AssertionError("AW handshake never observed")
+    tb.mem.block = set()             # W data now handshakes; awready stays 0
+    done = False
+    for _ in range(30):              # bounded: the correct RTL completes promptly
+        if await tb.read(ACTIVE) == 0:
+            done = True
+            break
+    assert done, ("word not completed after AW accepted early and W later: write "
+                  "completion must use the latched AW handshake, not m_awready")
+    assert tb.mem.dump(0x2800, 1) == [0xA5A500CD]
+    assert await tb.read(IRQ_STATUS) & done_bit(0), "done event not recorded"
+    tb.check_bus()
+
+
+@cocotb.test()
+async def test_req06_penable_without_psel(dut):
+    """REQ-04/REQ-06: penable=1 while psel=0 is an illegal idle-phase state, not
+    an access. Drive penable high across posedges with psel held low: a
+    write-looking phase (EN bit at a channel-EN address) must not touch any
+    register, and in a read-looking phase prdata must stay 0 even at mapped
+    addresses — a read decode that ignores psel would drive the register value
+    (killed by test and by apb_sva a_req06_prdata_zero)."""
+    tb = DmaTB(dut)
+    await tb.start()
+    d = dut
+    src = 0xA5A50F00
+    await tb.write(ch(2, CH_SRC), src)     # mapped register with a known nonzero value
+    id_val = await tb.read(ID)
+    # illegal write-looking phase: penable=1, psel=0, EN at a channel CTRL address
+    d.penable.value = 1
+    d.psel.value = 0
+    d.pwrite.value = 1
+    d.paddr.value = ch(2, CH_CTRL)
+    d.pwdata.value = EN
+    d.pstrb.value = 0xF
+    await tb.wait_cycles(3)                # crosses posedges in the illegal phase
+    # illegal read-looking phase: same shape, pwrite=0, at mapped ADDRESSES THAT
+    # HOLD NONZERO VALUES (a 0-valued register would not discriminate)
+    d.paddr.value = ch(2, CH_SRC)          # holds 0xA5A50F00
+    d.pwrite.value = 0
+    await tb.wait_cycles(1)
+    await Timer(1, unit="ns")
+    val_src = int(d.prdata.value)          # prdata must be 0 outside psel&&penable
+    d.paddr.value = ID                     # constant UNIT_ID, nonzero
+    await Timer(1, unit="ns")
+    val_id = int(d.prdata.value)
+    await tb.wait_cycles(1)
+    d.penable.value = 0
+    d.paddr.value = 0
+    d.pwdata.value = 0
+    assert val_src == 0, f"prdata=0x{val_src:08X} with penable=1 psel=0: read decode ignored psel"
+    assert val_id == 0, f"prdata=0x{val_id:08X} with penable=1 psel=0: read decode ignored psel"
+    assert await tb.read(ch(2, CH_CTRL)) == 0, "penable-without-psel write must have no effect"
+    assert await tb.read(ch(2, CH_SRC)) == src
+    assert await tb.read(ID) == id_val     # normal accesses unaffected afterwards
+    tb.check_bus()
+
+
+@cocotb.test()
+async def test_req13_w_done_gap(dut):
+    """REQ-13 (AW and W may complete in either order) — mirror of test_req13_aw_done_gap:
+    the W data handshakes FIRST while m_awready is held 0 (block 'aw'), then
+    m_wready is stuck 0 for the rest of the word (mem.w_gap_after_ack) and the AW
+    address handshakes later. The engine must latch its W acceptance and advance
+    to the write-response phase; an engine that waits to re-observe m_wready
+    deadlocks even though both address and data were accepted."""
+    tb = DmaTB(dut, seed=14)
+    await tb.start()
+    tb.mem.w_gap_after_ack = 10**6  # wready forced 0 after the first W handshake
+    tb.mem.block = {"aw"}           # ... while the AW address cannot yet complete
+    tb.mem.load(0x2404, [0xA5A511CD])
+    await tb.program(0, 0x2404, 0x2804, 1, EN)
+    await tb.write(GCTRL, 1)
+    for _ in range(300):            # wait until W is accepted, AW still stalled
+        await FallingEdge(dut.clk)
+        if tb.mem.w is not None:
+            break
+    else:
+        raise AssertionError("W handshake never observed")
+    tb.mem.block = set()            # AW address now handshakes; wready stays 0
+    done = False
+    for _ in range(30):             # bounded: the correct RTL completes promptly
+        if await tb.read(ACTIVE) == 0:
+            done = True
+            break
+    assert done, ("word not completed after W accepted early and AW later: write "
+                  "completion must use the latched W handshake, not m_wready")
+    assert tb.mem.dump(0x2804, 1) == [0xA5A511CD]
+    assert await tb.read(IRQ_STATUS) & done_bit(0), "done event not recorded"
+    tb.check_bus()

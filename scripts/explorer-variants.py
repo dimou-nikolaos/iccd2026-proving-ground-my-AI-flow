@@ -187,14 +187,18 @@ def apply_attr(variant: Path, want, attr: str, fsm: bool, pick: int = 0) -> str:
         raise SystemExit(f"attr {attr}: no candidate register found")
     _, name, f = hit
     t = f.read_text()
-    pat = rf"^(\s*)((?:wire|logic|reg)\s+(?:signed\s+)?(?:\[[^\]]*\]\s*)*{re.escape(name)}\s*(?:=|;|\[))"
+    pat = rf"^(\s*)((?:wire|logic|reg)\s+(?:signed\s+)?(?:\[[^\]]*\]\s*)*{re.escape(name)}\s*(?:=|;|\[|,))"
     m = re.search(pat, t, re.M)
     assert m, f"declaration line for {name} not found"
-    t = re.sub(
-        pat,
-        lambda mm: f'{mm.group(1)}(* {attr} *) {mm.group(2)}',
-        t, count=1, flags=re.M,
-    )
+    def _attr_ins(mm):
+        indent, decl = mm.group(1), mm.group(2)
+        m2 = re.match(rf"^(\s*(?:wire|logic|reg)\s+(?:signed\s+)?(?:\[[^\]]*\]\s*)?)({re.escape(name)})\s*(.*)$", decl, re.S)
+        kw, rest = m2.group(1), m2.group(3)
+        if not rest.startswith(','):
+            return f'{indent}(* {attr} *) {decl}'
+        rest = rest.lstrip()[1:].lstrip()  # drop the comma that split the list
+        return f'{indent}(* {attr} *) {kw}{name};\n{indent}{kw}{rest}'
+    t = re.sub(pat, _attr_ins, t, count=1, flags=re.M)
     f.write_text(t)
     return f"attr (* {attr} *) on {name} in {f.name}"
 
