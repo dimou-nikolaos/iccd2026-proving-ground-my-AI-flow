@@ -9,7 +9,7 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
 - **Phase 4 — iterate (C: correctness risk)**: L4
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48
-- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51
+- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
 - **Flow running / tooling ops**: L50
 
 ## Phase 1 — analysis
@@ -244,6 +244,10 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 **L50. Parallel pg-batch runs sharing one `--cache` dir can race and reject builds spuriously** ("top-level ports changed" on an archive that builds clean in isolation). Use per-submission caches (`/runs/cache-<name>`); a "rejected" archive must be rebuilt solo before you trust the rejection.
 
 **L51. RTL restructuring can introduce FUNCTIONALLY-EQUIVALENT mutants (unkillable) that permanently tax V for that archive.** ch2's arbiter rewrite to a `case (start)` rotate produced constant sites (duplicated `match[k]` at unobservable rotate positions) no test can kill — survivors in 2 of 2 scored seeds of that family. Prefer encodings where every constant is observable (barrel conditional-swap rotate; explicit if/else first-set encoder) and mutation-test your own restructure on 2–3 reroll seeds before adopting a rewritten family.
+
+**L52. The BASELINE RTL itself can contain unreachable arms that breed equivalent mutants.** ch2's `prdata` mux had `default: 32'h0` arms in both case blocks, but the dma_apb decode (`is_glob/is_chan` gate reg indices ≤ 5) makes those arms unreachable — a constant mutant there (0→1) survived every seed of every archive (sub-22 #4). Fix: delete the unreachable arm's constant (`default: ;`) — semantically identical, removes the site. Diagnose survivors by exhaustively modeling the small cone in Python (arbiter: 16 elig × 4^4 prio × 4 last = 16k cases) — decides equivalent-vs-stimulus-gap in seconds.
+
+**L53. A mis-granted inactive channel self-heals — grant mutants need ACTIVE wrong targets or immediate LAST_GRANT checks.** Arbiter granting ch2 (inactive) instead of ch1: the engine re-arbitrates next cycle, ch1 finishes its burst, and LAST_GRANT is re-fixed by the later correct grant — completion order + final LAST_GRANT stayed CLEAN. Two robust oracles: (a) assert the grant register after EVERY grant in a rotation sweep (phase-3 pairs), (b) stage a PRIO-monopoly channel with an ACTIVE lower-prio neighbor so the wrong grant moves real data (order breaks visibly).
 
 ## How to use this file
 
