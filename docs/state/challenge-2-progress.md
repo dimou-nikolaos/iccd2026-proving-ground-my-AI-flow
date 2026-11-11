@@ -144,11 +144,52 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   progress file). Pool: 36 archive rows, ~16 distinct netlists (Explorer-ready).**
   27+ PPA tries. All wildcards logged (L54–L56). Remaining time → C3 readiness + upkeep.
 
+#### 2026-11-11 ~22:30 / W6 freedom-pipeline (operator-approved; spec §11 latency freedom)
+- Spec audit: freedoms that matter — §11 "may add/remove cycles of latency"; pinned:
+  REQ-03 (no wait states), REQ-35 (irq=f(regs) only), REQ-13 (1 outstanding), REQ-32
+  (status in event cycle). Two setup walls in EVERY family start at top INPUT ports
+  (2 ns input-delay each): dreq→arbiter-cone (abar2 WNS 2.546) and paddr→prdata read
+  mux (W2b exposed: 2.13). Cut BOTH → period_min 7.45 → ~6.0 → t +0.20 → **P≈0.68-0.73
+  projected (score ~85)**. t-slope ≈ +0.0098 P per 1% period_min.
+- **Rejected mid-build: `dreq_q` input pipeline.** One-cycle dreq shadow AFTER dack
+  passes the W2b commit guard (eligible sees stale dreq=1) → spurious 2nd burst,
+  REQ-27 violation. dreq sampling must stay live. (lesson L57 pending)
+- **W6 = w2 base (registered grant + commit guard) + `word_d` APB decode register** at
+  the SETUP/ACCESS boundary in dma_apb (dma_apb gets clk/rst_n ports — internal, OK).
+  Doctrine: `word` stays live paddr[11:2] (baseline meaning); NEW name `word_d` feeds
+  the decode. apb_sva: 6 decode-equivalence asserts gated `access |->` (REQ-04-faithful:
+  setup-phase decode is spec-irrelevant). ctrl_sva/engine_sva need NO patch (already
+  access-gated / bind into dma_engine so they follow the registered outputs).
+- Status: lint clean (UNUSEDSIGNAL on kept-live `word` is intentional). Staged
+  runs/testrun-w6 (rtl/tests/assertions/tb). Public TB run started, interrupted — rerun.
+  Then 58-suite+assertions, then full flow → c2-sub-w6.
+- C-risk (documented): hidden test driving psel&&penable with NO preceding SETUP cycle
+  (baseline decodes live paddr; word_d holds previous). Hidden asserts binding dma_apb
+  internals see stale decode outside access. Containment: exploratory slot AFTER
+  bank #1 c2-sub-32; failure costs 1 slot + hidden test names.
+
+### Flow-conformance audit (2026-11-11 ~22:45, vs docs/flow.md)
+- Phase 0/design-init: DONE (bootstrap, baseline PPA cache, public smoke).
+- Phase 1: 1a static + 1c probes DONE (D1–D5 confirmed; probe tests runs/c2-probe cover
+  the 5 deviation REQs; public-TB blind spots documented). **1b SBY formal: skipped
+  DELIBERATELY per L13 ROI caveat** (control+bus design, shallow combinational cones;
+  the SVA next-state defs + equiv_induct gate (explorer-check) did the confirming work).
+  Not previously recorded — recorded here.
+- Phase 2 after-fix checks: all DONE (filelist diff, lint, slang elab via flow runs, public TB).
+- Phase 3 exit gate: ALL MET (58/58 ASSERTIONS run, 0 fires, 16 fail baseline, REQ matrix
+  100%, top-level interface assertion modules bind dma_ctrl).
+- Phase 4a: blocked by server outage (C unknown; will submit slot-1 on open).
+- 4b/4c: DONE (plateau + V ledger). 4e: open — W6 in flight.
+- **Gaps found & fixed**: (1) formal-skip decision now recorded (above); (2) NEW
+  docs/designs/challenge-2-ppa-plan.md created — wildcard ledger was only in gitignored
+  runs/c2-best.md (loss risk); (3) report.md in banked tars says "53 tests" (suite is 58)
+  — regenerate report.md when next bank/spare is packed.
+
 ### Next action for operator
-- Nothing blocking. C2 exploration FROZEN (plateau); pool complete and current in
-  runs/c2-best.md. Bank #1 when server opens: **c2-sub-32** (abar2, V=1.0, P=0.5184,
-  md5 d3d0381f7d7ca0c73157a416d6b80e8c; copy at runs/sub-best.tar.gz). Spares: -33/-34.
-  Agent now on low-interval upkeep + C3 readiness. Operator task: watch submission server.
+- In flight: **W6 freedom-pipeline** (operator-approved wildcard, see log 22:30). If it
+  scores P>=0.60 locally, it becomes an exploratory slot AFTER bank #1; bank #1 stays
+  **c2-sub-32** (abar2, V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c; copy at
+  runs/sub-best.tar.gz). Spares: -33/-34. Operator task: watch submission server.
 
 ### Best submission
 - **c2-sub-32** (abar2 core, V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c) —
