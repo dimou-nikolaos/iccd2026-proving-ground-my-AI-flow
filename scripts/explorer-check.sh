@@ -27,7 +27,7 @@ sudo -n docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp \
     --entrypoint bash proving-ground/flow:public -c '
 set -e
 top=$(grep -m1 "^top:" /core/design.yaml 2>/dev/null | awk "{print \$2}")
-top=${top:-$(basename $(head -1 /core/rtl/filelist.f) .sv)}
+[ -n "$top" ] || { echo "ERROR: /core/design.yaml missing or has no 'top:' line — copy the design.yaml in (fallback from filelist head is unsafe: pkgs come first)"; exit 1; }
 corefl=$(grep -v "^[#[:space:]]" /core/rtl/filelist.f | grep -v "^[[:space:]]*$" | sed "s/\r//g; s/[[:space:]]*$//g; s|^/||; s|^|/core/|" | xargs)
 varfl=$(grep -v "^[#[:space:]]" /var/rtl/filelist.f | grep -v "^[[:space:]]*$" | sed "s/\r//g; s/[[:space:]]*$//g; s|^/||; s|^|/var/|" | xargs)
 prep_cmd="hierarchy -top $top; proc; flatten; memory -nomap; memory_map; opt_clean; async2sync; dffunmap"

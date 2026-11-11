@@ -38,7 +38,7 @@ for s in "${SUBS[@]}"; do
   ( $DOCKER run --rm --cpus "$CPUS" -u $(id -u):$(id -g) -e HOME=/tmp \
       -v "$PWD/$BASE":/design:ro -v "$PWD/runs:/runs" \
       proving-ground/flow:public \
-      run --design /design --submission "/runs/$name.tar.gz" --out "/runs/out-$name" --jobs "$JOBS" --cache /runs/cache-$name $SKIP \
+      run --design /design --submission "/runs/$name.tar.gz" --out "/runs/out-$name" --jobs "$JOBS" --cache /runs/cache-$name $SKIP $EXTRA \
       > "$LOGDIR/pgbatch_$name.log" 2>&1 ) &
 done
 wait

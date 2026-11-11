@@ -6,9 +6,9 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 
 - **Phase 1 — analysis**: L1
 - **Phase 3 — verify (testing/assertions)**: L2, L3, L12, L36, L37, L38, L39, L40, L41, L45, L46, L47
-- **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
+- **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26, L56
 - **Phase 4 — iterate (C: correctness risk)**: L4
-- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48
+- **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48, L54, L55, L56
 - **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
 - **Flow running / tooling ops**: L50
 
@@ -248,6 +248,12 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 **L52. The BASELINE RTL itself can contain unreachable arms that breed equivalent mutants.** ch2's `prdata` mux had `default: 32'h0` arms in both case blocks, but the dma_apb decode (`is_glob/is_chan` gate reg indices ≤ 5) makes those arms unreachable — a constant mutant there (0→1) survived every seed of every archive (sub-22 #4). Fix: delete the unreachable arm's constant (`default: ;`) — semantically identical, removes the site. Diagnose survivors by exhaustively modeling the small cone in Python (arbiter: 16 elig × 4^4 prio × 4 last = 16k cases) — decides equivalent-vs-stimulus-gap in seconds.
 
 **L53. A mis-granted inactive channel self-heals — grant mutants need ACTIVE wrong targets or immediate LAST_GRANT checks.** Arbiter granting ch2 (inactive) instead of ch1: the engine re-arbitrates next cycle, ch1 finishes its burst, and LAST_GRANT is re-fixed by the later correct grant — completion order + final LAST_GRANT stayed CLEAN. Two robust oracles: (a) assert the grant register after EVERY grant in a rotation sweep (phase-3 pairs), (b) stage a PRIO-monopoly channel with an ACTIVE lower-prio neighbor so the wrong grant moves real data (order breaks visibly).
+
+**L54. `(* fsm_encoding = "one_hot" *)` is IGNORED by the flow's synthesis path (yosys-slang + synth_ocr): attr kept in RTL, FSM stays binary-encoded — verified by byte-identical PPA metrics (area/WNS/power) vs the un-attributed core.** `(* keep = "true" *)` IS honored (area moved). Rule: attr classes must be validated by FULL FLOW, never by the yosys fingerprint gate (`write_verilog -noattr` strips attrs → attr variants falsely COLLAPSE there); and an attr variant with identical metrics is a NETLIST DUPLICATE — do not submit it as an Explorer entry.
+
+**L55. Registered-decision pipelines need a commit guard.** A one-cycle-later grant commit (`gv_q && eligible[gi_q]`) is required, else the engine commits to channels that became ineligible in the gap (already-served/EN-cleared) — caught instantly by own `a_set_needs_en` (REQ-32) on the PUBLIC stage, i.e. evidence assertions earn their keep even for wildcards. Also: removing the family's critical path just exposes the next global wall (ch2: `paddr→prdata` read mux, present in ALL families) — profile the NEW worst path before assuming a timing lever generalizes.
+
+**L56. Registering comparison FLAGS is placement-sensitive: a flag FF is equivalent ONLY if it mirrors the compared register's NEXT value (flag_next == cmp(q_next), provable by induction flag(t)==cmp(q(t))).** In-chan registration (can see `len_m`) = equivalent (equiv-proven via `explorer-check.sh` yosys gate — a fast pre-screen for RTL restructures: PROVEN + fingerprint-distinct in ~90 s, before spending full-flow time). Top-level registration from the current value (`cmp(q)` delayed) = a REAL 1-cycle deviation — the equiv gate rejects it.
 
 ## How to use this file
 
