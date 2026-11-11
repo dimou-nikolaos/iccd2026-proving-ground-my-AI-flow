@@ -55,6 +55,24 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - W1C/enable lane rules come free via existing wmask path (byte lane 1 = pstrb[1]).
 
 ### Activity log (newest first)
+#### 2026-11-12 ~18:00 / archive organization + merged challenge-2 → main (local)
+- Mirrored challenge-1 doc layout for c2: added `challenge-2-flow-log.md`, `-tool-inventory.md`,
+  `-formal-findings.md`, `-sub-catalog.md` (51 archives ↔ 45 flow reports), `-sub-diffs.md`
+  (per-family RTL deltas + baseline→fixed record) + generator scripts `gen-sub-catalog-c2.py`,
+  `gen-sub-diffs-c2.py`; session checkpoint `challenge-2-session-checkpoint-2026-11-12.md`
+  (compaction-survival plan, bank md5 pinned, submission playbook v8 inline).
+- Cross-references written: "challenge-2 IN FIELD" verdict sections in challenge-2/3 playbooks +
+  carry-forward bullets in design-init.md (attrs-inert L54, golden audit L60, equiv-site removal
+  class, shared-dp with contract preservation, V-reroll economics, L57 input-pipelining ban).
+- Merged origin/main twice (c1 retro + operator's force-add fixes; operator's new lesson
+  renumbered L36→L61 — number was taken). Merged challenge-2 → main (e94f2ed, bc81c76) — NOT pushed
+  per policy (operator pushes; they had already pushed the 3 prep commits themselves).
+- L61 hygiene audit on challenge-2 tree: dropped tracked __pycache__/*.pyc, results.xml,
+  sim_build_design artifacts; kept baseline/, tb/public/, neg/, probe/ force-tracked. 117 files tracked.
+- w10 scored: V=1.0 P=0.5165 (Explorer entry, md5 abb36565…). First pack attempts rejected@build
+  (filelist order must equal released exactly) + evidence-stage reject when family-A goldens shipped
+  → free classifier for contract-change families (L60 side-lesson).
+
 #### 2026-11-12 ~17:00 / W8 DEMOTED — golden-assertion audit found microarch-contract violation (L60); bank back to abar2
 - w10 (W8+a2 arb graft, built for stack test) local tests+GOLDEN assertions: **a_len_q_next fires
   deterministically** (875ns, test_req02; load_len=1 && word_done=1). Reproduced on pure W8 in BOTH
@@ -281,11 +299,11 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   runs/c2-best.md. Agent: C3 readiness + upkeep. Operator task: watch server.
 
 ### Best submission
-- **c2-sub-w8** (abar2 + shared writeback datapath; V=1.0 first seed, P=0.5212, md5
-  2068f7e12db77d005a8c00ebdb1b8c22) — proj 76.1 @C=1.0. Copy at runs/sub-best.tar.gz
-  (verified md5). **NEW BANK #1.** Spares: c2-sub-32/-33/-34 (abar2 family, 0.5184) if
-  W8 shows hidden-test fallout (values cycle-identical; C-risk judged low: only new
-  module ports + load timing internals, no spec-observable behavior change).
+- **c2-sub-32** (abar2 family; V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c) —
+  proj 75.92 @C=1.0. Copy at runs/sub-best.tar.gz (md5-verified). **BANK #1** (restored
+  2026-11-12 after L60 golden audit; goldens-silent 58/58). Spares: c2-sub-33/-34 (V=1.0 rerolls).
+- c2-sub-w8 (P=0.5212, md5 2068f7e1…) = DEMOTED to Explorer/late-slot C-probe: microarch
+  contract change, golden a_len_q_next fires on it (L60). Promote only after probe proves C=1.0.
 - Earlier: c2-sub-1 (family A, proj 74.35) remains C-safest exotic fallback.
 
 ### V ceiling
