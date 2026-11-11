@@ -217,6 +217,12 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   internals would see x. R1 Explorer-only CONFIRMED. W8 unaffected (all internals
   keep defined values every cycle).
 
+#### 2026-11-12 ~02:10 / W8 bank rebuild-verification
+- Clean-checkout rebuild of the W8 bank (fresh worktree @941861d + untracked variant RTL
+  copied + archive rebuilt from variant list): md5 **byte-identical** to runs/c2-sub-w8.tar.gz;
+  rebuilt archive re-scored 7/7 PASS V=1.0 P=0.5213 (flow jitter). Archive reproducibility
+  proven end-to-end (same recipe as challenge-1's rebuild-submission flow).
+
 #### 2026-11-12 ~01:30 / c1-inspired rolls + W9: campaign CLOSED, W8 bank stands
 - f1 (fsm one_hot c1 syntax) + k1 (cross-module keeps): both BYTE-IDENTICAL netlists
   (P/area/WNS equal abar2 exactly) → attrs inert on c2 synth path; V-reroll spares for
