@@ -37,11 +37,18 @@ Cutting BOTH collapses period_min toward the internal floor (~5.8–6.2 ns) → 
 | W5 `(* fsm_encoding one_hot *)` | P=0.5184, PPA byte-identical | flow IGNORES fsm attrs (L54) → netlist duplicate, dropped |
 | W6 = W2b + `word_d` SETUP-boundary decode register | P=0.5082, V=1.0 (1st seed) | both walls cut, final WNS still 2.567 (L58 route pin); area +1010, pwr +0.39 → Explorer entry, not bankable |
 | **W8 = shared writeback datapath (wb_* buses, (len<=1)=NOR(dec==0))** | **P=0.5212, V=1.0 (1st seed)** | **WIN — NEW BANK c2-sub-w8**; −4283 um2; WNS −0.49 OK |
+| W9 = W8 + shared APB write-merge (one (q&~m)|(d&m) + 4:1 q-mux in ctrl) | P=0.5195, V=0.975 (equiv tax) | LOSS +600 um2 vs W8 — mux-tree+bus > replicated cheap merges; Explorer entry |
 | R1 = abar2 + reset-less internal engine FFs (11 FF) | P=0.5102, V=1.0 (1st seed) | area −251 µm² (45552, UNDER baseline) but WNS 2.118 place-dice loss → net −0.008; Explorer entry. Reset-slim saves ~250 µm²: BIG idea for challenge-3 datapath/pipeline regs |
 | FSM one-hot manual (11 states → state_q 11b) | REJECTED | bind `.*` width check: hidden SVA declaring `[3:0] state_q` fails ELAB → C=0. Same-width re-encode: zero gain. attrs: ignored (L54). DEAD |
 | Reset removal incl. data_q (32b) | REJECTED for bank | data_q drives m_wdata top pin → x after reset (hidden all-outputs-low check could read x → ValueError). Not worth +0.002 |
 | e05/e06 buffer-entry variants | 0.5058/0.5055 | Explorer entries |
 | keep0-2, arb2, a3/arb3/abar3 micro-families | 0.49–0.52 spread | Explorer breadth only |
+
+## Sharing economics (W8 vs W9, generalize for c3)
+Share arithmetic ONLY when the replicated op is wide carry-chain (add/sub/compare) and
+the select taps already exist (W8: +4/−1/≤1 ×16 copies removed for ~free mux taps: −4.3k).
+Do NOT share cheap per-bit OAI/mask logic: the q-readout mux trees + broadcast bus cost
+more than the replicas removed (W9: +600 µm²).
 
 ## Rejected ideas (do not retry)
 - `dreq_q` input pipeline: stale-dreq 1-cycle shadow after dack → spurious second burst
