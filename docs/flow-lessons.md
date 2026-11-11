@@ -9,7 +9,8 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 3 — formal / SBY tooling**: L13, L24, L25, L26
 - **Phase 4 — iterate (C: correctness risk)**: L4
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48
-- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49
+- **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51
+- **Flow running / tooling ops**: L50
 
 ## Phase 1 — analysis
 
@@ -239,6 +240,10 @@ assert dut.internal_reg.value == 0  # if not 0, RTL uses sync reset
 **L48. Seeded-deviation fixes cost timing; budget PPA recovery against the FIXED RTL, not the baseline.** The five functional fixes (+CR) cost ~0.9 ns WNS (2.367→1.478) and +0.7% area but −12% power: the timing term alone was −0.117 of P. Measure baseline PPA once (needs a `report.md` stub in the self-compare archive — the build stage rejects archives without it), then plan the defensive batch to recover WNS ≥ baseline while cutting area/power. PPA stage ≈ 450–600 s (route-dominated); mutation+public ≈ 45 s with cache; use `--keep-work` rerun for `scripts/critical-path.sh`.
 
 **L49. First-try V=1.0 happened (ch2 sub-1, seed 781680318306230417) — treat as seed luck, not suite proof.** Lock V by scoring 4–6 content-distinct reroll archives (comment markers / single `keep`) with `--skip ppa` (~1–2 min each) and counting the V=1.0 pool; survivors on OTHER seeds reveal real coverage gaps (kill by class, L7/L8/L41/L42).
+
+**L50. Parallel pg-batch runs sharing one `--cache` dir can race and reject builds spuriously** ("top-level ports changed" on an archive that builds clean in isolation). Use per-submission caches (`/runs/cache-<name>`); a "rejected" archive must be rebuilt solo before you trust the rejection.
+
+**L51. RTL restructuring can introduce FUNCTIONALLY-EQUIVALENT mutants (unkillable) that permanently tax V for that archive.** ch2's arbiter rewrite to a `case (start)` rotate produced constant sites (duplicated `match[k]` at unobservable rotate positions) no test can kill — survivors in 2 of 2 scored seeds of that family. Prefer encodings where every constant is observable (barrel conditional-swap rotate; explicit if/else first-set encoder) and mutation-test your own restructure on 2–3 reroll seeds before adopting a rewritten family.
 
 ## How to use this file
 

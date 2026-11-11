@@ -11,6 +11,7 @@ BASE="challenge-1/baseline"
 CPUS=""
 JOBS=""
 SKIP=""
+EXTRA=""
 DOCKER=${DOCKER:-docker}
 LOGDIR=${LOGDIR:-runs/logs}
 mkdir -p "$LOGDIR"
@@ -21,6 +22,7 @@ while [ $# -gt 0 ]; do
     --cpus-per) CPUS="$2"; shift 2 ;;
     --jobs-per) JOBS="$2"; shift 2 ;;
     --skip) SKIP="$SKIP --skip $2"; shift 2 ;;
+    --extra) EXTRA="$EXTRA $2"; shift 2 ;;
     *) SUBS+=("$1"); shift ;;
   esac
 done

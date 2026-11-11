@@ -169,37 +169,41 @@ would delete tracked challenge-2/ files under running containers); (2) run MUTAT
 REROLL BATCH to lock V and hunt C-improving gaps; (3) critical-path fixing, complete
 defensive batches, then freedom exploration; (4) keep docs updated (compaction-safe).
 
+### Nov 11 ~10:30 / V-lock round 1 + PPA round 1 (plan v3 steps 1–3 partially done)
+- V rerolls (53-test suite): reroll seeds found 3 real gaps → fixed in suite v2 (57 tests):
+  aw_done_q gap, w_done_q gap, penable-without-psel, 4-way rotation (kills constant sites
+  at every rotate position). 57/57 pass, 0 assertion fires; neg fixtures g1–g4+wdone all
+  fail-correct (assertions column double-covers psel + rotation mutants).
+- PPA round 1 (old suite, but P valid — P independent of tests): lzero P=0.470 (power +15%,
+  AVOID wide-comparator flags alone), arbpar P=0.4962 WNS 1.946, both1 P=0.4952 WNS 1.995.
+- KEY FINDING: dma_arb case-rotate encoding creates FUNCTIONALLY EQUIVALENT constant
+  mutants (unkillable → permanent V tax on those archives). New family uses
+  barrel-rotate (conditional swaps): every constant killable by rotation sweep test.
+- RTL families in pool: A spec-fixed; B lzero; C arbpar(case); D both1; E arbbar(barrel);
+  F abar(barrel+lzero flags). sub-21/22 = E/F with v2 suite (full flow queued).
+- Ops fixes: pg-batch now uses DOCKER env var, LOGDIR, per-submission caches (shared
+  /runs/cache race caused false "top-level ports changed" rejection — L50 pending),
+  critical-path.sh DOCKER env, explorer-variants keep-comma-split bug fixed.
+- Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
+
 ## NEXT STEPS (v3, Nov 11 — execute top to bottom)
 
-1. **[in flight] c2-out-1k keep-work rerun** → `scripts/critical-path.sh runs/c2-out-1k`
-   → identify the degraded path (expect grant/next-state/ev_desc cone).
-2. **V-lock reroll batch**: 6 content-distinct variants of sub-1 (comment-marker rerolls
-   ×3 + single-keep ×3 via `scripts/explorer-variants.sh` + manual tar) scored with
-   `--skip ppa` (~1–2 min each, parallel); count V=1.0 pool; ANY survivor on any seed →
-   `scripts/mutant-report.py` → kill-by-class → update tests/assertions (this also hunts
-   C-gaps: a mutant surviving in a REQ area means a hidden test may hit the same blind
-   spot). Then rebuild archives + refresh c2-best.md.
-3. **Defensive PPA batch 1 (WNS recovery + quick wins, ~8 variants)**: timing as-is only;
-   candidates from crit-path: registered grant helper (NEW names, keep baseline names
-   intact), arbiter loop unroll/parallel compare, ev_desc/dack logic slimming, input-FIFO
-   -style reset strips on datapath regs (len/src/dst_q — status names MUST stay),
-   single keep on the worst-register, fsm_encoding (measure; 11-state FSM may differ
-   from ch1 fixture). Batch via pg-batch (~20 min wall). Update c2-best.md each round;
-   iterate toward ceiling (target P ≥ 0.55 while WNS ≥ 2.2).
-4. **Defensive batch 2 (+7–12)**: stack winners sub-linearly (L18), try remaining
-   catalog items until two consecutive batches gain <0.005.
-5. **Freedom pass**: spec-silence restructures (pipeline register-read mux / fetch path —
-   latency free per spec): AMBER-class, full flow each, naming doctrine hard rule.
-6. **Explorer GREEN queue**: explorer-variants.sh on the best PPA core → distinct
-   fingerprints → batch PPA; feed pool.
-7. **Pool maintenance**: runs/c2-best.md rows for every archive (V, P, proj, md5, kind,
-   fingerprint); target 40–70 archives. When server opens: pick ≤30 (best-P distinct +
-   V pool), C-fixes priority over everything.
-8. **Main-branch reflection**: cherry-pick L45–L49 commit + any new scripts to main;
-   keep playbooks current for challenge-3 (rv_core releases Nov 13 09:00).
+1. **[done] crit path** → dreq→arbiter→engine state/own/last cone (1.48), via arb serial
+   compare + ch_len[grant_idx] 16-bit mux+compare.
+2. **[in flight] V-pool wave A**: sub-12..16 (A + v2 suite rerolls) skip ppa → record V
+   distribution; survivors → kill-by-class (expect rotation/gap mutants now dead).
+3. **Wave B (queued)**: full flow sub-18/19/20 (keep-reg ×A), sub-21 (arbbar), sub-22
+   (abar) with --keep-work for 21/22 → crit-path.sh on 22 → WNS status of barrel arbiter.
+4. **Wave C candidates** from crit-path of E/F: target WNS ≥ 2.2; ideas: state-D cone
+   slimming, eligible-fanout buffers, keep on winning register, prdata mux untouched.
+5. Ceiling decision at ~15–20 PPA tries (L18 sub-linear stacking).
+6. Freedom pass: spec-silence restructures (latency free) — after defensive ceiling.
+7. Explorer GREEN queue on best core; pool target 40–70 archives; runs/c2-best.md updated
+   after every scored batch.
+8. Main-branch cherry-pick of L45–L50 + script fixes when no flow reads the tree.
+9. Nov 13: challenge-3 bootstrap per playbook, interleaved.
 
 ## Next action (single step)
 
-When c2-out-1k completes: `scripts/critical-path.sh runs/c2-out-1k` (report top paths),
-then build + score the 6-archive V-lock reroll batch with --skip ppa (log V per seed
-into runs/c2-best.md).
+Collect wave A results (runs/logs/pgbatch_waveA.out), append to c2-best.md; launch Wave B
+(full flow, --keep-work on sub-21/22); then crit-path.sh runs/out-c2-sub-22.
