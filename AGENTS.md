@@ -8,7 +8,9 @@ If you're a fresh agent (or returning after context compaction) and don't know w
 
 0. If no design is released yet (pre-release prep period), read `docs/state/prep-plan.md` — it
    holds the prep roadmap for challenge-2/3, open checkboxes, and verified environment facts.
-1. `ls docs/state/` — find the current design's progress file (e.g., `challenge-1-progress.md`).
+1. `ls docs/state/` — find the current design's progress file (e.g., `challenge-2-progress.md`).
+   If a `*-longhorizon-plan.md` exists for the current design (server-down / long-window
+   mode, e.g. challenge-2), read that FIRST — it carries the phase tracker and next action.
 2. Read the file's **"Next action for operator"** section and the **score history** table.
 3. `md5sum runs/sub-best.tar.gz` — confirm it matches the md5 in the state file. If they diverge, trust `runs/sub-best.tar.gz` and update state.
 4. Read `docs/designs/<current>-req-matrix.md` (REQ coverage status) and `docs/designs/<current>-ppa-plan.md` (what PPA variants exist).
