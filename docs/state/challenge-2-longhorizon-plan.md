@@ -186,25 +186,25 @@ defensive batches, then freedom exploration; (4) keep docs updated (compaction-s
   critical-path.sh DOCKER env, explorer-variants keep-comma-split bug fixed.
 - Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
 
-## NEXT STEPS (v4, Nov 11 afternoon — execute top to bottom)
+## NEXT STEPS (v5, Nov 11 evening — execute top to bottom)
 
-1. **[in flight] waveF**: abar5/abar8/abar9 full-flow → decide defensive winner family
-   (abar2 core P=0.5184, V pool 3/4; stack only edits that pay).
-2. **Defensive ceiling check** (L18): if waveF gains <0.005 over abar2, STOP PPA defensive
-   (~20 tries counted) and move on.
-3. **Freedom pass (AMBER, 2–4 variants)**: spec-silence restructures for area/power
-   (fetch/FD path trims, ctrl_wr width trims, decode sharing); full-flow each; naming
-   doctrine hard; each keeps 58/58 + 0 assertion fires.
-4. **Explorer GREEN queue** on winning core (explorer-variants classes; ~50% collapse L44)
-   → 10–15 distinct-fingerprint archives (skip-ppa for V, P from core) — feeds pool +
-   Explorer award (most distinct netlists with C>0.9).
-5. **Final pool selection**: 37 archives packaged / 30 scored; when server opens bank
-   best-P V=1.0 archive immediately, budget per release-strategy §3.
-6. **Main reflection**: re-run worktree cherry-pick (flow-lessons + scripts) once freedom
-   pass lessons land.
-7. Nov 13: challenge-3 bootstrap per playbook, interleaved with C2 pool maintenance.
+1. **[done] PPA plateau declared**: 26+ scored tries; abar2 (P=0.5184) unbeaten. Walls:
+   (a) dreq→arbiter-cone (only removable via registered grant = C-risk W2b, P lost anyway),
+   (b) paddr→prdata global read mux (in every family; restructure = no depth win, skipped).
+2. **[in flight] waveM**: correct buffer Explorer archives e05/e06 (access_bx/is_glob_bx).
+   **[in flight] waveN**: w5 = abar2 + fsm_encoding one_hot (attr classes are REAL in ORFS
+   even though the fingerprint gate collapses them — abar9 precedent).
+3. **Stop PPA after w5.** Remaining compute → pool breadth for Explorer: distinct families
+   inventory ≈ 13-15 + e05/e06/w5/w3.
+4. **Final bank list for server open** (priority order):
+   1. c2-sub-32 (abar2, V=1.0, P=0.5184) — slot 1 immediately.
+   2. c2-sub-33/34 (same family, spares if slot-1 C<1.0).
+   3. breadth for Explorer award: one V≥0.975 archive per distinct family (a2 sub-26,
+      abar5 sub-35, w1, w2b, w3, e05/e06, w5, keep0-2, arb2, a3/arb3/abar3).
+5. **Nov 13**: challenge-3 bootstrap (prep complete per prep-plan; R-5 needs released ports).
+6. Push branches only on operator instruction.
 
 ## Next action (single step)
 
-Collect waveF (runs/logs/pgbatch_waveF.out) → winner decision vs abar2 (P=0.5184) → if a
-hybrid wins, reroll-pool it; start freedom-pass RTL candidates meanwhile.
+Collect waveM (e05/e06) + waveN (w5) → update c2-best.md; if w5 > 0.5184, reroll-pool it;
+else freeze bank #1 at abar2 and switch remaining time to C3 readiness.
