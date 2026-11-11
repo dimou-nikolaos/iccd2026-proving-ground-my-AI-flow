@@ -67,7 +67,9 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - Equivalent (unkillable) mutants:
 
 ### PPA
-- Baseline: (fill from `runs/challenge-2-baseline-out/stages/ppa.json`)
+- Baseline (cached, `runs/challenge-2-baseline-out`): area **45710.1 um2**, final WNS **+2.367 ns**
+  (achievable period 7.63 ns → real timing headroom), power **6.63 mW**, 6066 cells,
+  hold WNS 0.47 (no hold fix needed), route WL 192k um. PPA stage 592 s (route 503 s).
 - Applied optimizations:
   | Sub | Change | C | V | P | delta-P |
   |-----|--------|---|---|---|---------|
