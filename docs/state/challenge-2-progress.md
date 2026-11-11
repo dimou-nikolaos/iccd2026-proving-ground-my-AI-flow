@@ -55,6 +55,23 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - W1C/enable lane rules come free via existing wmask path (byte lane 1 = pstrb[1]).
 
 ### Activity log (newest first)
+#### 2026-11-12 ~17:00 / W8 DEMOTED — golden-assertion audit found microarch-contract violation (L60); bank back to abar2
+- w10 (W8+a2 arb graft, built for stack test) local tests+GOLDEN assertions: **a_len_q_next fires
+  deterministically** (875ns, test_req02; load_len=1 && word_done=1). Reproduced on pure W8 in BOTH
+  x-init modes → W8 folds word-walk writeback INTO load_* strobes (baseline: bank decrements on
+  word_done WITHOUT load) → changed next-state function of baseline-named regs (len_q/src_q/dst_q)
+  → hidden-assert C risk (c1: hidden tests probe internals).
+- Flow blind spot identified (L60): flow tests stage compiles tar tests WITHOUT submission assertions/
+  (mutants killed by port-level failures only); "0 assertion fires" comes from public-tb compile whose
+  scenarios never overlap the strobes. W8's flow greenness was never evidence of golden compatibility.
+- **sub-best.tar.gz = c2-sub-32 (abar2; V=1.0, P=0.5184, md5 d3d0381f7d7ca0c73157a416d6b80e8c).**
+  abar2 bank AUDITED CLEAN: 58/58 with unmodified golden assertions compiled in, 0 fires.
+- W6 audit: fires GOLDEN immediately (65ns a_decode_word) — same contract-change class; already
+  Explorer-only, now evidence-based. c2-sub-w8 + c2-sub-w10-w8a2 (md5 fa42a29f…) = Explorer /
+  late-slot C-probe archives: promote W8-class only if a probe (after C banked with abar2) returns C=1.0.
+- New pool gate: any RTL family needs 58-suite + UNMODIFIED goldens green, else labeled contract-change.
+- Submission order update: slot1-3 abar2 family (C safety) → slot4+ W8 probe → promote if C=1.0 (P +0.003).
+
 #### 2026-11-11 ~12:00 / round 2 — V hardening + arbiter restructures + soak
 - Did: V reroll round 1 (5 seeds) -> found real gaps -> suite v2 (aw/w done-gaps,
   penable-without-psel, 4-way rotation); PPA round 1 (lzero/arbpar/both1/keep×3);

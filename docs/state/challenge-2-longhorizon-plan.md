@@ -186,7 +186,16 @@ defensive batches, then freedom exploration; (4) keep docs updated (compaction-s
   critical-path.sh DOCKER env, explorer-variants keep-comma-split bug fixed.
 - Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
 
-## NEXT STEPS (v7, Nov 12 ~00:40 — W8 WON: bank promoted to c2-sub-w8)
+## NEXT STEPS (v8, Nov 12 ~17:15 — W8 DEMOTED (L60 C-risk): bank back to c2-sub-32 abar2)
+0. **[DECIDED] sub-best = c2-sub-32 (abar2, V=1.0, P=0.5184, md5 d3d0381f…).** W8 (P=0.5212) is
+   a proven INTERNAL-CONTRACT change: family-A golden a_len_q_next fires deterministically on it
+   (875ns); its tar only passes the flow because the tar ships re-anchored assertions. Hidden tests
+   are baseline-anchored → real C risk. **Submission order: slot1 c2-sub-32; slot2/3 -33/-34 if C<1;
+   slot4 c2-sub-w8 PROBE (distinct netlist too); promote W8-line only if probe returns C=1.0.**
+   Same classification for w6 (fires golden at 65ns) and r1 (removes reset checks): late slots only.
+   (Details: progress log Nov-12 ~17:00; L60.)
+
+## NEXT STEPS (v7, Nov 12 ~00:40 — superseded by v8 above; W8 won locally but carries C-risk)
 
 0. **[WON] W8 shared writeback datapath: P=0.5212, V=1.0 — NEW BANK #1**
    (runs/sub-best.tar.gz = c2-sub-w8, md5 2068f7e1…). Spares if C-risk materializes:
