@@ -58,14 +58,65 @@ returns (30 slots, 1/30min — all unused slots remain available until Nov 16 23
 
 | Phase | Goal | Budget | Status | Findings |
 |-------|------|--------|--------|----------|
-| 0 bootstrap | design-init, public smoke, baseline PPA cache | 30 min | **done except PPA cache in flight** | 36 REQs; public 8/8; tar bug fixed |
-| 1 ANALYZE | confirm D1–D4 (+decide D5/D6) with live probes on baseline RTL | 1–2 h | **static pass done, probes pending** | table above; L1: 4 seeded ≈ matches "few" in README |
-| 2 FIX | apply D1–D4 + CR-D2 (+D5 if decided); lint/elab/public green | 1 h | pending | |
-| 3 VERIFY | vendor VIPs + env; per-REQ test suite (36+REQ-36); SVA binds; req-matrix complete; ≥3 tests fail on baseline; 0 fires on fixed | 4–6 h | pending | reuse `prep/dma_vip/tests/` bodies |
-| 4a local score | full local flow → V, P; iterate V kill rounds via `scripts/mutant-report.py` | 2–4 h | pending | |
-| 4b PPA | Tier A (reset-strip, keep, fsm_encoding) → Tier B (measured) per ppa doc; batch via pg-batch | 4–8 h | pending | baseline PPA numbers needed first |
-| 4c Explorer | `explorer-variants.sh` GREEN queue + fingerprint dedup | continuous | pending | L44 class order |
-| 5 SUBMIT | the moment server is up: submit sub-best immediately, then follow C feedback per budget in `docs/state/release-strategy.md` §3 | — | BLOCKED on server | |
+| 0 bootstrap | design-init, public smoke, baseline PPA cache | 30 min | **done** (PPA cache rerun w/ report.md stub in flight) | 36 REQs; public 8/8; tar bug |
+| 1 ANALYZE | confirm D1–D5 | 1–2 h | **DONE** — probes p1–p5: 5/5 fail on baseline, 5/5 pass fixed | all 5 confirmed incl. D5 (5 dack pulses vs 3) |
+| 2 FIX | D1–D5 + CR-D2; lint/elab/public green | 1 h | **DONE** — public 8/8 on fixed | diffs in challenge-2 git |
+| 3 VERIFY | **full-spec evidence suite**: per-REQ tests (36+REQ-36) + interface/protocol tests + outstanding-transaction coverage; SVA binds (protocol + next-state legality); req-matrix every REQ ≥1 test + ≥1 assertion | 4–8 h | **STARTING** | probes seed 5 of the tests |
+| 4a local score | c2-sub-1 full flow; V kill rounds via mutant-report | 2–4 h | pending | |
+| 4b PPA DEFENSIVE | timing-as-is only: reset-strip, `keep`, `fsm_encoding`, literal/structure restructurings that never worsen WNS; batch 15–20 variants (pg-batch); ceiling per measured ΔP | 1 day | pending | C1: control+bus P ceiling ~0.50–0.61 |
+| 4c PPA FREEDOM | exploit spec silences: REQ timing-latency freedom (spec §convention last bullet), pipeline/restructure for area+power; **naming doctrine below**; each variant full-flow scored | 1–2 days | pending | docs/flow-wildcard.md catalog |
+| 4d Explorer | equivalent-proven variants via scripts/explorer-variants.sh + explorer-check.sh gate, fingerprint-distinct | continuous | pending | L44 classes |
+| 5 POOL + SUBMIT | **40–70 locally-scored archives** in runs/, table in runs/c2-best.md; pick ≤30 submissions when server opens (strategy then: best-P distinct netlists + V=1.0 pool) | ongoing | pending | |
+
+## Evidence suite plan (Phase 3) — user-directed Nov 11
+
+Layout (submission archive rules, flow-internals §1): `challenge-2/tests/` (vendored
+`dma_tb.py` helpers + `bus_vip` + `test_dma.py` per-REQ suite + `test_bus_protocol.py`
+interface suite), `challenge-2/assertions/*.sv` (APB+AXI protocol SVA bound at top;
+engine/chan/irq next-state legality binds).
+
+Coverage requirements:
+1. **Every REQ** ≥1 test + ≥1 assertion (req-matrix exit gate).
+2. **Interface-specific**: APB4 legality (setup/access phase, pstrb lanes incl. lane-0-only
+   EN writes, pslverr mapping reads, pready always 1, reads outside access = 0), AXI4-Lite
+   legality (valid-hold REQ-14 under random stalls, awvalid/arvalid never both 1, wstrb=F,
+   AW/W either order, response handling), dreq/dack handshake.
+3. **Outstanding transactions** on the interfaces: reset asserted mid-AXI-transaction
+   (late rresp/bresp arriving after reset must not be latched; valids stay 0), stall-heavy
+   sweeps, error responses at every position (rresp on 1st/fetch word, bresp mid-burst),
+   late/delayed responses via VIP knobs, latched-resp-lane knob (resp_when_idle, L43).
+4. **CR-D2 acceptance**: chain 2 descriptors → DESC×2, DONE×1; fetch-fail → DESC+ERR no
+   DONE; W1C DESC lane pstrb[1]; REQ-34 set-beats-clear for DESC too.
+5. Every test must pass on fixed RTL; probe-class tests (D1–D5) must fail on baseline
+   (≥3 gate already satisfied by p1–p5).
+6. Keep total evidence-suite runtime ≤ ~60 s wall (mutation timeout floors, L flow-internals).
+
+## PPA doctrine (user-directed Nov 11)
+
+- **Defensive first (15–20 variant batches)**: timing as-is — never worsen WNS below
+  baseline's; only reset-removal on wide datapaths, operand-isolation where measured,
+  `(* keep *)` single-register (C1: stacking keeps DEGRADES P, L28), `fsm_encoding`
+  only if state count rewards it (L44: 4-state FSM collapsed). Batch with pg-batch,
+  pre-filter with submodule-synth.sh. Goal: P ceiling.
+- **Freedom pass second**: re-read spec for deliberate silences: per-access timing
+  unspecified ("may add or remove cycles"), no specified grant latency, burst
+  implementation freedom, register decode style. Pipeline the address-mux path /
+  descriptor fetch, restructure arbiter, etc. Every such variant = AMBER (spec-legal
+  but microarch timing changes): full local flow + probe suite before pool entry.
+- **NAMING DOCTRINE (hard rule)**: every identifier that exists in
+  `challenge-2/baseline/rtl/` KEEPS its name, width, and meaning — hidden assertions
+  may bind to baseline internals (state_q, own_q, en_q, status_q...). Any new pipeline
+  stage/register/wire gets a NEW name (e.g. `ppd_addr_q`). Never rename ports (already
+  forbidden) and never delete baseline-named signals even if functionally absorbed —
+  keep them driven with their spec-meaning.
+- Every variant gets: equivalence OR spec-review classification (GREEN/AMBER/RED),
+  fingerprint (explorer-check), full local flow score, pool row in runs/c2-best.md.
+
+## Pool protocol (runs/c2-best.md table)
+
+`archive | kind(core/ppa/freedom/explorer) | C-proxy(local) | V | P | proj | fingerprint | equiv-class`
+Target 40–70 archives. When server opens: sort by proj for C-check slots; pick
+fingerprint-distinct set for Explorer; V=1.0 lucky pool for rerolls (L22).
 
 ## Local iteration protocol (server-down substitute for submissions)
 
@@ -105,7 +156,7 @@ returns (30 slots, 1/30min — all unused slots remain available until Nov 16 23
 
 ## Next action (single step)
 
-Write `tests_probe/test_d_probe.py` (4 tiny probes: equal-prio grant order, LEN=0
-grant, bresp SLVERR, abort DONE check) and run them against the BASELINE RTL via
-RTL_ROOT-style override — confirm all 4 FAIL on baseline (proves deviations + seeds the
-evidence suite). Then mark Phase 1 done and start Phase 2 fixes.
+Phase 3 underway: test-writer + assertion-writer agents are building
+`challenge-2/tests/` and `challenge-2/assertions/` per the evidence plan above.
+When they finish: run the full local pipeline → `runs/c2-sub-1.tar.gz` (first pool row),
+triage V with scripts/mutant-report.py, then start PPA defensive batches.
