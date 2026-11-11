@@ -96,6 +96,43 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   (+0.9 ns WNS ≈ +0.12 P). waveG = abar2 keep-work rerun for crit-path extraction.
 - Ops gotcha: pkill -f 'pg-batch.sh' matches your own shell command line — use pgrep -f
   'scripts/pg-batch' with care or kill by PID.
+
+#### 2026-11-11 ~17:30 / wildcard program (Phase 4e adapted, server down)
+- Crit-path (abar2, keep-work): only 2 real setup paths, both end at `ch_len_zero[grant_idx]`
+  → state_q: (1) dreq[0]→arbiter(max-tree→match→barrel-rotate→rk mux→start+rk add)→state,
+  (2) len_q→zero-flag→same mux. period_min 7.45 vs baseline 7.633.
+- **Wildcard W1** (one-hot grant chain replacing rk+adder; python-verified 16k cases):
+  REJECTED as P-core (P=0.5072; area +1270µm² ≫ t gain; chain depth not actually reduced —
+  mux trees map efficiently to OAI cells). Keep as V-reroll asset (V=1.0 first seed).
+- **Wildcard W2b** (registered arbiter decision + commit-guard `gv_q && eligible[gi_q]`):
+  naive W2 (no guard) REJECTED by own assertion a_set_needs_en (REQ-32) — commit targeted
+  an ineligible (already-served/EN-cleared) channel. Guarded version: 8/8 public + 58/58
+  suite with patched engine_sva ($past(commit)/$past(gi_q)); full flow pending (waveK).
+  Hypothesis: removes whole dreq cone from STA → period_min ~6.0 → t +0.10-ish.
+  C-RISK: hidden tests may pin grant-cycle timing; bank ONLY after defensive C=1.0.
+- Insight: t-term slope measured ≈ 0.00975 per 1% period_min change (abar2/a2/arb3 points
+  fit line exactly, slope ~1.0 in normalized ratio units).
+- Ops: explorer-check.sh needed design.yaml `top:` (silent filelist-head fallback = dma_pkg
+  → elaboration fail); fixed to hard-error. buffer/keep-reg/rename micro-classes collapse or
+  are naming-doctrine-unsafe on this design; Explorer diversity must come from semantic
+  families (A vs abar2 vs w-variants).
+
+#### 2026-11-11 ~19:00 / waveK W2b in + W3 built; P-term decomposition attempt
+- W2b scored: V=1.0 (1st seed), P=0.4974. dreq cone eliminated (gone from report) but NEW
+  worst = **paddr[6]→prdata combinational (APB read path, slack 2.13, period_min 7.87)** —
+  present in EVERY family; the real global wall. Also +1010µm² area, +0.38mW power (gi_q
+  loads every cycle unconditionally → toggle).
+- P_breakdown terms a/t/p measured against P across 6 archives: NOT additive — power term
+  is heavily attenuated (p=+0.14 → tiny P effect), area ≈ linear small, timing ≈ linear
+  ~0.05/wns-ns locally at best. Conclusion: **P plateau ≈ 0.52 for this design**; big-P
+  arithmetic tricks (challenge-1 pattern) do not apply (no multipliers/filters).
+- W3 (registered len flags) equiv-PROVEN with flow's own yosys equiv gate (explorer-check
+  as equivalence gate = new reusable pattern: `explorer-check.sh <core> <variant>` before
+  spending full-flow time). Queued waveL w/ e03/e04 (e03/e04 mis-pack = ignore).
+- Explorer distinct-netlist inventory (scored, local): A-family (sub-1,12..16,26..28 share
+  netlist — one entry), arb2, abar2, abar5, abar8, abar9, a3, arb3, abar3, keep0-2, w1, w2b
+  ≈ 12-13 distinct + w3/e05/e06 pending. Well above typical field.
+
 ### Next action for operator
 - Nothing blocking. Agent executing plan v4 (waveG crit-path → WNS-attack variants →
   freedom pass → explorer pool). Pool: runs/c2-best.md. Best bankable now: c2-sub-32/33/34
