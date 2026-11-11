@@ -2,6 +2,17 @@
 
 **Prep notes drafted Nov 8 from challenge-1 learnings, before design release.**
 
+## See also: challenge-1 retro docs
+
+Challenge-1 completed end-to-end (datapath, 138 submissions, 34h agent time). When working challenge-2, **read these before Phase 4**:
+
+- `docs/designs/challenge-1-flow-log.md` — what we did, wave-by-wave
+- `docs/designs/challenge-1-tool-inventory.md` — what tools/agents/skills each phase used
+- `docs/designs/challenge-1-ppa-plan.md` — PPA wins/dead-ends with measured ΔP per wildcard class
+- `docs/designs/challenge-1-sub-catalog.md` + `challenge-1-sub-diffs.md` — how to rebuild any historical variant; useful as pattern for batch-generated P variants
+
+Below we update PPA predictions with challenge-1 measured results (correcting some Nov 8 guesses).
+
 ## Expected design shape
 - FSM-driven state machine
 - Bus interface (likely AXI4-Lite or APB-style with handshake)
@@ -28,12 +39,19 @@
 9. **Write-1-clear semantics**: same-cycle event vs write — wrong priority
 10. **Missing IRQ set on edge**, only on level
 
-## PPA levers (predicted)
-- **FSM encoding**: one-hot vs binary (challenge-1 showed one-hot LOST — likely also for ctrl designs since binary is smaller)
-- **Bus mux trees**: address decoder fanout can dominate timing — check critical path early (use `critical-path.sh`)
-- **Register file replication**: high-fanout control signals benefit from per-instance copies via wire attributes (challenge-1 showed `(* keep *)` wires get optimized away — NOT a reliable lever)
-- **Operand isolation**: only multipliers/wide adders benefit; small ALU ops lose
-- **Async → sync reset**: only pays on WIDE flop arrays (>64 bits)
+## PPA levers (CORRECTED with challenge-1 measured data)
+- **FSM encoding wildcards — STRONG**: `(* fsm_encoding = "one_hot" *)` on small FSMs (2-4 states) is one of the highest hit-rate P levers. Challenge-1 measured +0.0049 P single-shot on FIR 4-state FSM (L31). Hit rate ~1/2. Cost: 1-2 extra flops. **Try this FIRST** on every FSM in the design.
+- **Wire `(* keep = "true" *)` — RELIABLE**: counter-intuitive P wildcard. Challenge-1 measured +0.0042 (rndsat.kept) +0.0025 (fir.acc_q) +0.0045 (stats counters) +0.0013 (fir.idx_q) = ~+0.012 cumulative. Hit rate ~1/8 per wire. **Stack across modules** (L29: cross-module keeps compound; same-module stacks plateau). Try on each module independently.
+- **Bus mux trees**: address decoder fanout can dominate timing — check critical path early (use `scripts/critical-path.sh`). Challenge-1 cfg_addr→cfg_rdata read mux was on critical path; **Yosys's default `unique case` lowering was already optimal** (L30). Don't waste time restructuring the mux tree — try Yosys attribute wildcards first.
+- **Operand isolation**: only multipliers/wide adders benefit; small ALU ops lose (L17). Challenge-1 measured: FIR mult ISO +0.012, gain mult ISO +0.015; FIR adder ISO −0.007, rndsat ISO −0.025.
+- **Async → sync reset**: only pays on WIDE flop arrays (>64 bits, L20). **But creates REQ-42-class C-risk if spec mandates async-only reset** (L32). Challenge-1 lost 4h undoing this. Check spec text before applying.
+
+### New PPA dead-ends discovered in challenge-1 (don't waste time)
+- Critical-path mux-tree restructure (parallel_case, AND-OR tree, keep on read word) — all LOST (L30)
+- Operand isolation on adders/comparators (already covered above)
+- Fusing rndsat + limiter (variable comparator wider, slower)
+- Narrow accumulator bits (sky130 standard-cell mapping often WORSE for non-power-of-2 widths)
+- Same-module stacked keeps (plateau after 2 in same module — go cross-module)
 
 ## Predicted Tier A/B/C sequence
 

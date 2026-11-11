@@ -56,7 +56,7 @@ Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim
 | You are at | Read first | Then |
 |---|---|---|
 | Cold start / resume after compaction | `docs/state/<design>-progress.md` + `md5sum runs/sub-best.tar.gz` | `docs/joint-flow.md` (cycle + handoff) |
-| Starting a new design | `docs/design-init.md` (bootstrap checklist) | `docs/designs/<design>-playbook.md` |
+| Starting a new design | `docs/design-init.md` (bootstrap checklist) | `docs/designs/<design>-playbook.md` + prior challenge's `*-flow-log.md`, `*-tool-inventory.md`, `*-ppa-plan.md` |
 | Phase 1 (analyze spec deviations) | `docs/flow.md` § Phase 1 | skill `spec-deviation-hunting`, `docs/skills/bug-hunting.md` |
 | Phase 2 (fix RTL) | `docs/flow.md` § Phase 2 | task-card `rtl-fixer` |
 | Phase 3 (write tests + assertions) | `docs/flow.md` § Phase 3 | skills `cocotb-test-writing`, `sva-assertion-writing`; deep refs `docs/skills/cocotb-patterns.md`, `docs/skills/sva-patterns.md` |
