@@ -118,6 +118,12 @@ Update `docs/state/challenge-N-progress.md`:
 
 ## Done. Phase 1 begins.
 
+## Submission packaging gate (from challenge-2, L62/L63 — apply from the first archive)
+
+- Tar ONLY `rtl/ tests/ assertions/ report.md` (competition layout). Before any archive enters `runs/`, run the junk filter + layout audit: `scripts/repack-c2.py` is the template (drops `sim_build*/`, `__pycache__/`, `results.xml`, `*.pyc`; verifies filelist byte-identity and rtl-set == filelist-set). Packaging from the live design dir otherwise bakes in build junk (25/52 challenge-2 archives were affected).
+- Any tar edit changes md5 → re-pin bank md5 in state/checkpoint docs and regenerate the sub-catalog immediately after (LOG-BEFORE-NEXT-ACTION).
+- Treat P as a fresh-run sample (±0.01, L63): compare P only across the same flow run or via `--cache` hits.
+
 ## Anti-patterns
 
 - Skipping step 1's `baseline/` mirror → every PPA run is fixed-vs-fixed. Wastes 5+ min per submission.
