@@ -59,7 +59,7 @@ Confidence: HIGH (clear contradiction), MEDIUM (suspect, need probe), LOW (subtl
 - Spec is truth. RTL is the suspect.
 - Seeded deviations are always single-line, local, in runtime logic (assign, always_ff, always_comb)
 - The public testbench doesn't catch them — it doesn't exercise the discriminating scenario
-- Each design has exactly 3 deviations (the design README usually states the count — use it as the exit target: if you find 3 HIGH that each map to a REQ, you likely have them all; more findings are probably correct readings of ambiguous spec).
+- Measured deviation counts: challenge-1 = 4, challenge-2 = 5 (expect 3–6). Do NOT use any count as an exit target — even "found 3 HIGH that each map to a REQ" has missed deviations twice. The **probe-per-REQ sweep** (below) is the completeness gate. If the design README states a count, distrust it unless it is ≥ the number you confirmed.
 
 ## Confirm a deviation before fixing it (two-sided probe)
 For each HIGH deviation, write ONE discriminating probe and check BOTH directions before committing the RTL fix:
@@ -79,7 +79,7 @@ If a probe passes on baseline it isn't discriminating; if it fails on the fix th
 
 ## Phase 1 closing: probe-per-REQ sweep (L1 in flow-lessons)
 
-After the static analysis above, the count "exactly 3 deviations" can still miss one. **challenge-1's 4th seeded deviation (REQ-16 HALF_EVEN rounding) was caught only by writing one probe test per REQ** from spec text — not by hunting RTL line patterns.
+After the static analysis above, even a complete-looking HIGH list can still miss one. **challenge-1's 4th seeded deviation (REQ-16 HALF_EVEN rounding) was caught only by writing one probe test per REQ** from spec text — not by hunting RTL line patterns.
 
 **Procedure** (orchestrator handles this, but spec-analyst should output the REQ list to enable it):
 1. Enumerate every REQ-xx from spec (`grep -oE 'REQ-[0-9]+' spec.md | sort -u`)

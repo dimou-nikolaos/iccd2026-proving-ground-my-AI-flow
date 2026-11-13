@@ -3,7 +3,7 @@
 This is the master workflow. Read it once at session start. It tells you what to do, in what order, and where to find the detailed instructions for each step.
 
 **Companion docs** (read on demand, not upfront):
-- `docs/flow-lessons.md` — 15 measured pitfalls, organized by phase. Read before starting Phase 1 of a new design.
+- `docs/flow-lessons.md` — 61 measured pitfalls, organized by phase (use the Index at the top for the phase you are in). Read the Phase-1 rows before starting Phase 1 of a new design.
 - `docs/flow-ppa-and-v.md` — Phase 4b (PPA tiers) and Phase 4c (mutation kill) details. Read when entering Phase 4.
 - `docs/joint-flow.md` — operator+agent cycle and handoffs.
 - `docs/competition-strategy.md` — scoring priorities, timing, PPA tier budget.
@@ -17,7 +17,7 @@ Phase 1: ANALYZE  →  Phase 2: FIX  →  Phase 3: VERIFY  →  Phase 4: ITERATE
 
 Each phase produces artifacts consumed by the next. Phases 1-2 are design-specific (you analyze a particular RTL). Phases 3-4 are verification-specific (you write tests and assertions, then iterate against the flow).
 
-**State tracking**: After each phase completes, write progress to `docs/state/<design>-progress.md`. A fresh session reads this to know where to pick up.
+**State tracking (log-before-next-action)**: update `docs/state/<design>-progress.md` after **every meaningful step** (each subagent result, each flow run, each decision) — not at phase boundaries. See `docs/joint-flow.md` §Continuous logging for the exact protocol. This is compaction survival: a fresh session must be able to resume from this file alone. Challenge-2 skipped it and lost reconstructable history.
 
 ## Phase 1: Analyze (find deviations)
 
@@ -47,7 +47,9 @@ Each phase produces artifacts consumed by the next. Phases 1-2 are design-specif
 - **Method**: Write a minimal cocotb test (5-20 lines) that exercises the suspected deviation. Run against baseline. Fail = confirmed.
 - **Output**: probe test code + pass/fail result
 
-**Phase 1 exit criterion**: Confirmed deviation table (3 deviations per design). After Phase 1, run probe-per-REQ sweep — see L1.
+**Phase 1 exit criterion**: Confirmed deviation table — **expect 3–6 deviations per design (measured: 4 in challenge-1, 5 in challenge-2). Never stop at 3.** The **probe-per-REQ sweep** (one probe test per REQ against baseline — see L1) is a HARD GATE before Phase 2: it is the completeness check, since static analysis provably misses deviations that "hide in plain sight".
+
+**Experience knob**: after the three methods, scan prior campaigns for the same bug-pattern class — `docs/designs/challenge-*-flow-log.md` Phase 1 sections + `docs/skills/bug-hunting.md` P1–P6 patterns + flow-lessons L1/L47 (stimulus must reach the deviant path).
 
 ---
 
@@ -120,7 +122,7 @@ Each phase produces artifacts consumed by the next. Phases 1-2 are design-specif
 4. **Reset assertions** (no `disable iff`): checks registers are 0 after reset.
 5. **Boundary/range assertions**: value ranges, saturation behavior.
 
-**Critical rule**: assertions must NEVER fire on the correct fixed RTL. If they fire on your own submission, the submission is REJECTED. The **orchestrator must run tests with `ASSERTIONS=1` on a fresh `sim_build` and confirm 0 fires before packaging**, even when the subagent reports success.
+**Critical rule**: assertions must NEVER fire on the correct fixed RTL. If they fire on your own submission, the submission is REJECTED. The **orchestrator must run tests with assertions compiled in on a fresh `sim_build` and confirm 0 fires before packaging**, even when the subagent reports success. (For the submission tests/ tree that means extending `VERILOG_SOURCES` with `assertions/*.sv` — working command in `docs/designs/challenge-2-tool-inventory.md` §golden-assertion audit recipe.)
 
 **Top-level interface assertion module (MANDATORY)**: write one assertion module bound to the TOP module that checks every externally visible interface protocol. For AXI-style streams: `valid && !ready |=> valid && $stable(data) && $stable(last)` on every valid/ready pair. See L3.
 
@@ -162,7 +164,9 @@ Run after C=1.0 locked. See `docs/flow-ppa-and-v.md` for tier definitions, itera
 - Tier A: provably-free, bundle, no submission cost.
 - Tier B: timing-neutral, **1 C-check submission before stacking more**.
 - Tier C: structural, one per submission, validate by **full PPA flow** (L14).
-- **Timing slack is the dominant P contributor** (challenge-1: t≈1.2, a≈0.27, p≈0.28). Protect WNS aggressively (L9, L10).
+- **Timing slack vs area dominance is design-dependent — MEASURE the P terms first.** challenge-1: t≈1.2, a≈0.27, p≈0.28 (timing is the currency, L9/L10). challenge-2: final-route WNS pinned ~2.5 ns in every RTL family regardless of what logic is cut (place/route-bound plateau) → area was the only real lever (L58). Extract WNS/area/power from the FIRST flow run and pick the batch shape accordingly.
+- **Golden-assertion bank gate (L60)**: bank a PPA family only if the full evidence suite passes with the UNMODIFIED phase-3 goldens compiled in. Needing modified goldens = microarch-contract change = hidden-assert C risk → Explorer/late-slot only. Recipe in `docs/designs/challenge-2-tool-inventory.md`.
+- **Attribute wildcards (`keep`, `fsm_encoding`)**: won big in challenge-1, were fully INERT in challenge-2 (byte-identical netlists, L54). Prove a netlist delta (area/WNS/power moved) before spending any submission roll on them.
 
 ### 4c. Mutation kill
 
@@ -250,7 +254,7 @@ tar czf runs/<handle>-<design>-<n>.tar.gz -C <submission-dir> rtl tests assertio
 ## References
 
 - `docs/design-init.md` — bootstrap checklist for a new design (steps 1-7 before Phase 1)
-- `docs/flow-lessons.md` — 15 measured pitfalls
+- `docs/flow-lessons.md` — 61 measured pitfalls (L-numbered, indexed by phase)
 - `docs/flow-ppa-and-v.md` — Phase 4b PPA + Phase 4c V detail
 - `docs/joint-flow.md` — operator+agent cycle
 - `docs/competition-strategy.md` — scoring, timing, tier budgets

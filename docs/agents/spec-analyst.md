@@ -116,12 +116,12 @@ REQs where you have HIGH confidence and cited the exact implementing line: mark 
 ## Constraints
 
 - Do NOT modify any files. This agent produces findings only.
-- If you find MORE than 3 deviations, note them — some might be correct implementations of ambiguous spec.
+- If you find MORE than the expected count, keep them ALL in the findings table — measured reality is 4–5 deviations per design (challenge-1: 4, challenge-2: 5); some extra findings may be correct implementations of ambiguous spec, but decide that at probe time, not now.
 - Cross-reference with `docs/designs/<name>.md` which documents known deviations from prior analysis.
 
 ## Typical findings per design
 
-Each design has exactly 3 seeded deviations. They are always:
+Measured: 4–5 seeded deviations per design (expect 3–6 — never treat any count as the exit target; the probe-per-REQ sweep is the completeness gate, L1). They are always:
 - Local single-line errors (not architectural bugs)
 - In `always_ff`, `always_comb`, or `assign` statements
 - Detectable by careful spec-vs-code comparison

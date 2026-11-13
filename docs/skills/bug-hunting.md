@@ -133,11 +133,13 @@ assign raw = en_q && (count_q < compare_act_q);
 - If a term is an optimization/shortcut that changes boundary behavior → deviation
 - Check especially: `COMPARE >= PERIOD` style "shortcut" conditions that alter the `==` case behavior
 
-## Seeded Deviation Pattern Distribution (hints only)
+## Seeded Deviation Pattern Distribution (hints only — UPDATED with measured counts)
 
-Each design seeds exactly 3 deviations from the 6 patterns. Distribution:
-- Every design uses 3 DIFFERENT patterns (no repeats)
-- P1 and P5 appear in at least one design
+**Measured reality: NOT exactly 3.** challenge-1 seeded **4** (the 4th hid in plain sight — L1), challenge-2 seeded **5** (plus a 6th deviation judged not-worth-fixing and documented). Expect **3–6**; budget for 4–5. The pattern catalog below is a floor, not a ceiling: challenge-2's outstanding-commit deviation (REQ-27 class) did not fit P1-P6 cleanly — trust the per-REQ probe sweep (L1) over pattern-matching for completeness.
+
+Hint distribution (still roughly true):
+- Deviations use DIFFERENT patterns (no repeats observed)
+- P1 and P5 appeared in at least one design so far
 - Locations are always in one of: the datapath computation module, the input/capture stage, or the configuration module
 - The REQ number gives a hint: low numbers (< 10) often involve reset/init behavior; mid-range (10-20) involve config latching; high (> 20) involve output/finalization order
 

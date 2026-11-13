@@ -3,20 +3,41 @@ Work on challenge-<N> (dir: challenge-<N>/). It was just released. Real competit
 Read these first, in order:
 1. docs/joint-flow.md (the cycle: handoffs, file conventions, when you STOP and wait for me)
 2. docs/flow.md (the 4 phases and their gates)
-3. docs/skills/design-playbooks.md — classify the archetype (datapath / control+bus / pipelined core) and pull that section into every later task card
-4. docs/competition-strategy.md — scoring priorities, PPA iteration economy, What NOT to do
-5. docs/ppa-freedom-strategy.md — the 8 spec-freedom categories to audit before Phase 4b
-6. docs/task-cards.md — how to spawn subagents
+3. docs/design-init.md (bootstrap checklist — includes the L61 gitignore force-add list; do it or the archive is unreconstructable)
+4. docs/skills/design-playbooks.md — classify the archetype (datapath / control+bus / pipelined core) and pull that section into every later task card
+5. docs/designs/challenge-<N>-playbook.md if it exists (pre-release prior + IN FIELD sections from prior challenges)
+6. docs/competition-strategy.md — scoring priorities, PPA iteration economy, What NOT to do
+7. docs/ppa-freedom-strategy.md — the 8 spec-freedom categories to audit before Phase 4b
+8. docs/task-cards.md — how to spawn subagents
+
+prep/ knob (do this once, right after bootstrap):
+- Scan prep/ for kits matching this design's archetype (bus VIPs, protocol SVA, ISS/assembler/randprog, stage SVA, flowcheck). Self-test them in Docker, then treat release work as ADAPTER work (names + map), not new infrastructure.
+- If nothing matches: write one line in the progress file ("prep/: nothing applicable") and skip. Do not re-scan later.
+
+Experience knob (at each phase, right after doing that phase's normal steps):
+- Consult prior campaigns for inspiration: docs/designs/challenge-*-flow-log.md (what we actually did, wave by wave), *-ppa-plan.md verdict tables (measured deltas per lever class), *-tool-inventory.md (recipes incl. the golden-assertion audit), the playbook IN FIELD sections, and docs/flow-lessons.md Index-by-sub-section rows for the current phase.
+- Adopt a prior move only after proving it transfers on THIS design (netlist delta / behavior delta). Priors are priors, not laws (e.g., attr wildcards won big in challenge-1, were fully inert in challenge-2 — L54).
+
+Deviations: expect 3-6 seeded deviations per design (measured: challenge-1 had 4, challenge-2 had 5). NEVER stop at 3. The probe-per-REQ sweep (L1) is the Phase 1 completeness GATE, not optional extra work.
 
 Rules:
-- Save a pristine copy of the released rtl/ to challenge-<N>/baseline/ before editing (needed for accurate PPA baseline).
+- Save a pristine copy of the released rtl/ to challenge-<N>/baseline/ before editing; force-add released+baseline content per docs/design-init.md step 1 (L61).
+- rtl/filelist.f must match the released file EXACTLY (same names, same order) — the flow rejects changed filelists.
+- Every submission tar contains rtl/, tests/, assertions/, report.md.
 - All tools via Docker proving-ground/flow:public, 12 cores, --jobs 12. Never run verilator/yosys/sby on the host.
 - First deliverables (before any subagent): docs/designs/challenge-<N>.md, docs/state/challenge-<N>-progress.md.
 - First drop (within 2h of release): fix seeded deviations + implement CR + report.md, rtl only. Package runs/sub.tar.gz, then STOP for me to upload. C is the free points — don't spend iterations on V/P yet.
-- After my feedback (C, V, P, failed hidden tests, surviving mutants, PPA stages): prioritize C=1.0 first, then P (target 0.50+, 0.55+ on datapath with precompute patterns), then V (target ceiling, not perfection).
-- Keep docs/state/challenge-<N>-progress.md updated every step (score history table + activity log).
-- PPA discipline: apply stacked recipe — timing wins FIRST (ICG restructure, `>=→==` bundle, comparators shortened), then area/power wins (AND-OR mux, operand isolation). Timing slack is the currency. Never stack two area-only changes. See .opencode/skills/sky130hd-ppa/SKILL.md.
-- V discipline: any archive change (RTL, tests, assertions, comments) re-rolls the seed. Keep the highest-projective-score archive. Don't chase V past the design ceiling.
-- Save runs/sub-best.tar.gz on every improvement; never overwrite with worse.
+- Naming doctrine: identifiers that exist in released/baseline RTL keep their name, width, and meaning (hidden tests bind baseline internals and probe internal signals); new logic gets new names.
+- PPA discipline: timing-first vs area-first is decided by MEASURED P terms per design (challenge-1: timing dominates; challenge-2: route-pinned WNS plateau made area the only lever, L58). Read the prior ppa-plan verdict tables before choosing the batch shape. Never stack two area-only changes without a C-check (L4).
+- PPA bank gate (L60): a PPA family may be banked ONLY after the full evidence suite passes with the UNMODIFIED phase-3 golden assertions compiled in. A family that needs its assertions modified changed the microarch contract = hidden-assert C risk → Explorer/late-slot only.
+- V discipline: any archive change (RTL, tests, assertions, comments) re-rolls the mutant seed (L5). Keep 3-4 archives per good netlist and keep the highest-projective-score one. Don't chase V past the design ceiling; classify survivors as equivalent before writing new tests (L7/L8/L42/L51/L52).
+- Never register raw request inputs anywhere (L57). Prove netlist delta before spending rolls on attribute wildcards (L54).
+
+Logging protocol (NON-NEGOTIABLE — this is compaction survival; challenge-2 skipped it and paid):
+- LOG-BEFORE-NEXT-ACTION: before spawning any task card, starting any new step, or ending any work block, first append the dated Activity-log entry (1-3 lines) to docs/state/challenge-<N>-progress.md and update every touched table: phase status, score history row (one row per scored archive), Best submission pointer + md5, "Next action for operator".
+- Commit after every logged step (small commits, message = the log line).
+- Whenever runs/sub-best.tar.gz changes, its md5 goes into the progress file (and longhorizon plan if one exists) in the SAME commit. Never overwrite sub-best with a worse archive.
+- If context is getting long or compaction is signalled: write docs/state/challenge-<N>-session-checkpoint-<date>.md (pinned bank md5, state snapshot, submission playbook, resume recipe) BEFORE continuing work. Pattern proven in challenge-1 and challenge-2.
+- Server down? Keep iterating locally with the Docker flow (archive pool + scores); template: any *-longhorizon-plan.md from challenge-2.
 
 Spawn subagents per docs/task-cards.md. STOP between phases that need my upload + feedback.
