@@ -10,7 +10,8 @@ Single source of truth for how we work together during the competition window (N
 | `docs/joint-strategy.md` | joint | High-level strategy (priority order, score targets, heuristics) |
 | `docs/designs/<name>.md` | agent | Design knowledge: hierarchy, signal map, deviations found, V ceiling |
 | `docs/state/<name>-progress.md` | agent | Running score table, phase status, current best sub |
-| `docs/sessions/<name>-session.md` | agent | Retrospective after design closed |
+| `docs/designs/<name>-flow-log.md` (+ tool-inventory, sub-catalog, sub-diffs) | agent | Retro doc set written at design close (T6) |
+| `docs/state/<name>-session-checkpoint-<date>.md` | agent | Pinned compaction-survival snapshot (bank md5 + playbook) |
 | `runs/sub.tar.gz` | agent | Current best submission (the one to upload) |
 | `runs/sub-best.tar.gz` | agent | Highest-score submission so far (fallback) |
 | `runs/sub-iter-<N>.tar.gz` | agent | Per-submission archive (for submission N you uploaded) |
@@ -20,9 +21,11 @@ Single source of truth for how we work together during the competition window (N
 **Rule**: when the working dir is `<X>/` (e.g., `challenge-1/`, `challenge-2/`), only load design-specific files for `<X>`:
 - `docs/designs/<X>.md` — read at start, update during Phase 1+
 - `docs/state/<X>-progress.md` — running log
-- `docs/sessions/<X>-session.md` — only if a prior session for this design exists (resumption case)
+- `docs/state/<X>-session-checkpoint-*.md` — only the newest, as resume anchor
 
 **Never cross-load**. Don't read `docs/designs/<other>.md` when working on a different design. Patterns are extracted to general skills/agents where they apply to all designs. The design doc name matches the working dir name (`challenge-1/` → `docs/designs/challenge-1.md`).
+
+**Exception — experience docs are cross-design by construction and ARE encouraged**: `docs/designs/*-flow-log.md`, `*-tool-inventory.md`, `*-ppa-plan.md` (verdict tables), `*-sub-catalog.md`/`*-sub-diffs.md` (rebuild recipes), `*-playbook.md` IN FIELD sections, and `docs/flow-lessons.md`. These carry measured process/lever knowledge, not live signal contracts. What stays gated: signal names, register maps, deviation specifics — those live only in `docs/designs/<name>.md` for the current design.
 
 **What's always loaded (general)**:
 - `docs/joint-flow.md`, `docs/joint-strategy.md`
@@ -43,7 +46,8 @@ Single source of truth for how we work together during the competition window (N
 ┌──────────────────────────────────────────────────────────────┐
 │ T1  Agent autonomous block (no operator input needed)        │
 │     - Read spec.md, change_request.md, tb/public/, rtl/      │
-│     - Phase 1: find 3+ deviations (HIGH confidence preferred)│
+│     - Phase 1: find ALL deviations (expect 3-6; measured 4-5;  │
+│       probe-per-REQ sweep is the completeness gate, L1)        │
 │     - Phase 2: fix RTL + implement CR + run public TB        │
 │     - Write docs/designs/<name>.md and state/<name>-progress.md
 │     - **FIRST DROP**: package runs/sub.tar.gz with rtl+report only
@@ -92,19 +96,31 @@ Single source of truth for how we work together during the competition window (N
                   ↓
 ┌──────────────────────────────────────────────────────────────┐
 │ T6  Agent autonomous block — DESIGN CLOSE (no approval needed)│
-│     1. Write docs/sessions/<name>-session.md (template:       │
-│        Outcome / Went well / Hard / Skill improvements /      │
-│        Patterns discovered / Surviving mutants)               │
-│     2. EXTRACT general patterns from session log into:        │
-│        - .opencode/skills/<relevant-skill>/SKILL.md           │
-│        - docs/agents/<agent>.md (methodology)                │
-│        - docs/skills/<topic>.md (deep reference)             │
-│     3. DO NOT put design-specific info in skills/agents.      │
-│        Signal names, addresses, deviations → design.md only.  │
-│     4. Keep new general patterns CONCISE (1-3 lines each).    │
-│     5. Update `runs/sub-best.tar.gz` to final best.           │
-│     6. Operator does not approve this step — agent does it    │
-│        automatically before starting next design.             │
+│     1. Write the RETRO DOC SET (the convention challenge-1/2   │
+│        actually used; docs/sessions/<name>-session.md is the   │
+│        older format, superseded):                              │
+│        - docs/designs/<name>-flow-log.md (wave-by-wave record) │
+│        - docs/designs/<name>-tool-inventory.md (agents/skills/ │
+│          scripts per phase + recipes)                          │
+│        - docs/designs/<name>-formal-findings.md (even if formal│
+│          was SKIPPED — record the decision + rationale)        │
+│        - docs/designs/<name>-sub-catalog.md + sub-diffs.md     │
+│          (generators: scripts/gen-sub-catalog-c2.py pattern)   │
+│        - docs/designs/<name>-ppa-plan.md final verdict ledger  │
+│     2. EXTRACT general patterns from the campaign into:        │
+│        - docs/flow-lessons.md (L-numbered, indexed)            │
+│        - .opencode/skills/<relevant-skill>/SKILL.md            │
+│        - docs/skills/<topic>.md (deep reference)              │
+│     3. DO NOT put design-specific info in skills/agents.       │
+│        Signal names, addresses, deviations → design.md only.   │
+│     4. Keep new general patterns CONCISE (1-3 lines each).     │
+│     5. Update `runs/sub-best.tar.gz` to final best + md5 in    │
+│        the progress file + checkpoint.                         │
+│     6. Playbook wiring: add an "IN FIELD RESULT" section to    │
+│        this design's playbook + carry-forward bullets to the   │
+│        NEXT design's playbook and docs/design-init.md.         │
+│     7. Operator does not approve this step — agent does it     │
+│        automatically before starting next design.              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -136,7 +152,7 @@ not just at frame start. The CR explicitly mentions this case.
 Agent updates the state file's "Operator feedback received" log section.
 
 ### When operator says "design done"
-Agent writes `docs/sessions/<name>-session.md` retrospective.
+Agent executes the T6 block (retro doc set + pattern extraction + playbook IN FIELD wiring).
 
 ## Resumption protocol (if session restarts)
 
@@ -157,15 +173,25 @@ Long version (full process refresh after restart):
 - `docs/flow-ppa-and-v.md` — Phase 4 detail (read on entering Phase 4)
 - General lessons live in `.opencode/skills/` (lazy-loaded) and `docs/agents/`
 
-## Continuous logging (write incrementally, don't wait for end)
+## Continuous logging (log-before-next-action — NON-NEGOTIABLE)
 
-Update `docs/state/<name>-progress.md` **after every meaningful step**, not just at phase boundaries. A "meaningful step" is:
+Update `docs/state/<name>-progress.md` **after every meaningful step**, not at phase boundaries. Challenge-2 skipped this discipline and lost reconstructable history; it must not happen again.
+
+**The gate**: before spawning any task card, starting any new step, or ending any work block, FIRST:
+1. Append the dated Activity-log entry (1-3 lines: what was done, verdict, next).
+2. Update every touched table in the same edit: phase status, score history (one row per scored archive), **Best submission pointer + md5**, "Next action for operator".
+3. Commit. Small commits — the commit message is the log line. If `runs/sub-best.tar.gz` changed, its md5 goes into the progress file (and the longhorizon plan, if one exists) in the **same commit**.
+
+A "meaningful step" is:
 - Phase transition (analysis → fix → verify → iterate)
+- Each subagent result (accepted/rejected)
 - Each flow run (record the score row + 1-line note)
 - Each new deviation found
-- Each new PPA optimization attempted
+- Each new PPA optimization attempted (win OR lose — losers are the experience record)
 - Each operator feedback received
 - Each "next action for operator" change
+
+**Compaction checkpoint**: when context is getting long or compaction is signalled, write `docs/state/<name>-session-checkpoint-<date>.md` BEFORE continuing: pinned bank md5 + `runs/sub-best.tar.gz` identity, state snapshot, submission playbook, resume recipe. Proven compaction-survival pattern in challenge-1 and challenge-2 (`challenge-1-session-checkpoint-2026-11-08.md`, `challenge-2-session-checkpoint-2026-11-12.md`).
 
 This file is the agent's memory across session restarts. Treat it as the authoritative state. If I lose context, the next session reads this file and resumes seamlessly.
 
@@ -228,7 +254,7 @@ If we burn through subs fast, slow down — don't hit 30 with P still at 0.5.
 | General patterns (cross-design) | `.opencode/skills/*/SKILL.md`, `docs/agents/*.md`, `docs/skills/*.md` |
 | Design-specific knowledge (signals, addresses, deviations, V ceiling) | `docs/designs/<name>.md` ONLY |
 | Running state (current iteration) | `docs/state/<name>-progress.md` |
-| End-of-design retrospective | `docs/sessions/<name>-session.md` |
+| End-of-design retrospective | `docs/designs/<name>-flow-log.md` + tool-inventory + sub-catalog/diffs (T6 set) |
 
 ### Convention: pattern lessons go to deep refs, not role prompts
 

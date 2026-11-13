@@ -20,6 +20,8 @@ Detail reference for Phase 4b (PPA) and Phase 4c (V). The workflow skeleton in `
 
 **Tier C is high-risk high-reward**: structural redesign can unlock big P wins (e.g., single multiplier shared between FIR and gain saves ~30% area) but typically breaks hidden test assumptions. Submit a Tier C variant, see if C drops. If yes: revert; if no: bank it.
 
+**Bank gate — golden-assertion audit (L60, challenge-2 earned this the hard way):** before ANY tier's variant becomes bankable, run the full evidence suite with the UNMODIFIED phase-3 golden assertions compiled against the variant RTL (recipe: `docs/designs/challenge-2-tool-inventory.md`). A variant that needs its goldens modified/re-anchored has changed the internal microarch contract (strobe meanings, next-state functions of baseline-named regs) — the flow harness cannot see this (it self-certifies against whatever assertions the tar ships), but hidden tests are baseline-anchored. Contract-change families: Explorer/late-slot only until a probe proves C. Related: prove netlist delta before spending rolls on attr wildcards — `keep`/`fsm_encoding` won in challenge-1, were byte-identical no-ops in challenge-2 (L54).
+
 ### Iteration economy concrete budget (per design, after Phase 2 + 3)
 
 - 0 submissions: stack Tier A changes locally, verify each with synth+tests (~5 min each).

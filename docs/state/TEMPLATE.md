@@ -79,3 +79,7 @@ Key invariants:
 - Findings column summarizes lessons (with L-numbers) so future sessions inherit the why
 
 Don't conflate this with `<design>-progress.md`. The progress file is the LIVE running record (one cycle per server submission, score history table). The plan file is the STRATEGIC multi-day view. They coexist; cross-reference sub-best md5 between them.
+
+## Session checkpoint file (write BEFORE compaction or end-of-day)
+
+When context is getting long, compaction is signalled, or the operator ends the session: write `docs/state/<name>-session-checkpoint-<date>.md` BEFORE continuing. Contents (see `challenge-1-session-checkpoint-2026-11-08.md` and `challenge-2-session-checkpoint-2026-11-12.md` for the proven shape): pinned bank archive + md5, what stack of changes that archive carries, state-at-end bullets, batches/waves done (small table), C-risk surface, submission playbook (locked), and a compaction-survival checklist. The checkpoint pins NUMBERS (md5s, scores) so a post-compaction agent can detect drift.

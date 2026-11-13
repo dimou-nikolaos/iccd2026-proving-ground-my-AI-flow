@@ -11,6 +11,8 @@ If you're a fresh agent (or returning after context compaction) and don't know w
 1. `ls docs/state/` — find the current design's progress file (e.g., `challenge-2-progress.md`).
    If a `*-longhorizon-plan.md` exists for the current design (server-down / long-window
    mode, e.g. challenge-2), read that FIRST — it carries the phase tracker and next action.
+   If a `*-session-checkpoint-*.md` exists, read the newest right after — it pins the bank
+   md5 and the locked submission playbook (compaction survival).
 2. Read the file's **"Next action for operator"** section and the **score history** table.
 3. `md5sum runs/sub-best.tar.gz` — confirm it matches the md5 in the state file. If they diverge, trust `runs/sub-best.tar.gz` and update state.
 4. Read `docs/designs/<current>-req-matrix.md` (REQ coverage status) and `docs/designs/<current>-ppa-plan.md` (what PPA variants exist).
@@ -38,6 +40,8 @@ docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp \
 Use `:ro` for lint/elab/flow commands; omit `:ro` for sim builds that write `sim_build/`.
 
 ## The 4-Phase Workflow
+
+**Logging protocol (non-negotiable): LOG-BEFORE-NEXT-ACTION — update `docs/state/<design>-progress.md` + commit after every meaningful step, and write a dated session-checkpoint before compaction. Full protocol: `docs/joint-flow.md` §Continuous logging.**
 
 1. **Analyze** — find spec deviations via static analysis, formal, and probes
 2. **Fix** — correct RTL deviations + implement change request
@@ -119,4 +123,4 @@ score = 100 × C × (0.5V + 0.5P)
 
 ## Key insight
 
-Baseline RTL has **seeded deviations** the public testbench does not catch. Find them by comparing spec requirements against RTL behavior.
+Baseline RTL has **seeded deviations** the public testbench does not catch. Measured: **4–5 per design (expect 3–6; never stop at 3)**. Find them by comparing spec requirements against RTL behavior; the probe-per-REQ sweep (flow-lessons L1) is the completeness gate.
