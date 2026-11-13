@@ -45,7 +45,7 @@ The shipped RTL additionally contains PPA restructurings that preserve behavior:
 - `dma_engine.sv` / `dma_ctrl.sv`: unreachable `default:` arms removed from the
   register-read case (spec leaves unmapped-word reads unspecified; observable
   behavior of mapped reads unchanged).
-- `dma_ctrl.sv`: precomputed per-channel `ch_len==0` / `<=1` flags replace repeated
+- `dma_engine.sv`: precomputed per-channel `ch_len==0` / `<=1` flags replace repeated
   comparators.
 
 Net effect locally scored (final route, vs baseline): area +0.2% (45804 vs 45710 µm²),
