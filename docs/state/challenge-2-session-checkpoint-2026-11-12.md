@@ -1,7 +1,7 @@
 # challenge-2 session checkpoint (2026-11-12, pre-compaction)
 
 ## Resume recipe (compaction-safe)
-1. `md5sum runs/sub-best.tar.gz` — must be `be656d4dc5b809dbeaca028958db12a2` (= c2-sub-32, abar2 bank; CLEAN-REPACK tar of 2026-11-13, L62 — legit content byte-identical to the old `d3d0381f…` tar, junk stripped; re-scored end-to-end green in out-repack-c2-sub-32).
+1. `md5sum runs/sub-best.tar.gz` — must be `42dd5c5e2c4d0f9e46a188465dca7502` (= c2-sub-32, abar2 bank; CLEAN-REPACK tar of 2026-11-13, L62 — legit content byte-identical to the old `d3d0381f…` tar, junk stripped; re-scored end-to-end green in out-repack-c2-sub-32).
    If different, trust the tar and fix this file + progress file.
 2. Read `docs/state/challenge-2-longhorizon-plan.md` NEXT STEPS **v8** (bank decision + submission order).
 3. `docs/state/challenge-2-progress.md` → top activity log entry ("W8 DEMOTED …").

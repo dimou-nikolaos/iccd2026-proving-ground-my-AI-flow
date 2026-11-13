@@ -22,9 +22,10 @@
 
 ## Evidence
 
-- `tests/`: 53 cocotb tests — per-REQ functional (REQ-01..36), APB4/AXI4-Lite interface
-  legality, outstanding-transaction/reset-race coverage, CR-D2 acceptance.
-  53/53 pass on the submission RTL; 16 fail on the released baseline (every known
+- `tests/`: 58 cocotb tests — per-REQ functional (REQ-01..36), APB4/AXI4-Lite interface
+  legality, outstanding-transaction/reset-race coverage, CR-D2 acceptance, plus long
+  randomized soak.
+  58/58 pass on the submission RTL; 16 fail on the released baseline (every known
   deviation plus the CR-D2 additions — no spurious failures either direction).
 - `assertions/`: 1264 lines of SVA — APB/AXI protocol legality (REQ-03/04/06/07/13/14),
   engine state entry/exit golden defs (REQ-12..28), grant golden model (REQ-24),
@@ -36,5 +37,18 @@
 
 ## PPA
 
-No functional RTL changes beyond the five deviations + CR-D2 in this archive. PPA
+The shipped RTL additionally contains PPA restructurings that preserve behavior:
+
+- `dma_arb.sv`: grant network rewritten as parallel max-of-4 priority +
+  barrel-rotate + first-match encoder (functionally identical to the REQ-24 fixed
+  rotate-and-compare; the golden grant SVA and rotation soak tests pass unchanged).
+- `dma_engine.sv` / `dma_ctrl.sv`: unreachable `default:` arms removed from the
+  register-read case (spec leaves unmapped-word reads unspecified; observable
+  behavior of mapped reads unchanged).
+- `dma_ctrl.sv`: precomputed per-channel `ch_len==0` / `<=1` flags replace repeated
+  comparators.
+
+Net effect locally scored (final route, vs baseline): area +0.2% (45804 vs 45710 µm²),
+timing margin improved (final WNS +2.55 vs +2.37 ns), power −14% (5.69 vs 6.63 mW)
+→ P ≈ 0.52 (timing is route-determined by the APB path in every variant). More
 variants are tracked separately (all locally scored).
