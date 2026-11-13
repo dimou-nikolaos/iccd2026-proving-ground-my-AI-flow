@@ -187,7 +187,7 @@ defensive batches, then freedom exploration; (4) keep docs updated (compaction-s
 - Pool table rewritten in runs/c2-best.md (sub-1..22 rows/queue).
 
 ## NEXT STEPS (v8, Nov 12 ~17:15 — W8 DEMOTED (L60 C-risk): bank back to c2-sub-32 abar2)
-0. **[DECIDED] sub-best = c2-sub-32 (abar2, V=1.0, P=0.5184, md5 d3d0381f…).** W8 (P=0.5212) is
+0. **[DECIDED] sub-best = c2-sub-32 (abar2, reroll-sampled V 0.975–1.0, P 0.518–0.529, clean-repack md5 be656d4d…).** W8 (P=0.5212) is
    a proven INTERNAL-CONTRACT change: family-A golden a_len_q_next fires deterministically on it
    (875ns); its tar only passes the flow because the tar ships re-anchored assertions. Hidden tests
    are baseline-anchored → real C risk. **Submission order: slot1 c2-sub-32; slot2/3 -33/-34 if C<1;

@@ -10,7 +10,7 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 4 — iterate (C: correctness risk)**: L4, L60
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L31, L32, L33, L34, L35, L48, L54, L55, L56, L60
 - **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
-- **Flow running / tooling ops**: L50, L61
+- **Flow running / tooling ops**: L50, L61, L62, L63
 
 ## Phase 1 — analysis
 
@@ -275,6 +275,10 @@ git add -f challenge-N/baseline/{rtl,flow,tb,design.yaml} challenge-N/tests/ \
   challenge-N/assertions/ challenge-N/formal/*.sby challenge-N/formal/*_sva.sv
 ```
 Stay ignored inside the design dir: `sim_build*/`, `__pycache__/`, `results.xml`, `*.pyc`, `challenge-N/formal/<run>/` (SBY run artifacts, regenerable from the tracked .sby + _sva.sv).
+
+**L62. Submission tars silently ingest build junk from the design dir — always repack with a junk filter right before submission.** Challenge-2 retro (pre-submission, server still down): the packaging step tars `rtl/ tests/ assertions/ report.md` from the live design dir, so every local test/flow run that writes `tests/sim_build_*/` or `tests/results.xml` gets baked into subsequent archives. 25 of 52 c2 archives carried 160–210 junk entries (~2.6 MB vs 49 KB lean) — including the bank. The local Docker flow tolerates this (bank scored V=1.0/P=0.5184 with junk inside), but the server's strictness is unknown and 50× bloat is pure risk. Fix applied: `scripts/repack-c2.py` rebuilds every tar keeping all legit members byte-identical (metadata preserved) and dropping `sim_build*/`, `__pycache__/`, `*.pyc`, `results.xml`; originals kept under `runs/dirty-backup/`. Also useful as a free archive-health classifier: an audit comparing `rtl/*.sv` set vs `filelist.f` per tar exposed e03/e04 as junk-only-with-missing-RTL (consistent with their rejected@build verdict). Gotcha: repack changes every md5 → re-pin bank md5 in state/checkpoint docs and regenerate sub-catalog.
+
+**L63. P is only deterministic under a flow cache hit — fresh P&R runs vary ~±0.01 on the same netlist.** Challenge-2 clean-repack re-score of the bank (identical RTL bytes, new tar hash → cache miss): P moved 0.5184 → 0.5288. The earlier "P reproduces to the byte" observation was a `--cache` hit (keyed on submission hash), not P&R determinism. Treat bank P as a range (abar2 ≈ 0.51–0.53); don't chase <0.02 P deltas between archives that were scored in different fresh runs — run them through the same flow invocation or compare only when one is cached.
 
 ## How to use this file
 
