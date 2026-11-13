@@ -53,3 +53,20 @@ Probe-per-REQ sweep (Gate PASSED): 44 probes, all PASS on fixed; 7 FAIL on basel
 ## PPA plan
 
 See `challenge-3-ppa-plan.md`. Prior: 15 ns → likely area/power game (multiplier+divider+regfile+64-bit counters dominate). `mcycle_q/minstret_q` 64-bit always-on counters are large; spec pins them RW and counting but NOT exact values — audit freedom before touching.
+
+## Assertions (Phase 3b) — mapped vs disabled
+
+Files in `assertions/`: `rv_ref_pkg.sv` + `rv_stage_sva.sv` (vendored, UNMODIFIED), `rv_core_stage_bind.sv` (observer bind), `rv_top_if.sv`, `rv_core_defs.sv`, `rv_csr_defs.sv`, `rv_muldiv_defs.sv`.
+
+**Observer (`rv_stage_sva`, params IALIGN32=1, CHECK_ILLEGAL=0, HAZARD_MODE=0, CR_D3=1):**
+- Mapped & active: `A_DEC_FIELDS`, `A_DEC_IMM`, `A_EX_ALU`, `A_EX_BRANCH`, `A_EX_TARGET_BRANCH`, `A_EX_TARGET_JALR`, `A_ID_PC_ALIGN`. Taps: id_* / id_dec fields; ex_* = ex_pc_q/ex_instr_q/**alu_a**/**alu_b**/alu_result/branch_taken/target (operands the ALU actually used).
+- DISABLED (mapped to constant-0 → vacuous): all `if_*` (A_IF_PC_FLOW, A_IF_PC_ALIGN), all `mem_*` (A_MEM_ADDR/SIZE/EXCLUSIVE/WE_IS_STORE/RE_IS_LOAD/LOAD_DATA), all `wb_*` (A_WB_RD/WE/DATA_LUI), `redirect_*`/`flush_*`. Reason: the real core carries **no instruction word into MEM/WB** (only decoded fields), so the observer's word-decode contract is un-mappable there; imem_addr uses a 2-phase pending-redirect (pend_q) so A_IF_PC_FLOW's single-cycle-redirect model would self-fire. Their coverage is re-implemented at MEM/WB by `rv_core_defs` (load_data def, next-state pins).
+- `ex_valid` masked in the bind: `ex_valid_q && !ex_dec_q.is_mdu && !((is_branch||is_jal) && target[1])`. (1) M-ext: decode leaves alu_op=ADD so alu_result=a+b ≠ M alu_ref → A_EX_ALU would self-fire on legal mul/div; masked out (M covered by muldiv pins + cocotb ISS). (2) branch/JAL with target[1]=1 (REQ-15 misaligned) — observer's A_EX_TARGET_BRANCH pins target[1:0]==00 which is NOT spec-guaranteed (bit1 is the legal misaligned-exception value); masked only for that cycle so value equality still checked on aligned targets.
+- `CHECK_ILLEGAL=0`: observer legal_ref disagrees with the real decoder on edge encodings (e.g. OP-IMM slli f7=0100000), so A_DEC_LEGAL/A_CRD3_LEGAL risk self-fire on illegal-instruction tests. Replaced by the safe forward-only `A_CRD3_LEGAL` in rv_core_defs.
+
+**rv_core_defs (bind rv_core, 27 props):** signal-def pins (mem_stall/mdu_busy/stall_front/ex_fire/mdu_start/trap/mret/redirect mux/redirect_pc/ex_link/flow_change/target_misaligned/alu_a/alu_b/ex_result mux/mem_final/ls_misaligned), forwarding defs `A_FWD_RS1/RS2` (WITH x0 guard → **catches D1**), `A_LOAD_USE`, load-data def `A_LOAD_DATA` (spec sign/zero-extend → **catches D3**), next-state identities (mem_valid_q/wb_valid_q/wb_en/wb_rd/wb_data via $past), `A_CRD3_LEGAL` (CR encodings not-illegal → **catches CR-not-implemented**).
+**rv_csr_defs (bind rv_csr, 3):** mie_q/mpie_q/mepc_q next-state identities; MPIE forces 1 after mret → **catches D2**.
+**rv_muldiv_defs (bind rv_muldiv, 2):** div0→all-ones, rem0→shadow dividend `a_ref_q` → **catches D4**.
+**rv_top_if (bind rv_core ports, 8):** REQ-03 imem hold, REQ-04 dmem hold+wdata, REQ-07 load wstrb=0, REQ-08 addr[1:0]=0, REQ-02 dmem_valid=0 first cycle post-reset + first fetch addr 0.
+
+**Validation (Docker, flow image):** fixed RTL `make ASSERTIONS=1` → **64/64 PASS, 0 assertion firings, 19.5 s wall** (< 45 s). Baseline `make RTL_ROOT=../baseline ASSERTIONS=1` → assertion `$stop` aborts sim; isolated runs prove firing: D1→A_FWD_RS1, D2→A_CSR_MPIE, D3→A_LOAD_DATA, D4→A_MDU_REM0, CR→A_CRD3_LEGAL.
