@@ -13,7 +13,7 @@ running programs at the ports, so they have no test here.
 import cocotb
 from cocotb.triggers import FallingEdge
 
-from rv_asm import (DEVICE_IRQ, MCYCLE, MCYCLEH, MCAUSE, MIE, MINSTRET, MINSTRETH,
+from rv_asm import (DEVICE_IRQ, MCYCLE, MCYCLEH, MCAUSE, MIE, MIP, MINSTRET, MINSTRETH,
                     MISA, MSCRATCH, MSTATUS, MEPC, MTVEC, MTVAL, Asm, _b, _i, _j, _r)
 from rv_core_env import Env
 
@@ -1284,15 +1284,12 @@ async def test_cr5_rd_rs_aliasing(dut):
 
 # ------------------------------------------------ mutation-kill (Phase 4c seeds)
 
-@cocotb.test()
-async def test_req23_illegal_load_f3_110(dut):
-    """REQ-23/24: load funct3=110 is not RV32IM-legal -> illegal-instruction
-    trap with mtval = instruction (kills decode drop_term of f3==110)."""
+async def _illegal_load(dut, f3):
     a = Asm()
     hdl_install(a)
     hdl_precise(a, rc=20, rt=21, re=22)
     a.label("main")
-    bad = _i(0, 0, 6, 1, 0x03)
+    bad = _i(0, 0, f3, 1, 0x03)
     pc = a.here()
     a.word(bad)
     a.label("end")
@@ -1301,6 +1298,15 @@ async def test_req23_illegal_load_f3_110(dut):
     assert tb.values[0] == 2, "mcause=%08x (want illegal-instruction 2)" % tb.values[0]
     assert tb.values[1] == bad, (hex(tb.values[1]), hex(bad))
     assert tb.values[2] == pc, (hex(tb.values[2]), hex(pc))
+
+
+@cocotb.test()
+async def test_req23_illegal_load_f3(dut):
+    """REQ-23/24: load funct3 in {011,110,111} are not RV32IM-legal ->
+    illegal-instruction trap with mtval = instruction (kills decode drop_terms
+    of each illegal-funct3 term)."""
+    for f3 in (3, 6, 7):
+        await _illegal_load(dut, f3)
 
 
 @cocotb.test()
@@ -1417,15 +1423,89 @@ async def test_req33_noncsr_instr_csr_addr_no_write(dut):
 
 @cocotb.test()
 async def test_req36_csr_reset_values(dut):
-    """REQ-01/36: trap-related CSRs read 0 before any trap or write
-    (kills csr mtvec/mepc reset constant 30'd0 -> 30'd1)."""
+    """REQ-01/36: trap/interrupt CSRs read their spec reset values before any
+    trap or write (kills csr reset-constant and mie_rd padding mutations)."""
     a = Asm()
     a.csrrs(1, MTVEC, 0)
     a.csrrs(2, MEPC, 0)
     a.csrrs(3, MCAUSE, 0)
     a.csrrs(4, MSCRATCH, 0)
     a.csrrs(5, MTVAL, 0)
+    a.csrrs(6, MIE, 0)
+    a.csrrs(7, MIP, 0)
+    a.csrrs(8, MSTATUS, 0)
     a.label("end")
-    finish(a, [1, 2, 3, 4, 5])
-    tb = await runp(dut, a, regs=[1, 2, 3, 4, 5])
-    assert tb.values == [0, 0, 0, 0, 0], [hex(v) for v in tb.values]
+    finish(a, [1, 2, 3, 4, 5, 6, 7, 8])
+    tb = await runp(dut, a, regs=[1, 2, 3, 4, 5, 6, 7, 8])
+    assert tb.values[:7] == [0] * 7, [hex(v) for v in tb.values]
+    assert tb.values[7] == 0x1800, hex(tb.values[7])   # MPP=3, MPIE=0, MIE=0
+
+
+@cocotb.test()
+async def test_req13_load_then_dependent_store(dut):
+    """REQ-13: a store whose DATA register is produced by the immediately prior
+    load must be interlocked (kills decode uses_rs2=0 on OP_STORE)."""
+    a = Asm()
+    a.li(5, 0x8000)
+    a.lw(1, 5, 0)                # x1 = 0xABCD
+    a.sw(1, 5, 8)                # mem[0x8008] = x1
+    a.lw(2, 5, 8)                # readback
+    a.label("end")
+    finish(a, [2])
+    tb = await runp(dut, a, regs=[2], data={0x8000: [0xABCD, 0, 0, 0]},
+                    dstall=0.7)
+    assert tb.values[0] == 0xABCD, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req33_minstret_write_readback(dut):
+    """REQ-33: MINSTRET is writable; read-back reflects the write
+    (kills csr MINSTRET compare off_by_one to MINSTRET+1)."""
+    a = Asm()
+    a.li(1, 0xFFFFFF00)
+    a.csrrw(0, MINSTRET, 1)
+    a.csrrs(2, MINSTRET, 0)
+    a.label("end")
+    finish(a, [2])
+    tb = await runp(dut, a, regs=[2])
+    assert tb.values[0] >= 0xFFFFFF00, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req33_minstreth_pure_read_no_write(dut):
+    """REQ-33: a pure read of MINSTRETH must not suppress that instruction's
+    retire count (kills csr drop_term of do_write on the MINSTRETH arm)."""
+    a = Asm()
+    a.csrrs(1, MINSTRET, 0)
+    a.addi(2, 0, 1)
+    a.csrrsi(3, MINSTRETH, 0)    # pure read (uimm=0)
+    a.csrrs(4, MINSTRET, 0)
+    a.label("end")
+    finish(a, [1, 4])
+    tb = await runp(dut, a, regs=[1, 4])
+    delta = tb.values[1] - tb.values[0]
+    assert delta == 3, "MINSTRET delta %d, expected 3" % delta
+
+
+@cocotb.test()
+async def test_req39_illegal_traps_promptly(dut):
+    """REQ-39-class promptness (own design invariant, deterministic no-wait run):
+    an illegal instruction traps within 20 mcycle ticks of the preceding CSR
+    read (kills decode is_mdu=1 on the illegal-mask arm: muldiv would add 34+
+    cycles of EX stall before the trap)."""
+    a = Asm()
+    hdl_install(a)
+    a.label("hdl")
+    a.csrrs(20, MCYCLE, 0)
+    a.csrrs(27, MEPC, 0)
+    a.addi(27, 27, 4)
+    a.csrrw(27, MEPC, 27)
+    a.mret()
+    a.label("main")
+    a.csrrs(1, MCYCLE, 0)
+    a.word(_i(0, 0, 3, 1, 0x03))     # illegal load f3=011
+    a.label("end")
+    finish(a, [20, 1])
+    tb = await runp(dut, a, regs=[20, 1])
+    delta = tb.values[0] - tb.values[1]
+    assert 0 < delta < 20, ("mcycle delta across illegal-instr trap = %d" % delta)
