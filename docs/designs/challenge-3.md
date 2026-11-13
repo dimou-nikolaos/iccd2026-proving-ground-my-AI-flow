@@ -28,17 +28,18 @@ c4d1397a rv_alu, 68a57e89 rv_core, e4bc942e rv_csr, 1f342b10 rv_decode, 25796e52
 - Regfile: `regs_q[1:31]`, x0 hard-zero + write-guard + write-through read.
 - Public TB protocol: store to TOHOST=0xFFFF0000 halts; DEVICE_IRQ=0xFFFF0004 drives irq lines (bit0 ext, bit1 timer); SIG_BASE=0x00004000 dump region; `dump(regs)`/`halt()` pseudo-ops in rv_asm.py.
 
-## Deviations found (Phase 1)
+## Deviations found (Phase 1) — CONFIRMED by probe sweep 2026-11-13
 
-| # | REQ | Location | Spec says | RTL does | Pattern | Conf. | Status |
-|---|-----|----------|-----------|----------|---------|-------|--------|
-| D1 | REQ-11 | rv_hazard.sv:30,40 | x0 always reads 0, incl. right after rd=x0 (ALU/load/CSR/mul/JAL) | forward match `mem_rd == ex_rs1` matches when both are 0: instruction with rd=x0 in MEM/WB forwards its result into an x0 operand of the EX instruction | drop_term (missing guard) | HIGH | probe pending |
-| D2 | REQ-41 | rv_csr.sv:108-110 | MRET copies MPIE→MIE, then sets MPIE=1 | `mret` branch sets only `mie_q <= mpie_q`; `mpie_q` never loaded with 1 | missing latch / drop_term | HIGH | probe pending |
-| D3 | REQ-25 | rv_lsu.sv:64 | LH at offset 2 returns bits[31:16] extended **from bit 31** | sign bit taken from `dmem_rdata[15]` for both half offsets | off-by-one in bit-slice | HIGH | probe pending |
-| D4 | REQ-30 | rv_muldiv.sv:55 | div-by-0: REM/REMU return the dividend | `rem_out = (op_b_q==0) ? 32'd0 : ...` returns 0; dividend not even stored (no op_a_q) | drop_term / missing logic | HIGH | probe pending |
-| D5 | REQ-10 | rv_core.sv:289-297 | results same with any wait-state pattern | if `mdu_done` lands while `mem_stall` (older load in MEM waiting dmem), clear `mdu_active_q && !mem_stall` is missed; mdu_active_q stuck → every later muldiv hangs (mdu_busy forever) | missing reset branch / gating | MEDIUM-HIGH | probe pending |
+| # | REQ | Location | Spec says | RTL does | Pattern | Probe evidence (baseline→fixed) |
+|---|-----|----------|-----------|----------|---------|-------------------------------|
+| D1 | REQ-11 | rv_hazard.sv:30,40 | x0 always reads 0, incl. right after rd=x0 (ALU/load/CSR/mul/JAL) | forward match matched on reg 0: rd=x0 producer in MEM/WB injected its value into an x0 operand in EX | drop_term (missing guard) | FAIL→PASS (obs x5=5/10, CSR/mul/load values; JAL-x0 producer sub-case did NOT corrupt — use others for assertions) |
+| D2 | REQ-41 | rv_csr.sv:108 | MRET: MPIE←MIE then MPIE←1 | `mpie_q` never loaded 1 | missing latch | FAIL→PASS (mstatus 0x1800 vs 0x1880; MPP=3 base 0x1800) |
+| D3 | REQ-25 | rv_lsu.sv:64 | LH at offset 2 extends from bit 31 | replicate bit `dmem_rdata[15]` both offsets | off-by-one bit-slice | FAIL→PASS (0x8000_0000@+2 → 0x00008000 vs 0xFFFF8000; 0x1234_8000@+2 → 0xFFFF1234 vs 0x00001234) |
+| D4 | REQ-30 | rv_muldiv.sv:55 | div-by-0: REM/REMU return dividend | returned 0; dividend unstored | drop_term/missing | FAIL→PASS (div fixed 0xFFFFFFF9→0; fixed RTL returns raw dividend) |
 
-Notes: public TB `test_load_store` uses `lh(5,1,0)` (offset 0, passes with D3) but never `lh` at offset 2 — D3 hides in plain sight. `test_multiply_divide` uses ordinary divisors (no div-by-0, no INT_MIN/-1).
+D5 (mdu_active_q race) = **FALSE ALARM** — schedule analysis (mdu_start gated by !mem_stall; mdu_busy freezes front-end from EX-entry, MEM drains and stays empty during muldiv run) + 4-seed wait-state probes clean on BOTH trees. Keep wait-state stress in the test suite anyway.
+
+Probe-per-REQ sweep (Gate PASSED): 44 probes, all PASS on fixed; 7 FAIL on baseline (D1-D4 + REQ-25 probe + 2 CR-absent probes). REQ-05/42 = structural → assigned to lint/synth stage in REQ matrix. Deviation count = 4 (in 3-6 band; random ISS differential in Phase 3 is the backstop for a 5th).
 
 ## CR-D3 implementation site
 

@@ -1,23 +1,24 @@
 # challenge-3 — progress (rv_core, RV32IM core)
 
-## Phase status
+### Phase status
 
 | Phase | Status |
 |-------|--------|
-| 1 ANALYZE | in_progress (static analysis done by orchestrator; spec-analyst + probe-per-REQ sweep running) |
-| 2 FIX | pending |
-| 3 VERIFY | pending |
+| 1 ANALYZE | done (probe-per-REQ gate passed; 4 deviations confirmed; D5 false alarm) |
+| 2 FIX | done pending server C (lint/elab/public-TB green; drop 1 packaged) |
+| 3 VERIFY | pending (ISS lockstep + tests/ + assertions/ + REQ matrix fill during cooldown) |
 | 4 ITERATE | pending |
 
 ## Score history
 
 | Sub | Time | C | V | P | Notes |
 |-----|------|---|---|---|-------|
-| (baseline run) | 2026-11-13 | null | null | pending | baseline PPA cache run in flight (challenge-3-baseline.tar.gz) |
+| (baseline ref) | 2026-11-13 | null | 0.0 | 0.5 | baseline-vs-baseline parity run; PPA banked to cache; final: area 136024.0 um2, WNS +4.691 ns, power 17.20 mW, ~12.1k cells synth |
+| drop 1 (pending upload) | 2026-11-13 | ? | ~0 (no tests yet) | ? | rtl+report.md only: D1-D4 fixed + CR-D3 |
 
 ## Deviations found
 
-See table in `docs/designs/challenge-3.md` (D1..D5, static analysis). D1-D4 HIGH, D5 MEDIUM-HIGH. Probe sweep will confirm + may find more (expect 3-6 total, never stop at 3).
+CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`. D5 false alarm (schedule analysis + wait-state probes clean). Probe gate: 44 probes, 44/44 PASS fixed, 7 FAIL baseline. Expect 3-6; random ISS differential (Phase 3) is the 5th-deviation backstop.
 
 ## CR implementation notes
 
@@ -39,6 +40,11 @@ See table in `docs/designs/challenge-3.md` (D1..D5, static analysis). D1-D4 HIGH
 - Flow rejects archives without `report.md` ("submission is missing: report.md") — even baseline PPA runs. Baseline tar now includes a stub report.md.
 
 ## Activity log (append-only, newest at top)
+
+#### 2026-11-13 late — probe-per-REQ sweep gate PASSED
+- Did: @probe-creator wrote challenge-3/probes/ (44 tests, 1 build). Ran vs baseline AND fixed. Orchestrator packaged drop 1 (challenge-3/report.md + rtl), local --skip ppa sanity next.
+- Found: 44/44 PASS on fixed; 7 FAIL on baseline (D1-D4 + req25 probe + 2 CR probes). D5 CONFIRMED FALSE ALARM (muldiv-dense waits clean on baseline). No new deviations from 38 directed REQ probes. Baseline full flow completed (route 1529 s!): area 136024 um2, WNS +4.691, power 17.2 mW — corrected earlier stale numbers.
+- Next: local --skip ppa on drop-1 archive → operator uploads; then Phase 3 (ISS lockstep harness + tests/ + assertions/ + REQ matrix fill) during cooldown.
 
 #### 2026-11-13 late — Phase 2 first pass (rtl-fixer) landed
 - Did: @rtl-fixer applied D1 (hazard x0 guards, 4 arms), D2 (mpie<=1 on mret), D3 (lh sign bit half[15]), D4 (op_a_q reg + div0 rem returns raw dividend) + CR-D3 (7 enum members APPENDED after ALU_AND, decode f7=0010000/0000101 arms, 7 alu arms). Orchestrator reviewed diff: exactly scoped, filelist byte-identical.
@@ -65,8 +71,9 @@ See table in `docs/designs/challenge-3.md` (D1..D5, static analysis). D1-D4 HIGH
 
 ## Next action for operator
 
-- Nothing yet. Agent is working Phase 1. First drop (runs/sub.tar.gz, rtl+report) expected within ~2 h — will ping for upload.
+- **Upload: runs/sub.tar.gz (drop 1)** — rtl + report.md, D1-D4 fixed + CR-D3. Expect C feedback (all probes + public TB green locally; C is server-only truth). Local V will show ~0 (no tests in archive yet — intentional), P should be ≥0.5-ish from CR logic added vs baseline (unknown until server/local full flow).
+- Then: paste flow report back (C, failed test names, P terms per stage). Agent meanwhile works Phase 3 (ISS lockstep, tests/, assertions/, REQ matrix).
 
 ## Best submission
 
-- none yet.
+- none banked yet (drop 1 awaiting C).
