@@ -137,6 +137,23 @@ module rv_decode (
             7'b0000001: begin
               dec.is_mdu = 1'b1;
             end
+            7'b0010000: begin
+              unique case (f3)
+                3'b010: dec.alu_op = ALU_SH1ADD;
+                3'b100: dec.alu_op = ALU_SH2ADD;
+                3'b110: dec.alu_op = ALU_SH3ADD;
+                default: dec.illegal = 1'b1;
+              endcase
+            end
+            7'b0000101: begin
+              unique case (f3)
+                3'b100: dec.alu_op = ALU_MIN;
+                3'b101: dec.alu_op = ALU_MINU;
+                3'b110: dec.alu_op = ALU_MAX;
+                3'b111: dec.alu_op = ALU_MAXU;
+                default: dec.illegal = 1'b1;
+              endcase
+            end
             default: begin
               dec.illegal = 1'b1;
             end

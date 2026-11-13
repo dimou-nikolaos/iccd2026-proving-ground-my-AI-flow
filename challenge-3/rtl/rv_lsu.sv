@@ -61,7 +61,7 @@ module rv_lsu (
   always_comb begin
     unique case (size)
       2'b00: load_data = {{24{!is_unsigned && byte_val[7]}}, byte_val};
-      2'b01: load_data = {{16{!is_unsigned && dmem_rdata[15]}}, half};
+      2'b01: load_data = {{16{!is_unsigned && half[15]}}, half};
       default: load_data = dmem_rdata;
     endcase
   end

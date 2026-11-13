@@ -2,7 +2,8 @@
 package rv_pkg;
 
   typedef enum logic [4:0] {
-    ALU_ADD, ALU_SUB, ALU_SLL, ALU_SLT, ALU_SLTU, ALU_XOR, ALU_SRL, ALU_SRA, ALU_OR, ALU_AND
+    ALU_ADD, ALU_SUB, ALU_SLL, ALU_SLT, ALU_SLTU, ALU_XOR, ALU_SRL, ALU_SRA, ALU_OR, ALU_AND,
+    ALU_SH1ADD, ALU_SH2ADD, ALU_SH3ADD, ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU
   } alu_op_t;
 
   typedef enum logic [1:0] {SRC_A_RS1, SRC_A_PC, SRC_A_ZERO} src_a_t;

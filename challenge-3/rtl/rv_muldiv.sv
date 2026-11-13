@@ -17,6 +17,7 @@ module rv_muldiv (
   logic [5:0]  count_q;
   logic [63:0] acc_q;
   logic [31:0] op_b_q;
+  logic [31:0] op_a_q;
   logic [2:0]  op_q;
   logic        res_neg_q, rem_neg_q;
 
@@ -52,7 +53,7 @@ module rv_muldiv (
 
   assign mul_out = res_neg_q ? (~acc_q + 64'd1) : acc_q;
   assign quo_out = res_neg_q ? (~acc_q[31:0] + 32'd1) : acc_q[31:0];
-  assign rem_out = (op_b_q == 32'd0) ? 32'd0 : rem_neg_q ? (~acc_q[63:32] + 32'd1) : acc_q[63:32];
+  assign rem_out = (op_b_q == 32'd0) ? op_a_q : rem_neg_q ? (~acc_q[63:32] + 32'd1) : acc_q[63:32];
 
   always_comb begin
     unique case (op_q)
@@ -72,6 +73,7 @@ module rv_muldiv (
       count_q    <= 6'd0;
       acc_q      <= 64'd0;
       op_b_q     <= 32'd0;
+      op_a_q     <= 32'd0;
       op_q       <= 3'd0;
       res_neg_q  <= 1'b0;
       rem_neg_q  <= 1'b0;
@@ -83,6 +85,7 @@ module rv_muldiv (
             count_q    <= 6'd32;
             op_q       <= op;
             op_b_q     <= b_abs;
+            op_a_q     <= a;
             acc_q      <= {32'd0, a_abs};
             res_neg_q  <= (a_neg ^ b_neg) && (b != 32'd0);
             rem_neg_q  <= a_neg;

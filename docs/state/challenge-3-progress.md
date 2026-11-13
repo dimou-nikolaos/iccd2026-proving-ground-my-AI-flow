@@ -29,8 +29,9 @@ See table in `docs/designs/challenge-3.md` (D1..D5, static analysis). D1-D4 HIGH
 
 ## PPA
 
-- Baseline run in flight: `runs/challenge-3-baseline.tar.gz` (rtl+design.yaml+tb+flow+report.md — NOTE: flow now REQUIRES report.md even for baseline run) → `runs/challenge-3-baseline-out`, cache `runs/challenge-3-cache`.
-- Numbers pending; expect area/power-dominated game at 15 ns.
+- Baseline (CACHED, runs/challenge-3-cache): **area 62097.405 um2, WNS +2.743 ns** (@15 ns → slack +2.74, timing not binding), total power 9728.181 uW. Cells ~5880, depth 30 (yosys synth). P is an AREA/POWER game (L58-style decision: area-first batches, watch WNS cliff).
+- Prior flow attempt died mid-route (OpenROAD nondeterministic ODB class); `baseline` subcommand run clean (~14 min).
+- Optimizations applied: none yet.
 
 ## Environment (updated 2026-11-13)
 
@@ -38,6 +39,20 @@ See table in `docs/designs/challenge-3.md` (D1..D5, static analysis). D1-D4 HIGH
 - Flow rejects archives without `report.md` ("submission is missing: report.md") — even baseline PPA runs. Baseline tar now includes a stub report.md.
 
 ## Activity log (append-only, newest at top)
+
+#### 2026-11-13 late — Phase 2 first pass (rtl-fixer) landed
+- Did: @rtl-fixer applied D1 (hazard x0 guards, 4 arms), D2 (mpie<=1 on mret), D3 (lh sign bit half[15]), D4 (op_a_q reg + div0 rem returns raw dividend) + CR-D3 (7 enum members APPENDED after ALU_AND, decode f7=0010000/0000101 arms, 7 alu arms). Orchestrator reviewed diff: exactly scoped, filelist byte-identical.
+- Gates: verilator lint 0 warnings, yosys elab clean, public TB 12/12 PASS on fixed RTL, CR acceptance probes 7/7.
+- Found: D5 RE-ANALYSIS says race UNREACHABLE by schedule: mdu_start gated by !mem_stall, mdu_busy=1 from the moment muldiv-in-EX is in EX (done=0), so MEM drains and stays empty during muldiv run → mdu_done && mem_stall never co-assert. Keeping D5 as NO-DEVIATION (false alarm) but EMPIRICAL check stays: ISS random-prog runs with random wait patterns must show no hang.
+- Next: @probe-creator writes deviation tests D1-D4 + probe-per-REQ sweep (must FAIL on baseline, PASS on fixed); ISS lockstep harness adapt; then package drop 1 (rtl+report.md) after probes confirm D1-D4 fail on baseline.
+- Baseline PPA cache: full flow died mid-route (ODB nondeterministic, logs complete to 50% DRC both nets); relaunched `baseline` subcommand (bg).
+
+#### 2026-11-13 evening — Phase 1 boost-off
+- Did: ISS kit self-test green (29/29, host python); rvcore SVA kit self-test green in Docker (TESTS=3 PASS=3, 0 fires; negative 9/9 fired). Kits trustworthy → release work = adapter work.
+- Found: flow rejects archives missing report.md (also for baseline runs).
+- Next: spawned @rtl-fixer (D1-D4 + CR-D3, parallel) and @spec-analyst (independent re-derivation + REQ→line map). Probe sweep (ISS lockstep + directed) after fixer lands, against BOTH baseline and fixed RTL.
+
+#### 2026-11-13 evening — bootstrap
 
 #### 2026-11-13 evening — bootstrap
 - Did: verified challenge-3/ == design-3.zip (diff clean); created baseline/ mirror; git force-added released+baseline content (commit 1e3b1b4); read spec+CR+all RTL+public TB; wrote design doc.

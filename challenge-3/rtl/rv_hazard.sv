@@ -27,9 +27,9 @@ module rv_hazard (
 );
 
   always_comb begin
-    if (mem_wb_en && (mem_rd == ex_rs1)) begin
+    if (mem_wb_en && (mem_rd == ex_rs1) && (ex_rs1 != 5'd0)) begin
       fwd_rs1 = mem_result;
-    end else if (wb_en && (wb_rd == ex_rs1)) begin
+    end else if (wb_en && (wb_rd == ex_rs1) && (ex_rs1 != 5'd0)) begin
       fwd_rs1 = wb_data;
     end else begin
       fwd_rs1 = ex_rs1_val;
@@ -37,9 +37,9 @@ module rv_hazard (
   end
 
   always_comb begin
-    if (mem_wb_en && (mem_rd == ex_rs2)) begin
+    if (mem_wb_en && (mem_rd == ex_rs2) && (ex_rs2 != 5'd0)) begin
       fwd_rs2 = mem_result;
-    end else if (wb_en && (wb_rd == ex_rs2)) begin
+    end else if (wb_en && (wb_rd == ex_rs2) && (ex_rs2 != 5'd0)) begin
       fwd_rs2 = wb_data;
     end else begin
       fwd_rs2 = ex_rs2_val;

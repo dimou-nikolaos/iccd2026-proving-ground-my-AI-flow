@@ -107,6 +107,7 @@ module rv_csr (
       mtval_q  <= trap_val;
     end else if (mret) begin
       mie_q  <= mpie_q;
+      mpie_q <= 1'b1;
     end else if (do_write) begin
       unique case (addr)
         CSR_MSTATUS: begin
