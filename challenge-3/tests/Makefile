@@ -6,8 +6,9 @@
 #   make ASSERTIONS=1                     add ../assertions/*.sv (bind files)
 #   make COCOTB_TEST_FILTER=test_dev_d3   run one test
 #
-# RTL_ROOT only selects the RTL tree; the Python harness is always the vendored
-# kit in this dir + ../tb/public (rv_tb/rv_asm).
+# RTL_ROOT only selects the RTL tree; the Python harness (rv_tb/rv_asm) and the
+# golden ISS are vendored in this dir (submission archives must be self-contained:
+# the flow strips everything except rtl/, tests/, assertions/, report.md).
 
 RTL_ROOT ?= ..
 RTL_ROOT_ABS := $(abspath $(RTL_ROOT))
@@ -30,6 +31,6 @@ EXTRA_ARGS += -Wno-fatal --x-assign unique --x-initial unique --public-flat-rw -
 
 SIM_BUILD ?= sim_build_$(notdir $(RTL_ROOT_ABS))
 
-export PYTHONPATH := $(abspath .):$(abspath ../tb/public)
+export PYTHONPATH := $(abspath .)
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

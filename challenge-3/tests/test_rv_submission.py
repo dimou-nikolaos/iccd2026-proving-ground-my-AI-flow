@@ -1280,3 +1280,152 @@ async def test_cr5_rd_rs_aliasing(dut):
     exp = [810, 0x80000000, 0x7FFFFFFF, 0x7FFFFFFF, 0x80000000,
            0x20000000, 0xFFFFFFF6, 0xFFFFFFF6]
     assert tb.values == exp, [[hex(v) for v in tb.values], [hex(e) for e in exp]]
+
+
+# ------------------------------------------------ mutation-kill (Phase 4c seeds)
+
+@cocotb.test()
+async def test_req23_illegal_load_f3_110(dut):
+    """REQ-23/24: load funct3=110 is not RV32IM-legal -> illegal-instruction
+    trap with mtval = instruction (kills decode drop_term of f3==110)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    bad = _i(0, 0, 6, 1, 0x03)
+    pc = a.here()
+    a.word(bad)
+    a.label("end")
+    finish(a, [20, 21, 22, 1])
+    tb = await runp(dut, a, regs=[20, 21, 22, 1])
+    assert tb.values[0] == 2, "mcause=%08x (want illegal-instruction 2)" % tb.values[0]
+    assert tb.values[1] == bad, (hex(tb.values[1]), hex(bad))
+    assert tb.values[2] == pc, (hex(tb.values[2]), hex(pc))
+
+
+@cocotb.test()
+async def test_req33_mcycleh_pure_read_no_write(dut):
+    """REQ-33: a CSR read with rs1=x0 / uimm=0 must not write; MCYCLEH write
+    value survives repeated pure reads (kills csr drop_term of do_write)."""
+    a = Asm()
+    a.li(1, 0x4000)
+    a.csrrw(0, MCYCLEH, 1)          # MCYCLEH = 0x4000 (real write)
+    a.csrrs(5, MCYCLEH, 0)          # pure read, rs1=x0
+    a.csrrsi(6, MCYCLEH, 0)         # pure read, uimm=0
+    a.csrrs(7, MCYCLEH, 0)
+    a.label("end")
+    finish(a, [5, 6, 7])
+    tb = await runp(dut, a, regs=[5, 6, 7])
+    assert all(v in (0x4000, 0x4001) for v in tb.values), \
+        [hex(v) for v in tb.values]
+
+
+@cocotb.test()
+async def test_req15_jalr_nonzero_imm(dut):
+    """REQ-15: JALR target = (rs1 + sign-extended imm) & ~1, both signs of imm
+    (kills core +imm -> -imm on the JALR target adder)."""
+    a = Asm()
+    a.label("main")
+    a.la(5, "seqA")
+    j1 = a.here()
+    a.jalr(6, 5, 8)                 # fixed: lands at seqA+8
+    a.label("seqA")                 # mutant lands 16 earlier (in main: hang/garbage)
+    a.addi(1, 0, 31)
+    a.addi(1, 0, 32)
+    a.addi(1, 0, 33)                # fixed landing point
+    a.addi(4, 0, 44)                # fixed fall-through marker
+    a.la(5, "midB")
+    j2 = a.here()
+    a.jalr(7, 5, -8)                # fixed: lands at labelB
+    a.label("labelB")
+    a.addi(2, 0, 21)
+    a.addi(2, 0, 22)
+    a.label("midB")
+    a.addi(3, 0, 23)                # fixed passes; mutant (lands at midB+8) skips all
+    a.label("end")
+    finish(a, [1, 2, 3, 4, 6, 7])
+    tb = await runp(dut, a, regs=[1, 2, 3, 4, 6, 7])
+    assert tb.values[0] == 33, tb.values[0]
+    assert tb.values[1] == 22 and tb.values[2] == 23, tb.values[1:3]
+    assert tb.values[3] == 44, tb.values[3]
+    assert tb.values[4] == j1 + 4 and tb.values[5] == j2 + 4, tb.values[4:]
+
+
+@cocotb.test()
+async def test_req37_irq_ext_only_mie(dut):
+    """REQ-36/37: with MEIE=1, MTIE=0 and both lines asserted, the external
+    interrupt must still be taken (kills csr drop_term of meie&&irq_ext)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_irq(a, "end")
+    irq_enable(a, 0x800)            # MEIE only
+    a.set_irq(3)                    # both lines
+    for _ in range(6):
+        a.nop()
+    a.label("end")
+    finish(a, [20])
+    tb = await runp(dut, a, regs=[20])
+    assert tb.values[0] == 0x8000000B, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req13_load_use_dependent_load(dut):
+    """REQ-13: a load whose BASE register is produced by the immediately prior
+    load must be interlocked (kills decode uses_rs1=0 on OP_LOAD)."""
+    a = Asm()
+    a.li(5, 0x8000)
+    a.lw(1, 5, 0)                # x1 = mem[0x8000] = 0x8004
+    a.lw(3, 1, 0)                # x3 = mem[x1] = mem[0x8004] = 0xBEEF
+    a.label("end")
+    finish(a, [3])
+    tb = await runp(dut, a, regs=[3], data={0x8000: [0x8004, 0xBEEF]},
+                    dstall=0.7)
+    assert tb.values[0] == 0xBEEF, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req33_mcycle_write_readback(dut):
+    """REQ-33 / section 8: MCYCLE is writable; read-back reflects the write
+    (kills csr MCYCLE compare off_by_one to MCYCLE+1)."""
+    a = Asm()
+    a.li(1, 0xFFFFFFF0)
+    a.csrrw(0, MCYCLE, 1)
+    a.csrrs(2, MCYCLE, 0)
+    a.label("end")
+    finish(a, [2])
+    tb = await runp(dut, a, regs=[2])
+    assert tb.values[0] >= 0xFFFFFFF0, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req33_noncsr_instr_csr_addr_no_write(dut):
+    """REQ-33: a retiring NON-CSR instruction whose immediate bits encode a CSR
+    address must not touch that CSR (kills csr do_write drop_term of op!=NONE).
+    lui x0,0xB02 encodes MINSTRET in [31:20]; its retire must still increment."""
+    a = Asm()
+    a.csrrs(1, MINSTRET, 0)
+    a.word(0xB0200037)           # lui x0, 0xB02
+    a.addi(2, 0, 1)
+    a.csrrs(3, MINSTRET, 0)
+    a.label("end")
+    finish(a, [1, 3])
+    tb = await runp(dut, a, regs=[1, 3])
+    delta = tb.values[1] - tb.values[0]
+    assert delta == 3, ("MINSTRET delta %d, expected 3 (lui x0 + addi + first "
+                        "read; mutant loses the lui retire)" % delta)
+
+
+@cocotb.test()
+async def test_req36_csr_reset_values(dut):
+    """REQ-01/36: trap-related CSRs read 0 before any trap or write
+    (kills csr mtvec/mepc reset constant 30'd0 -> 30'd1)."""
+    a = Asm()
+    a.csrrs(1, MTVEC, 0)
+    a.csrrs(2, MEPC, 0)
+    a.csrrs(3, MCAUSE, 0)
+    a.csrrs(4, MSCRATCH, 0)
+    a.csrrs(5, MTVAL, 0)
+    a.label("end")
+    finish(a, [1, 2, 3, 4, 5])
+    tb = await runp(dut, a, regs=[1, 2, 3, 4, 5])
+    assert tb.values == [0, 0, 0, 0, 0], [hex(v) for v in tb.values]
