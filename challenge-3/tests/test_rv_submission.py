@@ -1509,3 +1509,71 @@ async def test_req39_illegal_traps_promptly(dut):
     tb = await runp(dut, a, regs=[20, 1])
     delta = tb.values[0] - tb.values[1]
     assert 0 < delta < 20, ("mcycle delta across illegal-instr trap = %d" % delta)
+
+
+@cocotb.test()
+async def test_req37_irq_cause_timer_when_ext_idle(dut):
+    """REQ-37: with MEIE=1 but the ext line LOW and only the timer line high,
+    mcause must be timer (kills irq_cause drop_term of irq_ext in the mux)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_irq(a, "end")
+    irq_enable(a, 0x880)          # both enables
+    a.set_irq(2)                  # timer line only
+    for _ in range(6):
+        a.nop()
+    a.label("end")
+    finish(a, [20])
+    tb = await runp(dut, a, regs=[20])
+    assert tb.values[0] == 0x80000007, hex(tb.values[0])
+
+
+@cocotb.test()
+async def test_req31_csrrc_forms_write(dut):
+    """REQ-31: CSRRCC/CSRRCI with unmasked source must actually clear bits
+    (kills csr op-compare that drops CSR_RC writes)."""
+    a = Asm()
+    a.li(1, 8)                    # MSTATUS.MIE bit
+    a.csrrs(0, MSTATUS, 1)        # set MIE (RS, unmasked: rs1=x1)
+    a.csrrs(2, MSTATUS, 0)        # pure read: expect MIE=1
+    a.csrrc(3, MSTATUS, 1)        # clear via rs1 form
+    a.csrrs(4, MSTATUS, 0)        # expect MIE=0
+    a.csrrs(0, MSTATUS, 1)        # set again
+    a.csrrci(5, MSTATUS, 8)       # clear via uimm form
+    a.csrrs(6, MSTATUS, 0)        # expect MIE=0
+    a.label("end")
+    finish(a, [2, 3, 4, 5, 6])
+    tb = await runp(dut, a, regs=[2, 3, 4, 5, 6])
+    assert tb.values[0] & 8, hex(tb.values[0])
+    assert not (tb.values[2] & 8), hex(tb.values[2])
+    assert not (tb.values[4] & 8), hex(tb.values[4])
+
+
+@cocotb.test()
+async def test_req30_flushed_csr_instr_no_write(dut):
+    """REQ-30/35: a CSR write instruction squashed by an interrupt must have
+    NO side effect (kills csr commit drop_term of ex_fire: commit fires while
+    the CSR instr sits stalled in EX, writing MCYCLE=x1 before the trap)."""
+    a = Asm()
+    hdl_install(a)
+    a.label("hdl")
+    a.csrrs(20, MCYCLE, 0)        # fixed: mcycle here is small (<200)
+    a.li(31, DEVICE_IRQ)
+    a.addi(26, 0, 0)
+    a.sw(26, 31, 0)
+    a.li(27, 0x88)
+    a.csrrc(26, MSTATUS, 27)
+    a.csrrs(27, MEPC, 0)
+    a.addi(27, 27, 4)
+    a.csrrw(27, MEPC, 27)
+    a.mret()
+    a.label("main")
+    irq_enable(a, 0x080)
+    a.set_irq(2)                  # timer line stays high
+    a.li(5, 0x8000)
+    a.lw(1, 5, 0)                 # x1 = 12345; MEM waits several cycles
+    a.csrrw(0, MCYCLE, 1)         # stalls in EX behind it; then trapped
+    a.label("end")
+    finish(a, [20])
+    tb = await runp(dut, a, regs=[20], data={0x8000: [12345]}, dstall=0.9)
+    assert tb.values[20 - 20] < 200, "MCYCLE=%d: squashed CSR wrote anyway" % tb.values[0]
