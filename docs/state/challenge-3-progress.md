@@ -20,8 +20,11 @@
 
 ## Next action for operator
 
-- **Server down still.** Pool ready: on server return upload `runs/sub.tar.gz` (drop-5a, md5 9f478b66…, V=1.0) FIRST for C-check; keep drop5v2/v3/v4 as same-netlist seed hedges. If C<1.0, failed hidden-test names localize; drop-2 pool (c1e18428) bisects the v1 RTL delta.
-- Meanwhile (local): P seed-noise characterization done; remaining queue: 5th-deviation ISS backstop pass, Phase 4e wildcards only if cooldown time allows.
+- **ACTIVE PLAN: `docs/state/challenge-3-evening-plan-2026-11-14.md`** (approved 6-hour autonomous
+  plan, server-down mode): phases 1–8 with tracker + exit evidence. Read THAT file next; tick
+  its tracker as phases complete (log here too).
+- Server-return override: upload `runs/sub.tar.gz` (drop-5a, md5 9f478b66…, V=1.0 P=0.484) FIRST
+  for C; then one staged variant per sub per playbook in the evening-plan file.
 
 ## Best submission
 
