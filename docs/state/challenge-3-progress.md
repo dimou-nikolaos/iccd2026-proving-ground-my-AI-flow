@@ -172,6 +172,7 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 
 ## Operator feedback log
 
+- 2026-11-14 ~09:35 (evening plan): v6 reset-strip BUILT+audited (datapath-only flop reset removal, ~430 flops; 92/92; Tier B; P queued q8). v7 cross-module sharing analyzed: all candidates in critical cone → skipped; extra text probes lot4/lot5 queued. Lottery q7 running (lot1/2/3).
 - 2026-11-14: ISS backstop pass (scratch tree, /tmp/c3-backstop): +8 plain seeds (401-451, incl. 45% wait)
   +3 trap-config seeds (311-313) → 26/26 lockstep PASS on fixed RTL. Combined with 44-probe gate +
   22-fail baseline suite: no evidence of a 5th seeded deviation. Deviation hunt CLOSED at 4 (within 3-6 band).
