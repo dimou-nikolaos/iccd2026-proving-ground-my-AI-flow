@@ -44,7 +44,7 @@ autonomously" + extra directives:
 Award = most distinct netlist variants with C>0.9. Candidate archives (all C-sane: 95/95 or 92/92 local,
 0 assertion fires; each is its OWN netlist => own sub, own seed roll; P irrelevant):
   1. drop7v3 092ca181 (main, also counts)         — v1 retexture netlist
-  2. v6  dc124c01-era archive superseded by repack 99d00363? NO: v6 archive runs/sub-c3-v6.tar.gz (rebuilt 10:57) — full reset-strip netlist
+  2. runs/sub-c3-v6.tar.gz 78340d64 (repacked 95-test era) — full reset-strip netlist
   3. runs/sub-c3-v6a.tar.gz 99d00363 — muldiv-strip netlist (V=0.925 local)
   4. runs/sub-c3-v6b.tar.gz 21003e53 — MEM/WB-strip netlist (V=0.90)
   5. runs/sub-c3-v7t.tar.gz 86957dc7 — spec-adder netlist (V=0.975)
