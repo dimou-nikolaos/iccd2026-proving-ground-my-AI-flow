@@ -67,6 +67,11 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   * rv_decode:85 OP_STORE `uses_rs1` 1→0: value-side is forwarding-rescued, but the missing
     interlock bubble is observable via mcycle delta. NEW test test_req13_store_base_interlock_cycle
     (delta==6 pin) hand-verified kill (mutant delta=5 FAIL). KILLABLE, killed.
+- 2026-11-14 ~15:15 (squeeze campaign): v13 C-hedge built+measured (P 0.4613, insurance only);
+  strip re-draws a1-a5 ALL lost (0.4599..0.4774; power mechanism reproduces −16% but timing lottery
+  never lands); explorer draws b1-b3 distinct (0.445-0.4574), b4 clone-of-main (V=0.95 hedge).
+  18/18 draws < 0.484 — P FINAL. New same-netlist hedges: a2 (V=0.95, =v6), b4 (V=0.95, =main).
+  Explorer candidate pool: 19 distinct netlists (see ppa-plan ledger).
 - 2026-11-14 ~12:50 (wildcard closure): Phase 4e catalog swept — pipelining/arithmetic/SRAM ideas
   documented inapplicable (ISS-delta-pinned microarch); fsm_encoding attrs = NO-OP (P identical);
   keep_hierarchy = flow REJECT (disallowed construct). No untried knob remains. P final = 0.484.

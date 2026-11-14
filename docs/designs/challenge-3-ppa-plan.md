@@ -56,6 +56,25 @@ v1 retexture at **P=0.484** (theoretical ceiling ~0.496). Do not open new PPA fr
 mechanism argument; the WB→fwd→branch→redirect→fetch cone dominates and every perturbation costs more
 than it gains.
 
+| v13 | C-hedge: rv_alu interface = released baseline, comparators in core | 144296 | 3.340 | 17.254 | 0.4613 | LOSS as P play (comparator placement/timing lottery); VALUE = C-hedge archive (c8b50c69), staged for use only if server C<1.0 implicates ALU-interface hidden checks |
+| a1 | strip via structural split (muldiv ctrl/datapath blocks; WB split) | 144358 | 3.297 | 17.342 | 0.4599 | LOSS |
+| a2 | v6 full strip + stmt reorders | 142239 | 3.125 | 14.286 | 0.4774 | = v6 NETLIST (stmt order invisible to synth!). Repowers proof: p −16% reproducible. Also a seed hedge (V=0.95) |
+| a3 | v6 minus fetch strip | 142250 | 2.948 | 16.014 | 0.4639 | LOSS |
+| a4 | v6 + rd-addr strips | 142104 | 2.620 | 14.425 | 0.4670 | LOSS (best power −16% yet WNS 2.62) |
+| a5 | v6 + ex_dec_q reset strip | 142353 | 3.555 | 16.200 | 0.4745 | LOSS (V=1.0 roll though) |
+| b1 | branch case-arm reorder | 144572 | 2.754 | 18.030 | 0.4450 | LOSS; distinct netlist → Explorer entry |
+| b2 | hazard compare-arg reorder | 143204 | 3.022 | 17.137 | 0.4574 | LOSS; distinct → Explorer entry |
+| b3 | target if-invert | 144632 | 3.133 | 17.374 | 0.4561 | LOSS; distinct → Explorer entry |
+| b4 | decode field-order reorder | 144312 | 4.469 | 17.117 | 0.4840 | = drop-7 NETLIST (pure reorder invisible); useful seed hedge (V=0.95) |
+
+**Statistical closure (2026-11-14 15:15):** 18 distinct measured netlists total; **0 ever reached ≥0.484**.
+Reset-strip power/area mechanism is REAL and reproducible (a2/a4: power −16..17%, area −2100) but every
+placement landing pays ≥1.3 ns WNS in the cone-dominated map — the mechanism can NEVER pay without a
+timing win that never appeared in any draw (best strip-family WNS 3.56 vs 4.47 needed). Statement-order
+edits are invisible to synth (a2/b4 = clone netlists). P=0.484 FINAL; further draws EV≈0.
+Explorer pool now: drop7v3(main), drop2, drop3r4, v6, v6a, v6b, v7t, v11, v13, lot1, lot2, lot3, lot5,
+a1, a3, a4, a5, b1, b2, b3 = **19 candidate netlists** (submit during cooldowns after C bank; budget 30).
+
 **Lottery conclusion (2026-11-14 10:07):** 3/3 RTL-text draws LOST (P 0.446–0.470 vs banked 0.484);
 the current v1 text is a good anchor — do NOT text-lottery core control/cone signals. The knob is
 asymmetric: cone text variations mostly hurt (WNS 2.86–3.76 vs 4.47). lot4/lot5 (operand/fire dup
