@@ -1916,3 +1916,81 @@ async def test_req34_illegal_system_f3_100(dut):
     assert tb.values[0] == 2, "mcause=%08x (want illegal-instruction 2)" % tb.values[0]
     assert tb.values[1] == bad, (hex(tb.values[1]), hex(bad))
     assert tb.values[2] == pc, (hex(tb.values[2]), hex(pc))
+
+
+@cocotb.test()
+async def test_req19_mul_negative_b_form(dut):
+    """REQ-19: MUL/MULH/MULHU/MULHSU sign handling on the B operand: MUL is
+    signed×signed, so negative b must be magnitude-split like a (kills
+    rv_muldiv b_signed (op[1:0]==2'b00) constant mutation)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    a.li(1, -3)
+    a.li(2, -7)
+    a.mul(3, 1, 2)          # -3 * -7 = 21
+    a.mulh(4, 1, 2)         # high of (-3)*(-7) = 0
+    a.mulhu(5, 1, 2)        # (2^32-3)*(2^32-7) high = 0xFFFFFFF6
+    a.mulhsu(6, 1, 2)       # (-3)u*(2^32-7) high = 0xFFFFFFFD
+    a.label("end")
+    finish(a, [3, 4, 5, 6, 20, 21, 22])
+    tb = await runp(dut, a, regs=[3, 4, 5, 6, 20, 21, 22])
+    assert tb.values[0] == 21, hex(tb.values[0] & 0xFFFFFFFF)
+    assert tb.values[1] == 0, hex(tb.values[1])
+    assert tb.values[2] == 0xFFFFFFF6, hex(tb.values[2])
+    assert tb.values[3] == 0xFFFFFFFD, hex(tb.values[3])
+    assert tb.values[4] == 0 and tb.values[5] == 0 and tb.values[6] == 0
+
+
+@cocotb.test()
+async def test_req13_store_base_interlock(dut):
+    """REQ-13: a store whose BASE (rs1) is produced by the immediately prior
+    load is interlocked even when its data register is not (kills decode
+    uses_rs1=1 -> 0 drop on OP_STORE)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    a.li(8, 0x8200)
+    a.lw(5, 8, 0)               # x5 = 0x8204 (base comes FROM the load)
+    a.li(9, 0xAB)
+    a.sw(9, 5, 0)               # store to x5+0 = 0x8204 (base from prior load!)
+    a.lw(6, 8, 4)               # read back 0x8204: expect 0xAB
+    a.label("end")
+    finish(a, [6, 20, 21, 22])
+    tb = await runp(dut, a, regs=[6, 20, 21, 22],
+                    data={0x8200: [0x8204]})
+    assert tb.values[0] == 0xAB, "back=%08x want AB (base not interlocked)" % tb.values[0]
+    assert tb.values[1] == 0 and tb.values[2] == 0 and tb.values[3] == 0
+
+
+@cocotb.test()
+async def test_req13_store_base_interlock_cycle(dut):
+    """REQ-13: a store whose BASE (rs1) comes from the immediately preceding
+    load IS interlocked (the value forwarding cannot rescue the interlock
+    cycle count here): pin the exact mcycle delta of the block (kills decode
+    OP_STORE uses_rs1 1'b1->1'b0: no bubble -> delta 5 != 6)."""
+    a = Asm()
+    a.li(9, 0xAB)
+    a.csrrs(1, MCYCLE, 0)
+    a.li(5, 0x8000)
+    a.lw(10, 5, 0)                        # x10 = 0x8000 from LOAD
+    a.sw(9, 10, 0)                        # store base = x10 (from the load)
+    a.csrrs(2, MCYCLE, 0)
+    a.label("end")
+    finish(a, [1, 2])
+    tb = await runp(dut, a, regs=[1, 2], data={0x8000: [0x8000]})
+    delta = tb.values[1] - tb.values[0]
+    assert delta == 6, ("mcycle delta %d, expected 6 (interlock bubble)" % delta)
+    # value side: re-run with a read-back appended (cycles not pinned here)
+    b = Asm()
+    b.li(9, 0xAB)
+    b.li(5, 0x8000)
+    b.lw(10, 5, 0)
+    b.sw(9, 10, 0)
+    b.lw(11, 5, 0)
+    b.label("end")
+    finish(b, [11])
+    tb2 = await runp(dut, b, regs=[11], data={0x8000: [0x8000]})
+    assert tb2.values[0] == 0xAB, "store went to wrong address: %08x" % tb2.values[0]

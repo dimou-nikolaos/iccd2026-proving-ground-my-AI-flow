@@ -59,6 +59,16 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   * rv_core.sv:380 WB latch-guard `mem_valid_q && !mem_stall` → `!mem_stall` = equivalent (wb_valid_q
     on line 379 gates regfile write + all forwarding consumers; phantom latches never observed).
   * rv_fetch:61 `id_pc_q` reset 0→1: dead reset value (id_valid_q resets 0). NEW 2026-11-14.
+  * rv_muldiv:37 `b_signed` const `2'b00`→`2'b01`: drop_term of MUL's b-signed term; MUL result is
+    the LOW word only, congruent mod 2^32 under any sign interpretation → EQUIVALENT (hand-checked:
+    MULHSU f3=010 unaffected by the term at all).
+  * rv_decode:85 OP_STORE `uses_rs1` 1→0: value-side is forwarding-rescued, but the missing
+    interlock bubble is observable via mcycle delta. NEW test test_req13_store_base_interlock_cycle
+    (delta==6 pin) hand-verified kill (mutant delta=5 FAIL). KILLABLE, killed.
+- 2026-11-14 ~10:50: 95/95 suite green (added mul_negative_b coverage + store-base interlock delta kill).
+  lot4 dup-assign = yosys SYNTH FAIL (lesson: never duplicate continuous assigns on logic vars).
+  lot5 dup ex_fire LOSS 0.4586. Text lottery CLOSED (0 wins/5). v6a+v7t PPA re-queued (q9; note:
+  appending to a RUNNING queue script does not reliably execute — start a fresh queue instead).
     (D5 false-alarm schedule analysis, docs/designs/challenge-3.md).
   * rv_core `ex_pc_q` reset 0→1: value never consumed while ex_valid=1 after reset (dead reset val).
   * rv_muldiv `op_b_q/op_a_q` reset 0→1: always latched at start before any result path uses them.

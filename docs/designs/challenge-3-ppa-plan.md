@@ -20,6 +20,18 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 | v3 | rv_muldiv clock-enable `(state_q != S_IDLE \|\| start)` | 142349 | 2.981 | 18.935 | 0.4474 | **LOSS** — power WORSE (ICG + wire detour), WNS −1.5. Discard |
 | v4 | v1 + fold SH1/2/3ADD into main adder via a_pre operand mux | 140226 | 2.807 | 17.001 | 0.4584 | area −4000 µm² but +1 mux depth in the critical WB→redirect cone → WNS −1.7. Discard |
 | v5 | v1 + v2 stack | 144739 | 3.220 | 16.993 | 0.4599 | **LOSS** stacked — regfile en even INCREASED area over v1 here; discard |
+| lot1 | text probe: dup `assign shamt` in rv_alu | 145864 | 3.049 | 18.226 | 0.4477 | LOSS (V=0.95) |
+| lot2 | text probe: decode branch-illegal expr `!f3[2]&&f3[1]` | 142814 | 3.760 | 17.471 | 0.4704 | LOSS (area −1.5k but timing −0.7) |
+| lot3 | text probe: `ex_fire = valid && !(stall||busy)` | 145090 | 2.857 | 18.022 | 0.4463 | LOSS |
+
+| lot4 | text probe: dup `assign alu_b` | — | — | — | FAIL | yosys SYNTH FAILURE: duplicate continuous assign to `logic` var passes Verilator sim but is illegal in synth. Never dup-assign. |
+| lot5 | text probe: dup `assign ex_fire` | 143857 | 3.295 | 17.681 | 0.4586 | LOSS (V=0.925) (yosys accepted THIS one — not a reliable guard) |
+| v6 | reset-strip all datapath flops | 142239 | 3.125 | 14.286 | 0.4774 | net LOSS vs 0.484 but AREA −2073 + POWER −17% (!); WNS hit −1.34. Isolating off-cone subset as v6a. V=0.95. |
+
+**Lottery conclusion (2026-11-14 10:07):** 3/3 RTL-text draws LOST (P 0.446–0.470 vs banked 0.484);
+the current v1 text is a good anchor — do NOT text-lottery core control/cone signals. The knob is
+asymmetric: cone text variations mostly hurt (WNS 2.86–3.76 vs 4.47). lot4/lot5 (operand/fire dup
+probes) remain as data points only.
 
 **Key dynamic: this design is timing-dominated** — the WB→forward-compare→fwd-mux→branch/
 target→redirect→fetch cone sets WNS; ANY depth added inside ALU-operand/forward path costs
