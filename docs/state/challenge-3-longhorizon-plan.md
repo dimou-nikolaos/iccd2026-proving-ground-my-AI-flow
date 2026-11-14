@@ -15,7 +15,10 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 ## Current drop pointer (update every time it changes)
 
 - **DROP-5 pool is banked** (rtl v1-retextured + 91 tests + assertions + report). Archives + local V:
-  * `runs/sub.tar.gz` == `runs/sub-c3-drop5a.tar.gz` md5 `9f478b66086aa14e7be373b720a4ae6f` — **V=1.0** (no survivors), full flow in flight (out-c3-drop5-full)
+  * `runs/sub.tar.gz` == `runs/sub-c3-drop7a.tar.gz` md5 `a759cfb809a45512285325a463b33a41` — drop-7 pool
+    (same RTL/netlist as drop-5, 95 tests: +SYSTEM-f3=100, +store-base delta, +MULHSU-B coverage).
+    Hedges (same netlist, new seeds): drop7v2 e37d4e58, drop7v3 092ca181, drop7v4 c9b7211f. V rolls pending.
+  * Older same-netlist seeds still valid: drop5a 9f478b66 (V=1.0 banked), drop6a edb84d1c.
   * `runs/sub-c3-drop5v2.tar.gz` md5 `8dc886795ab232f52a1b8b865e8039ec` — V=0.975 (1 known-equivalent survivor: mdu_done||mem_stall)
   * `runs/sub-c3-drop5v3.tar.gz` md5 `d719c64639085cc7aa8244de926f9084` — V=0.95 (fetch started_q + trap-gate drop_terms, suspected equiv)
   * `runs/sub-c3-drop5v4.tar.gz` md5 `90c755036fc70cda7e4752824bb53070` — V=0.925 (3 dead-reset/equiv survivors)
