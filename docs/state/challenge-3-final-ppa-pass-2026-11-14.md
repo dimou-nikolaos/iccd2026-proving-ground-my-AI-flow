@@ -78,10 +78,15 @@ check → compare P vs 0.484 with per-term breakdown (which of a/t/p moved). Two
 | s2 | DONE; 95/95; needed re-aiming A_WBE/WBRD/WBDATA_NXT pins to unconditional-load defs (s2 tree only) | DONE | qS (6cf72e7b) | pending P; NOTE clean-build lesson: first clean-build ASSERTIONS=1 aborts sim on pin fire (cascades 93 fails) — check assertion msgs not counts |
 | ~~s3~~ | rejected above | — | — | — |
 | s4 | DONE 95/95; branch alu_op=SUB + eq/ne from alu_result | DONE | qS (1be2ed47) | pending P |
+| s1 | measured | 95/95 | **P=0.4485** (a−0.0546 GOOD −859µm², t−0.191 WNS2.72, p−0.024) V? | LOSS (lottery again); distinct netlist → Explorer |
+| s2 | measured | 95/95 | **P=0.4674** (a−0.0668, t−0.193 WNS2.70, **p=+0.194 = 13.87mW BEST POWER ever**) V=0.95 | LOSS standalone; p-mechanism reproducible → keep for stack ticket; Explorer entry |
+| s4 | measured | 95/95 | **P=0.4326** (WNS 1.937 — branch-through-SUB lengthens cone, as feared) V=0.925 | DEAD; distinct → skip (P too low even for explorer value? explorer only needs C>0.9 — keep as candidate) |
+| s8 | measured | 95/95 | **P=0.4454** (a=−0.0194 best AREA ever −5.6k!, t−0.143, **p=−0.221 POWER BACKFIRE**: reset-less regfile flops = X-toggling in vectorless → +22% power) V=0.875 | B1-full DEAD (same backfire bigger). Valid-bits variant → stack test below |
+| s12 STACK ticket | building | ☐ | ☐ | free lottery ticket: s2(p+0.19)+s8(a−0.019) theoretical landing 0.511; local-run only, upload iff >0.484 |
 | s5 | ☐ | ☐ | ☐ | ☐ |
-| s6 | ☐ | ☐ | ☐ | ☐ |
-| s7 | ☐ | ☐ | ☐ | ☐ |
-| s8 | ☐ | ☐ | ☐ | ☐ |
+| s6 | SKIP (0.9k vs 22/22 lottery evidence: EV<0) | — | — | — |
+| s7 | SKIP (0.6k, same reason) | — | — | — |
+| s8 | DONE — see above |
 | s10 lint probe | DONE 18:18 | e1 coarse AND-gated regfile clock: 94/95 (1 reset-window fail) + **flow REJECTED at build** (derived clock disallowed) → E1 DEAD, both sim-unsafe and lint-illegal | — | closed |
 | s11 | ☐ | ☐ | ☐ | ☐ |
 | stack+pool+docs | ☐ | ☐ | ☐ | ☐ |
