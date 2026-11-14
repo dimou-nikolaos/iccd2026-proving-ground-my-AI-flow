@@ -1663,3 +1663,23 @@ async def test_req33_minstreth_write_readback(dut):
     finish(a, [5, 6, 7])
     tb = await runp(dut, a, regs=[5, 6, 7])
     assert all(v in (0x4000, 0x4001) for v in tb.values), [hex(v) for v in tb.values]
+
+
+@cocotb.test()
+async def test_req13_csr_consumer_load_interlock(dut):
+    """REQ-13: a CSR op whose rs1 is produced by the immediately prior load IS
+    interlocked (pin: exact mcycle delta of the block — the interlock bubble is
+    present; kills decode CSR uses_rs1 index mutation !f3[2] -> !f3[1], which
+    silently unhooks CSRRS/CSRRCC consumers behind a load)."""
+    a = Asm()
+    a.csrrs(1, MCYCLE, 0)
+    a.li(5, 0x8000)
+    a.lw(2, 5, 0)                # x2 = 0x3039
+    a.csrrs(0, MSTATUS, 2)       # interlocked consumer (writes harmless bits)
+    a.csrrs(3, MCYCLE, 0)
+    a.label("end")
+    finish(a, [1, 3])
+    tb = await runp(dut, a, regs=[1, 3], data={0x8000: [12345]})
+    delta = tb.values[1] - tb.values[0]
+    assert delta == 6, ("mcycle delta %d across load->CSR-consumer block, expected "
+                        "6 (incl. interlock bubble)" % delta)
