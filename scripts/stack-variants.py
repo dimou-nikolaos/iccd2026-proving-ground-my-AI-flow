@@ -12,6 +12,8 @@ def rel_files(tree):
 
 def main():
     args = [a for a in sys.argv[1:] if a != '--force']
+    # NOTE: base tree must be the UNMODIFIED baseline (live challenge-3);
+    # using one variant as base silently reverts other variants' edits to it.
     force = '--force' in sys.argv
     base, out, mods = args[0], args[1], args[2:]
     shutil.rmtree(out, ignore_errors=True)
