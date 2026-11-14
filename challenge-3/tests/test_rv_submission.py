@@ -1779,3 +1779,28 @@ async def test_req41_mret_single_pop_while_stalled(dut):
     tb = await runp(dut, a, regs=[20], data={0x8000: [1, 2, 3, 4]}, dstall=0.9)
     # fixed: MIE<-MPIE(old=0)=0, MPIE<-1  => 0x1880. Double pop: MIE=1 => 0x1888
     assert tb.values[0] == 0x1880, "mstatus=%08x after mret (double pop?)" % tb.values[0]
+
+
+async def _illegal_branch(dut, f3):
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    bad = _b(0, 1, 1, f3)
+    pc = a.here()
+    a.word(bad)
+    a.addi(1, 0, 7)              # mutant: branch (not-taken) then this runs
+    a.label("end")
+    finish(a, [20, 21, 22, 1])
+    tb = await runp(dut, a, regs=[20, 21, 22, 1])
+    assert tb.values[0] == 2, "mcause=%08x (want illegal-instruction 2)" % tb.values[0]
+    assert tb.values[1] == bad, (hex(tb.values[1]), hex(bad))
+    assert tb.values[2] == pc, (hex(tb.values[2]), hex(pc))
+
+
+@cocotb.test()
+async def test_req18_illegal_branch_f3(dut):
+    """REQ-16/17: branch funct3 in {010, 011} are not RV32IM-legal -> illegal
+    trap with mtval = instruction (kills decode branch illegal-term drop_terms)."""
+    for f3 in (2, 3):
+        await _illegal_branch(dut, f3)

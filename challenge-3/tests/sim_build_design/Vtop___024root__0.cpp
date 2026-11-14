@@ -51,11 +51,11 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                     | (1U == (3U & (vlSelfRef.rv_core__DOT__ex_dec_q[1U] 
                                     >> 3U)))))) {
             if (VL_UNLIKELY((vlSymsp->_vm_contextp__->assertOn()))) {
-                VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:167: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
+                VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:168: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
                              , '#',64,VL_TIME_UNITED_Q(1000)
                              , '#',2,(3U & (vlSelfRef.rv_core__DOT__ex_dec_q[1U] 
                                             >> 3U)));
-                VL_STOP_MT("/design/rtl/rv_core.sv", 167, "");
+                VL_STOP_MT("/design/rtl/rv_core.sv", 168, "");
             }
         }
     }
@@ -1433,37 +1433,6 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__fwd_rs2 
         = vlSelfRef.rv_core__DOT__fwd_rs2;
     vlSelfRef.rv_core__DOT__u_muldiv__DOT__b = vlSelfRef.rv_core__DOT__fwd_rs2;
-    vlSelfRef.rv_core__DOT__branch_taken = ((0x08000000U 
-                                             & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                             ? ((0x04000000U 
-                                                 & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                 ? 
-                                                ((0x02000000U 
-                                                  & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                  ? 
-                                                 (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                  >= vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                  : 
-                                                 (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                  < vlSelfRef.rv_core__DOT__fwd_rs2))
-                                                 : 
-                                                ((0x02000000U 
-                                                  & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                  ? 
-                                                 VL_GTES_III(32, vlSelfRef.rv_core__DOT__fwd_rs1, vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                  : 
-                                                 VL_LTS_III(32, vlSelfRef.rv_core__DOT__fwd_rs1, vlSelfRef.rv_core__DOT__fwd_rs2)))
-                                             : ((~ 
-                                                 (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                                  >> 0x0000001aU)) 
-                                                & ((0x02000000U 
-                                                    & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                    ? 
-                                                   (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                    != vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                    : 
-                                                   (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                    == vlSelfRef.rv_core__DOT__fwd_rs2))));
     vlSelfRef.rv_core__DOT__alu_b = ((4U & vlSelfRef.rv_core__DOT__ex_dec_q[1U])
                                       ? ((vlSelfRef.rv_core__DOT__ex_dec_q[2U] 
                                           << 0x00000016U) 
@@ -1514,17 +1483,6 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
         ((IData)(vlSelfRef.rv_core__DOT__u_muldiv__DOT__b_signed) 
          & (vlSelfRef.rv_core__DOT__u_muldiv__DOT__b 
             >> 0x0000001fU));
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__branch_taken 
-        = vlSelfRef.rv_core__DOT__branch_taken;
-    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_taken 
-        = vlSelfRef.rv_core__DOT__branch_taken;
-    vlSelfRef.rv_core__DOT__flow_change = (((IData)(vlSelfRef.rv_core__DOT__branch_taken) 
-                                            & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                               >> 0x0000001cU)) 
-                                           | (0U != 
-                                              (3U & 
-                                               (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                                >> 0x00000017U))));
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__alu_b 
         = vlSelfRef.rv_core__DOT__alu_b;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_b 
@@ -1598,11 +1556,6 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
         ((IData)(vlSelfRef.rv_core__DOT__u_muldiv__DOT__b_neg)
           ? ((IData)(1U) + (~ vlSelfRef.rv_core__DOT__u_muldiv__DOT__b))
           : vlSelfRef.rv_core__DOT__u_muldiv__DOT__b);
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__flow_change 
-        = vlSelfRef.rv_core__DOT__flow_change;
-    vlSelfRef.rv_core__DOT__target_misaligned = ((IData)(vlSelfRef.rv_core__DOT__flow_change) 
-                                                 & (vlSelfRef.rv_core__DOT__target 
-                                                    >> 1U));
     if ((0x13U == (IData)(vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_opcode))) {
         vlSelfRef.__Vfunc_imm_ref__0__opcode = vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_opcode;
         vlSelfRef.__Vfunc_imm_ref__0__instr = vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr;
@@ -1839,8 +1792,7 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                           == (IData)(vlSelfRef.rv_core__DOT__u_hazard__DOT__ex_rd)))))));
     vlSelfRef.rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__wr_val 
         = vlSelfRef.rv_core__DOT__u_csr__DOT__wr_val;
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__target_misaligned 
-        = vlSelfRef.rv_core__DOT__target_misaligned;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
     vlSelfRef.rv_core__DOT__u_alu__DOT__result = ((0x00000010U 
                                                    & (IData)(vlSelfRef.rv_core__DOT__u_alu__DOT__op))
                                                    ? 
@@ -1959,10 +1911,13 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                        : 
                                                       (vlSelfRef.rv_core__DOT__u_alu__DOT__a 
                                                        + vlSelfRef.rv_core__DOT__u_alu__DOT__b))))));
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
     vlSelfRef.rv_core__DOT__id_rs1_val = vlSelfRef.rv_core__DOT__u_regfile__DOT__rdata1;
     vlSelfRef.rv_core__DOT__id_rs2_val = vlSelfRef.rv_core__DOT__u_regfile__DOT__rdata2;
     vlSelfRef.rv_core__DOT__load_use = vlSelfRef.rv_core__DOT__u_hazard__DOT__load_use;
+    vlSelfRef.rv_core__DOT__alu_lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s;
     vlSelfRef.rv_core__DOT__alu_result = vlSelfRef.rv_core__DOT__u_alu__DOT__result;
+    vlSelfRef.rv_core__DOT__alu_lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__load_use 
         = vlSelfRef.rv_core__DOT__load_use;
     vlSelfRef.rv_core__DOT__stall_front = ((IData)(vlSelfRef.rv_core__DOT__load_use) 
@@ -1985,6 +1940,35 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                   : vlSelfRef.rv_core__DOT__alu_result)
                                               : vlSelfRef.rv_core__DOT__csr_rdata));
     vlSelfRef.rv_core__DOT__ex_offset = (3U & vlSelfRef.rv_core__DOT__alu_result);
+    vlSelfRef.rv_core__DOT__branch_taken = (1U & ((0x08000000U 
+                                                   & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                   ? 
+                                                  ((0x04000000U 
+                                                    & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                    ? 
+                                                   ((0x02000000U 
+                                                     & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                     ? 
+                                                    (~ (IData)(vlSelfRef.rv_core__DOT__alu_lt_u))
+                                                     : (IData)(vlSelfRef.rv_core__DOT__alu_lt_u))
+                                                    : 
+                                                   ((0x02000000U 
+                                                     & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                     ? 
+                                                    (~ (IData)(vlSelfRef.rv_core__DOT__alu_lt_s))
+                                                     : (IData)(vlSelfRef.rv_core__DOT__alu_lt_s)))
+                                                   : 
+                                                  ((~ 
+                                                    (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                                     >> 0x0000001aU)) 
+                                                   & ((0x02000000U 
+                                                       & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                       ? 
+                                                      (vlSelfRef.rv_core__DOT__fwd_rs1 
+                                                       != vlSelfRef.rv_core__DOT__fwd_rs2)
+                                                       : 
+                                                      (vlSelfRef.rv_core__DOT__fwd_rs1 
+                                                       == vlSelfRef.rv_core__DOT__fwd_rs2)))));
     vlSelfRef.rv_core__DOT__u_fetch__DOT__stall = vlSelfRef.rv_core__DOT__stall_front;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__stall_front 
         = vlSelfRef.rv_core__DOT__stall_front;
@@ -2019,17 +2003,35 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                         | (0U == (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
                                   >> 0x0000001eU))))) {
                 if (VL_UNLIKELY((vlSymsp->_vm_contextp__->assertOn()))) {
-                    VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:210: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
+                    VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:213: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
                                  , '#',64,VL_TIME_UNITED_Q(1000)
                                  , '#',2,(vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
                                           >> 0x0000001eU));
-                    VL_STOP_MT("/design/rtl/rv_core.sv", 210, "");
+                    VL_STOP_MT("/design/rtl/rv_core.sv", 213, "");
                 }
             }
         }
     }
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__branch_taken 
+        = vlSelfRef.rv_core__DOT__branch_taken;
+    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_taken 
+        = vlSelfRef.rv_core__DOT__branch_taken;
+    vlSelfRef.rv_core__DOT__flow_change = (((IData)(vlSelfRef.rv_core__DOT__branch_taken) 
+                                            & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                               >> 0x0000001cU)) 
+                                           | (0U != 
+                                              (3U & 
+                                               (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                                >> 0x00000017U))));
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ls_misaligned 
         = vlSelfRef.rv_core__DOT__ls_misaligned;
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__flow_change 
+        = vlSelfRef.rv_core__DOT__flow_change;
+    vlSelfRef.rv_core__DOT__target_misaligned = ((IData)(vlSelfRef.rv_core__DOT__flow_change) 
+                                                 & (vlSelfRef.rv_core__DOT__target 
+                                                    >> 1U));
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__target_misaligned 
+        = vlSelfRef.rv_core__DOT__target_misaligned;
     vlSelfRef.rv_core__DOT__exc_cause = 2U;
     vlSelfRef.rv_core__DOT__exc_val = 0U;
     if ((1U & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
@@ -4435,9 +4437,9 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
                                                   && (IData)(vlSelfRef.rv_core__DOT__id_valid));
             if ((1U & (~ ((IData)(vlSelfRef.rv_core__DOT__redirect) 
                           | (IData)(vlSelfRef.rv_core__DOT__load_use))))) {
-                vlSelfRef.rv_core__DOT__ex_pc_q = vlSelfRef.rv_core__DOT__id_pc;
                 vlSelfRef.rv_core__DOT__ex_instr_q 
                     = vlSelfRef.rv_core__DOT__id_instr;
+                vlSelfRef.rv_core__DOT__ex_pc_q = vlSelfRef.rv_core__DOT__id_pc;
             }
             if (((IData)(vlSelfRef.rv_core__DOT__redirect) 
                  | (IData)(vlSelfRef.rv_core__DOT__load_use))) {
@@ -4461,8 +4463,8 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         vlSelfRef.rv_core__DOT__mdu_active_q = 0U;
         vlSelfRef.rv_core__DOT__mem_store_q = 0U;
         vlSelfRef.rv_core__DOT__ex_valid_q = 0U;
-        vlSelfRef.rv_core__DOT__ex_pc_q = 0U;
         vlSelfRef.rv_core__DOT__ex_instr_q = 0U;
+        vlSelfRef.rv_core__DOT__ex_pc_q = 0U;
         vlSelfRef.rv_core__DOT__ex_rs1_q = 0U;
         vlSelfRef.rv_core__DOT__ex_rs2_q = 0U;
         vlSelfRef.rv_core__DOT__mem_result_q = 0U;
@@ -4486,6 +4488,8 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         = vlSelfRef.rv_core__DOT__mem_store_q;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_valid_q 
         = vlSelfRef.rv_core__DOT__ex_valid_q;
+    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr 
+        = vlSelfRef.rv_core__DOT__ex_instr_q;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_pc_q 
         = vlSelfRef.rv_core__DOT__ex_pc_q;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_pc 
@@ -4493,8 +4497,6 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_csr__DOT__trap_pc = vlSelfRef.rv_core__DOT__ex_pc_q;
     vlSelfRef.rv_core__DOT__ex_link = ((IData)(4U) 
                                        + vlSelfRef.rv_core__DOT__ex_pc_q);
-    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr 
-        = vlSelfRef.rv_core__DOT__ex_instr_q;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_rs1_q 
         = vlSelfRef.rv_core__DOT__ex_rs1_q;
     vlSelfRef.rv_core__DOT__u_hazard__DOT__ex_rs1_val 
@@ -4534,10 +4536,6 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         = vlSelfRef.rv_core__DOT__wb_en_q;
     rv_core__DOT____Vcellinp__u_regfile__we = ((IData)(vlSelfRef.rv_core__DOT__wb_valid_q) 
                                                & (IData)(vlSelfRef.rv_core__DOT__wb_en_q));
-    vlSelfRef.rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__trap_pc 
-        = vlSelfRef.rv_core__DOT__u_csr__DOT__trap_pc;
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_link 
-        = vlSelfRef.rv_core__DOT__ex_link;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_funct3 
         = (7U & (vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr 
                  >> 0x0000000cU));
@@ -4546,6 +4544,10 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
            >> 0x00000019U);
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_opcode 
         = (0x0000007fU & vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr);
+    vlSelfRef.rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__trap_pc 
+        = vlSelfRef.rv_core__DOT__u_csr__DOT__trap_pc;
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_link 
+        = vlSelfRef.rv_core__DOT__ex_link;
     vlSelfRef.rv_core__DOT__u_lsu__DOT__offset = (3U 
                                                   & vlSelfRef.rv_core__DOT__u_lsu__DOT__addr);
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ld_off 
@@ -4699,11 +4701,11 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
                     | (1U == (3U & (vlSelfRef.rv_core__DOT__ex_dec_q[1U] 
                                     >> 3U)))))) {
             if (VL_UNLIKELY((vlSymsp->_vm_contextp__->assertOn()))) {
-                VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:167: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
+                VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:168: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
                              , '#',64,VL_TIME_UNITED_Q(1000)
                              , '#',2,(3U & (vlSelfRef.rv_core__DOT__ex_dec_q[1U] 
                                             >> 3U)));
-                VL_STOP_MT("/design/rtl/rv_core.sv", 167, "");
+                VL_STOP_MT("/design/rtl/rv_core.sv", 168, "");
             }
         }
     }
@@ -5008,37 +5010,6 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__fwd_rs2 
         = vlSelfRef.rv_core__DOT__fwd_rs2;
     vlSelfRef.rv_core__DOT__u_muldiv__DOT__b = vlSelfRef.rv_core__DOT__fwd_rs2;
-    vlSelfRef.rv_core__DOT__branch_taken = ((0x08000000U 
-                                             & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                             ? ((0x04000000U 
-                                                 & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                 ? 
-                                                ((0x02000000U 
-                                                  & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                  ? 
-                                                 (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                  >= vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                  : 
-                                                 (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                  < vlSelfRef.rv_core__DOT__fwd_rs2))
-                                                 : 
-                                                ((0x02000000U 
-                                                  & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                  ? 
-                                                 VL_GTES_III(32, vlSelfRef.rv_core__DOT__fwd_rs1, vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                  : 
-                                                 VL_LTS_III(32, vlSelfRef.rv_core__DOT__fwd_rs1, vlSelfRef.rv_core__DOT__fwd_rs2)))
-                                             : ((~ 
-                                                 (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                                  >> 0x0000001aU)) 
-                                                & ((0x02000000U 
-                                                    & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
-                                                    ? 
-                                                   (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                    != vlSelfRef.rv_core__DOT__fwd_rs2)
-                                                    : 
-                                                   (vlSelfRef.rv_core__DOT__fwd_rs1 
-                                                    == vlSelfRef.rv_core__DOT__fwd_rs2))));
     vlSelfRef.rv_core__DOT__alu_b = ((4U & vlSelfRef.rv_core__DOT__ex_dec_q[1U])
                                       ? ((vlSelfRef.rv_core__DOT__ex_dec_q[2U] 
                                           << 0x00000016U) 
@@ -5075,17 +5046,6 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         ((IData)(vlSelfRef.rv_core__DOT__u_muldiv__DOT__b_signed) 
          & (vlSelfRef.rv_core__DOT__u_muldiv__DOT__b 
             >> 0x0000001fU));
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__branch_taken 
-        = vlSelfRef.rv_core__DOT__branch_taken;
-    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_taken 
-        = vlSelfRef.rv_core__DOT__branch_taken;
-    vlSelfRef.rv_core__DOT__flow_change = (((IData)(vlSelfRef.rv_core__DOT__branch_taken) 
-                                            & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                               >> 0x0000001cU)) 
-                                           | (0U != 
-                                              (3U & 
-                                               (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
-                                                >> 0x00000017U))));
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__alu_b 
         = vlSelfRef.rv_core__DOT__alu_b;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_b 
@@ -5099,11 +5059,6 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         ((IData)(vlSelfRef.rv_core__DOT__u_muldiv__DOT__b_neg)
           ? ((IData)(1U) + (~ vlSelfRef.rv_core__DOT__u_muldiv__DOT__b))
           : vlSelfRef.rv_core__DOT__u_muldiv__DOT__b);
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__flow_change 
-        = vlSelfRef.rv_core__DOT__flow_change;
-    vlSelfRef.rv_core__DOT__target_misaligned = ((IData)(vlSelfRef.rv_core__DOT__flow_change) 
-                                                 & (vlSelfRef.rv_core__DOT__target 
-                                                    >> 1U));
     if ((0x13U == (IData)(vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_opcode))) {
         vlSelfRef.__Vfunc_imm_ref__0__opcode = vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_opcode;
         vlSelfRef.__Vfunc_imm_ref__0__instr = vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr;
@@ -5304,8 +5259,7 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         VL_LTS_III(32, vlSelfRef.rv_core__DOT__u_alu__DOT__a, vlSelfRef.rv_core__DOT__u_alu__DOT__b);
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned 
         = (vlSelfRef.rv_core__DOT__u_alu__DOT__a < vlSelfRef.rv_core__DOT__u_alu__DOT__b);
-    vlSelfRef.rv_core__DOT__u_core_defs__DOT__target_misaligned 
-        = vlSelfRef.rv_core__DOT__target_misaligned;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
     vlSelfRef.rv_core__DOT__u_alu__DOT__result = ((0x00000010U 
                                                    & (IData)(vlSelfRef.rv_core__DOT__u_alu__DOT__op))
                                                    ? 
@@ -5424,12 +5378,44 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
                                                        : 
                                                       (vlSelfRef.rv_core__DOT__u_alu__DOT__a 
                                                        + vlSelfRef.rv_core__DOT__u_alu__DOT__b))))));
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
+    vlSelfRef.rv_core__DOT__alu_lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s;
     vlSelfRef.rv_core__DOT__alu_result = vlSelfRef.rv_core__DOT__u_alu__DOT__result;
+    vlSelfRef.rv_core__DOT__alu_lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__alu_result 
         = vlSelfRef.rv_core__DOT__alu_result;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_alu 
         = vlSelfRef.rv_core__DOT__alu_result;
     vlSelfRef.rv_core__DOT__ex_offset = (3U & vlSelfRef.rv_core__DOT__alu_result);
+    vlSelfRef.rv_core__DOT__branch_taken = (1U & ((0x08000000U 
+                                                   & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                   ? 
+                                                  ((0x04000000U 
+                                                    & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                    ? 
+                                                   ((0x02000000U 
+                                                     & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                     ? 
+                                                    (~ (IData)(vlSelfRef.rv_core__DOT__alu_lt_u))
+                                                     : (IData)(vlSelfRef.rv_core__DOT__alu_lt_u))
+                                                    : 
+                                                   ((0x02000000U 
+                                                     & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                     ? 
+                                                    (~ (IData)(vlSelfRef.rv_core__DOT__alu_lt_s))
+                                                     : (IData)(vlSelfRef.rv_core__DOT__alu_lt_s)))
+                                                   : 
+                                                  ((~ 
+                                                    (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                                     >> 0x0000001aU)) 
+                                                   & ((0x02000000U 
+                                                       & vlSelfRef.rv_core__DOT__ex_dec_q[0U])
+                                                       ? 
+                                                      (vlSelfRef.rv_core__DOT__fwd_rs1 
+                                                       != vlSelfRef.rv_core__DOT__fwd_rs2)
+                                                       : 
+                                                      (vlSelfRef.rv_core__DOT__fwd_rs1 
+                                                       == vlSelfRef.rv_core__DOT__fwd_rs2)))));
     vlSelfRef.rv_core__DOT__ls_misaligned = 0U;
     if ((IData)((0U != (3U & vlSelfRef.rv_core__DOT__ex_dec_q[1U])))) {
         vlSelfRef.rv_core__DOT__ls_misaligned = ((0U 
@@ -5459,17 +5445,35 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
                         | (0U == (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
                                   >> 0x0000001eU))))) {
                 if (VL_UNLIKELY((vlSymsp->_vm_contextp__->assertOn()))) {
-                    VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:210: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
+                    VL_WRITEF_NX("[%0t] %%Error: rv_core.sv:213: Assertion failed in %m: unique case, but multiple matches found for '2'h%X'\n",4, 'M',vlSymsp->name(),"rv_core", 'T',-9
                                  , '#',64,VL_TIME_UNITED_Q(1000)
                                  , '#',2,(vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
                                           >> 0x0000001eU));
-                    VL_STOP_MT("/design/rtl/rv_core.sv", 210, "");
+                    VL_STOP_MT("/design/rtl/rv_core.sv", 213, "");
                 }
             }
         }
     }
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__branch_taken 
+        = vlSelfRef.rv_core__DOT__branch_taken;
+    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_taken 
+        = vlSelfRef.rv_core__DOT__branch_taken;
+    vlSelfRef.rv_core__DOT__flow_change = (((IData)(vlSelfRef.rv_core__DOT__branch_taken) 
+                                            & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                               >> 0x0000001cU)) 
+                                           | (0U != 
+                                              (3U & 
+                                               (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
+                                                >> 0x00000017U))));
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ls_misaligned 
         = vlSelfRef.rv_core__DOT__ls_misaligned;
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__flow_change 
+        = vlSelfRef.rv_core__DOT__flow_change;
+    vlSelfRef.rv_core__DOT__target_misaligned = ((IData)(vlSelfRef.rv_core__DOT__flow_change) 
+                                                 & (vlSelfRef.rv_core__DOT__target 
+                                                    >> 1U));
+    vlSelfRef.rv_core__DOT__u_core_defs__DOT__target_misaligned 
+        = vlSelfRef.rv_core__DOT__target_misaligned;
     vlSelfRef.rv_core__DOT__exc_cause = 2U;
     vlSelfRef.rv_core__DOT__exc_val = 0U;
     if ((1U & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
@@ -5533,16 +5537,16 @@ void Vtop___024root___nba_sequent__TOP__12(Vtop___024root* vlSelf) {
     Vtop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.rv_core__DOT__id_pc = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_pc;
     vlSelfRef.rv_core__DOT__id_instr = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_instr;
+    vlSelfRef.rv_core__DOT__id_pc = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_pc;
     vlSelfRef.rv_core__DOT__id_valid = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_valid;
-    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__id_pc 
-        = vlSelfRef.rv_core__DOT__id_pc;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__id_instr 
         = vlSelfRef.rv_core__DOT__id_instr;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__id_instr 
         = vlSelfRef.rv_core__DOT__id_instr;
     vlSelfRef.rv_core__DOT__u_decode__DOT__instr = vlSelfRef.rv_core__DOT__id_instr;
+    vlSelfRef.rv_core__DOT__u_stage_sva__DOT__id_pc 
+        = vlSelfRef.rv_core__DOT__id_pc;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__id_valid 
         = vlSelfRef.rv_core__DOT__id_valid;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__id_valid 

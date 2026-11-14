@@ -124,6 +124,8 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_TOP->varInsert("rst_n", &(TOP.rst_n), false, VLVT_UINT8, VLVD_IN|VLVF_PUB_RW, 0, 0);
     __Vscopep_rv_core->varInsert("alu_a", &(TOP.rv_core__DOT__alu_a), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_rv_core->varInsert("alu_b", &(TOP.rv_core__DOT__alu_b), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,31,0);
+    __Vscopep_rv_core->varInsert("alu_lt_s", &(TOP.rv_core__DOT__alu_lt_s), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
+    __Vscopep_rv_core->varInsert("alu_lt_u", &(TOP.rv_core__DOT__alu_lt_u), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_rv_core->varInsert("alu_result", &(TOP.rv_core__DOT__alu_result), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_rv_core->varInsert("branch_taken", &(TOP.rv_core__DOT__branch_taken), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_rv_core->varInsert("clk", &(TOP.rv_core__DOT__clk), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
@@ -204,7 +206,9 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_rv_core->varInsert("wb_valid_q", &(TOP.rv_core__DOT__wb_valid_q), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_rv_core__u_alu->varInsert("a", &(TOP.rv_core__DOT__u_alu__DOT__a), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_rv_core__u_alu->varInsert("b", &(TOP.rv_core__DOT__u_alu__DOT__b), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
+    __Vscopep_rv_core__u_alu->varInsert("lt_s", &(TOP.rv_core__DOT__u_alu__DOT__lt_s), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_rv_core__u_alu->varInsert("lt_signed", &(TOP.rv_core__DOT__u_alu__DOT__lt_signed), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
+    __Vscopep_rv_core__u_alu->varInsert("lt_u", &(TOP.rv_core__DOT__u_alu__DOT__lt_u), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_rv_core__u_alu->varInsert("lt_unsigned", &(TOP.rv_core__DOT__u_alu__DOT__lt_unsigned), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_rv_core__u_alu->varInsert("op", &(TOP.rv_core__DOT__u_alu__DOT__op), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,4,0);
     __Vscopep_rv_core__u_alu->varInsert("result", &(TOP.rv_core__DOT__u_alu__DOT__result), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);

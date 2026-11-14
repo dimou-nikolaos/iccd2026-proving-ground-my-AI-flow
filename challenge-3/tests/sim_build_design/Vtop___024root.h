@@ -57,6 +57,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ rv_core__DOT__stall_front;
         CData/*0:0*/ rv_core__DOT__ex_fire;
         CData/*0:0*/ rv_core__DOT__redirect;
+        CData/*0:0*/ rv_core__DOT__alu_lt_s;
+        CData/*0:0*/ rv_core__DOT__alu_lt_u;
         CData/*0:0*/ rv_core__DOT__branch_taken;
         CData/*0:0*/ rv_core__DOT__target_misaligned;
         CData/*0:0*/ rv_core__DOT__flow_change;
@@ -81,10 +83,10 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ rv_core__DOT__u_fetch__DOT__id_valid;
         CData/*0:0*/ rv_core__DOT__u_fetch__DOT__pend_q;
         CData/*0:0*/ rv_core__DOT__u_fetch__DOT__started_q;
-        CData/*0:0*/ rv_core__DOT__u_fetch__DOT__id_valid_q;
-        CData/*4:0*/ rv_core__DOT__u_decode__DOT__opcode;
     };
     struct {
+        CData/*0:0*/ rv_core__DOT__u_fetch__DOT__id_valid_q;
+        CData/*4:0*/ rv_core__DOT__u_decode__DOT__opcode;
         CData/*2:0*/ rv_core__DOT__u_decode__DOT__f3;
         CData/*6:0*/ rv_core__DOT__u_decode__DOT__f7;
         CData/*0:0*/ rv_core__DOT__u_regfile__DOT__clk;
@@ -108,6 +110,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*4:0*/ rv_core__DOT__u_hazard__DOT__ex_rd;
         CData/*0:0*/ rv_core__DOT__u_hazard__DOT__load_use;
         CData/*4:0*/ rv_core__DOT__u_alu__DOT__op;
+        CData/*0:0*/ rv_core__DOT__u_alu__DOT__lt_s;
+        CData/*0:0*/ rv_core__DOT__u_alu__DOT__lt_u;
         CData/*4:0*/ rv_core__DOT__u_alu__DOT__shamt;
         CData/*0:0*/ rv_core__DOT__u_alu__DOT__lt_signed;
         CData/*0:0*/ rv_core__DOT__u_alu__DOT__lt_unsigned;
@@ -145,12 +149,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ rv_core__DOT__u_csr__DOT__u_csr_defs__DOT___Vpast_4_1;
         CData/*0:0*/ rv_core__DOT__u_csr__DOT__u_csr_defs__DOT___Vpast_6_1;
         CData/*0:0*/ rv_core__DOT__u_csr__DOT__u_csr_defs__DOT___Vpast_7_1;
+    };
+    struct {
         CData/*0:0*/ rv_core__DOT__u_csr__DOT__u_csr_defs__DOT___Vpast_9_1;
         CData/*0:0*/ rv_core__DOT__u_muldiv__DOT__clk;
         CData/*0:0*/ rv_core__DOT__u_muldiv__DOT__rst_n;
         CData/*0:0*/ rv_core__DOT__u_muldiv__DOT__start;
-    };
-    struct {
         CData/*2:0*/ rv_core__DOT__u_muldiv__DOT__op;
         CData/*0:0*/ rv_core__DOT__u_muldiv__DOT__done;
         CData/*1:0*/ rv_core__DOT__u_muldiv__DOT__state_q;
@@ -211,12 +215,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT__mdu_start;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT__mdu_done;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT__mdu_active_q;
+    };
+    struct {
         CData/*1:0*/ rv_core__DOT__u_core_defs__DOT__ld_off;
         CData/*7:0*/ rv_core__DOT__u_core_defs__DOT__ld_byte;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT___Vpast_22_1;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT___Vpast_23_1;
-    };
-    struct {
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT___Vpast_24_1;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT___Vpast_25_1;
         CData/*0:0*/ rv_core__DOT__u_core_defs__DOT___Vpast_28_1;
@@ -277,12 +281,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ rv_core__DOT__u_top_if__DOT___Vpast_17_1;
         CData/*6:0*/ __Vfunc_imm_ref__0__opcode;
         CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_1;
+    };
+    struct {
         CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_2;
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__mie_q;
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__mpie_q;
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__trap;
-    };
-    struct {
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__mret;
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__do_write;
         CData/*0:0*/ __Vsampled_TOP__rv_core__DOT__u_muldiv__DOT__u_muldiv_defs__DOT__done;
@@ -343,12 +347,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_fetch__DOT__rst_n__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_regfile__DOT__clk__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_regfile__DOT__rst_n__0;
+    };
+    struct {
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_csr__DOT__clk__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_csr__DOT__rst_n__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__clk__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_muldiv__DOT__clk__0;
-    };
-    struct {
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_muldiv__DOT__rst_n__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_muldiv__DOT__u_muldiv_defs__DOT__clk__0;
         CData/*0:0*/ __Vtrigprevexpr___TOP__rv_core__DOT__u_muldiv__DOT__u_muldiv_defs__DOT__rst_n__0;
@@ -409,12 +413,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__id_pc;
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__id_instr;
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__pc_q;
+    };
+    struct {
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__pend_pc_q;
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__id_pc_q;
         IData/*31:0*/ rv_core__DOT__u_fetch__DOT__id_instr_q;
         IData/*31:0*/ rv_core__DOT__u_decode__DOT__instr;
-    };
-    struct {
         IData/*31:0*/ rv_core__DOT__u_decode__DOT__imm_i;
         IData/*31:0*/ rv_core__DOT__u_decode__DOT__imm_s;
         IData/*31:0*/ rv_core__DOT__u_decode__DOT__imm_b;
@@ -475,12 +479,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         IData/*31:0*/ rv_core__DOT__u_muldiv__DOT__u_muldiv_defs__DOT__a_ref_q;
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__addr;
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__store_data;
+    };
+    struct {
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__dmem_addr;
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__dmem_wdata;
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__dmem_rdata;
         IData/*31:0*/ rv_core__DOT__u_lsu__DOT__load_data;
-    };
-    struct {
         IData/*31:0*/ rv_core__DOT__u_core_defs__DOT__dmem_rdata;
         IData/*31:0*/ rv_core__DOT__u_core_defs__DOT__id_instr;
         IData/*31:0*/ rv_core__DOT__u_core_defs__DOT__ex_pc_q;
@@ -541,12 +545,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         IData/*31:0*/ __Vfunc_imm_ref__0__Vfuncout;
         IData/*31:0*/ __Vfunc_imm_ref__0__instr;
         IData/*31:0*/ __Vfunc_imm_ref__0__i_imm;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_imm_ref__0__s_imm;
         IData/*31:0*/ __Vfunc_imm_ref__0__b_imm;
         IData/*31:0*/ __Vfunc_imm_ref__0__u_imm;
         IData/*31:0*/ __Vfunc_imm_ref__0__j_imm;
-    };
-    struct {
         IData/*29:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__mepc_q;
         IData/*31:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__wr_val;
         IData/*31:0*/ __Vsampled_TOP__rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__trap_pc;
@@ -607,6 +611,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         VlUnpacked<IData/*31:0*/, 31> rv_core__DOT__u_regfile__DOT__regs_q;
         VlUnpacked<QData/*63:0*/, 1> __VstlTriggered;
         VlUnpacked<QData/*63:0*/, 1> __VicoTriggered;
+    };
+    struct {
         VlUnpacked<QData/*63:0*/, 1> __VactTriggered;
         VlUnpacked<QData/*63:0*/, 1> __VnbaTriggered;
     };
