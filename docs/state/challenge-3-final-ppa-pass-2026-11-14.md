@@ -63,6 +63,18 @@ public TB 12/12 → repack runs/sub-c3-sN.tar.gz (md5 logged) → full PPA: pris
 check → compare P vs 0.484 with per-term breakdown (which of a/t/p moved). Two parallel queues max
 (--cpus 6 each, fresh script files, ~27 min/run).
 
+## FINAL VERDICT (2026-11-14 20:10) — FINAL PASS CLOSED
+- 24 distinct netlist draws this campaign (incl. prior 18 + s1,s2,s4,s8,s12,s13); ZERO beat 0.484.
+- Best non-golden = **s12** P=0.4771 (V=0.925; hedge s12b V=0.975): a−0.0201 + p+0.0951 both real,
+  WNS needs ≥4.47, draws in this family landed 3.23/2.66 — mechanism improvements CANNOT rescue
+  the timing term. P=0.484 on drop7v3 is FINAL (25th confirmation: s12b re-measure identical).
+- s12 family IS valuable: explorer pool entries (distinct netlists, C>0.9 expected but Tier-C:
+  upload ONLY after drop7v3 C=1.0 banks) + uplift candidates if server lottery behaves differently.
+- Golden UNCHANGED: runs/sub.tar.gz = drop7v3 092ca181… V=1.0 P=0.484.
+- New explorer entries (all Tier-C C-unverified unless noted): s1 56efc312, s2 6cf72e7b,
+  s4 1be2ed47, s8 59a120df, s12 f4189944, s12b cd00f267, s13 7d8a6b5f. e1 EXCLUDED (flow-rejected).
+- Server-return playbook unchanged; if server C<1.0 implicates regfile internals, v13 fallback unchanged.
+
 ## Consolidation plan (after individual P numbers, ~1h left)
 - STACK all P-plausible winners (s1+s2+s3+... by file-disjointness) → s9x tree → audit → package
   drop-8 candidate. Pool: drop8a + 3 report-comment hedges → V rolls. If drop-8 V≥ drop7v3's known
@@ -83,12 +95,12 @@ check → compare P vs 0.484 with per-term breakdown (which of a/t/p moved). Two
 | s4 | measured | 95/95 | **P=0.4326** (WNS 1.937 — branch-through-SUB lengthens cone, as feared) V=0.925 | DEAD; distinct → skip (P too low even for explorer value? explorer only needs C>0.9 — keep as candidate) |
 | s8 | measured | 95/95 | **P=0.4454** (a=−0.0194 best AREA ever −5.6k!, t−0.143, **p=−0.221 POWER BACKFIRE**: reset-less regfile flops = X-toggling in vectorless → +22% power) V=0.875 | B1-full DEAD (same backfire bigger). Valid-bits variant → stack test below |
 | s12 STACK (s2+s8) | DONE 95/95 | f4189944 | **P=0.4771** (a−0.0201 area 138754, t−0.1418 WNS3.229, p+0.0951 15.57mW) V=0.925 | BEST non-golden P ever, but STILL < 0.484. Mechanisms stacked correctly (best a AND positive p together) — the ONLY missing term is WNS lottery (need ≥4.47, drew 3.23). Draws 23/23 loss. One re-draw queued (qS4); if it loses, timing-closure is statistically final and no more draws. Explorer pool: +s12,s1,s2,s4,s8 (all C-unverified Tier-C: only post-C-bank) |
-| s5 | ☐ | ☐ | ☐ | ☐ |
+| s5 | SKIP — post-s12 EV: area term worth ~0.003 P, lottery sigma ±0.03; 24/24 evidence | — | — | closed |
 | s6 | SKIP (0.9k vs 22/22 lottery evidence: EV<0) | — | — | — |
 | s7 | SKIP (0.6k, same reason) | — | — | — |
 | s8 | DONE — see above |
 | s10 lint probe | DONE 18:18 | e1 coarse AND-gated regfile clock: 94/95 (1 reset-window fail) + **flow REJECTED at build** (derived clock disallowed) → E1 DEAD, both sim-unsafe and lint-illegal | — | closed |
-| s11 | ☐ | ☐ | ☐ | ☐ |
+| s11 | SKIP — deletes ex_dec_q fields (Tier C max-risk) for ~2.7k = 0.008 P-term vs 24/24 lottery | — | — | closed |
 | stack+pool+docs | ☐ | ☐ | ☐ | ☐ |
 
 ## Restart instructions (compaction)
