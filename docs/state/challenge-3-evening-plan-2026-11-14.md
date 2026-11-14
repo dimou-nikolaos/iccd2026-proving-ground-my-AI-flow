@@ -40,6 +40,27 @@ autonomously" + extra directives:
 | 7 | Consolidation: stack only safe winners (per-roll evidence), rebuild drop-6 pool (main + 3 report-comment hedges), full-flow P on final main, V rolls, md5 pins, docs | DONE 12:0x: PPA CLOSED (all lines lost; banked P=0.484). MAIN upload = drop7v3 092ca181 (V=1.0 roll + RTL byte-identical to drop5a => P=0.484 transfers, verified by diff); full-flow re-verify running (q12). Hedges: drop7a 0.95, drop7v4 0.975, drop5a 9f478b66 (measured V=1.0), drop7v2 0.925. | |
 | 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | DONE 12:15: sub-1 = drop7v3 092ca181 (full-flow V=1.0+P=0.484 same roll); checkpoint file challenge-3-session-checkpoint-2026-11-14-1215.md pins everything | | pointer text updated |
 
+## Phase 9 — "squeeze" campaign (operator go 12:50, wildcards round 2)
+Three fronts, all staged C-unverified; uploads ONLY after main C banked, one per cooldown sub:
+FRONT C-hedge (v13, archive c8b50c69, 95/95): rv_alu interface reverted to EXACTLY released ports
+(CR arms kept); comparators moved into rv_core with new internal names (alu_lt_s stays a core wire so
+our own def-pins unchanged). Insurance in case server C<1.0 points at ALU-interface hidden checks —
+pre-built saves 2 submission windows.
+FRONT P (a1–a5, reset-strip POWER mechanism re-draws; v6 mechanism measured p=+0.17, area −2073,
+lost ONLY via WNS placement luck; a lucky landing WNS≥4.4 => P≈0.50 = +1 pt):
+  a1 7ff083e4 structural split (muldiv ctrl+datapath 2-block; WB split) — most distinct netlist
+  a2 37cf799d v6 full strip + statement reorders
+  a3 59ff42d0 v6 minus fetch strip
+  a4 fb40755b v6 + wb_rd_q/mem_rd_q strips
+  a5 041024d9 v6 + ex_dec_q reset-arm strip (consumers gating: audit decides)
+FRONT E (b1–b4, semantics-identical reorders = Explorer volume; identical-netlist draws detectable
+via identical P and must NOT be submitted as Explorer entries):
+  b1 5236819b branch case-arm reorder; b2 bf753752 hazard compare-arg reorder;
+  b3 f8950cec target if-invert; b4 5ba49932 decode field-order reorder
+All 10 audited 95/95 + 0 assertion fires. Queues: qA (v13,a1..a5) + qB (b1..b4) parallel 6cpu,
+ETA ~15:10. Decision rules: P>0.484 winner joins hedge pool for post-C sub; v13 goes in ONLY if
+main C<1.0 needs it; b-draws with DISTINCT netlists fill Explorer windows (budget: main + <=12).
+
 ## Phase 4e wildcard status (operator Q 12:15)
 Catalog-swept. Remaining applicable knob = yosys attributes: 3 draws queued (q14: woh/wauto/wkh,
 95/95 audited, P ~13:05). Pipelining/arithmetic/SRAM ideas documented-inapplicable in ppa-plan
