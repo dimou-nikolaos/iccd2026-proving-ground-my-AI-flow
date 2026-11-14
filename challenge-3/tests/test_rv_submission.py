@@ -1631,3 +1631,35 @@ async def test_req35_trap_cycle_csr_write_suppressed(dut):
     assert tb.values[1] == pc_csrw, ("mepc=%08x expected %08x (trap not on CSRRW?)"
                                      % (tb.values[1], pc_csrw))
     assert tb.values[0] < 200, "MCYCLE=%d: trapped CSRRW still wrote" % tb.values[0]
+
+
+@cocotb.test()
+async def test_req01_counters_reset_zero(dut):
+    """REQ-01/33: MCYCLE/MINSTRET reset to 0. First MINSTRET read (before any
+    retire) must be exactly 0; first MCYCLE read is pinned to its deterministic
+    value in a no-wait run (kills counter reset-constant mutations)."""
+    a = Asm()
+    a.csrrs(1, MINSTRET, 0)
+    a.csrrs(2, MCYCLE, 0)
+    a.label("end")
+    finish(a, [1, 2])
+    tb = await runp(dut, a, regs=[1, 2])
+    print("FIRST_MINSTRET=%d FIRST_MCYCLE=%d" % (tb.values[0], tb.values[1]))
+    assert tb.values[0] == 0, "MINSTRET first read = %d (reset not 0?)" % tb.values[0]
+    assert tb.values[1] == 4, "MCYCLE first read = %d (deterministic no-wait run)" % tb.values[1]
+
+
+@cocotb.test()
+async def test_req33_minstreth_write_readback(dut):
+    """REQ-33: MINSTRETH is writable; pure re-reads keep the value
+    (kills csr MINSTRETH compare off_by_one)."""
+    a = Asm()
+    a.li(1, 0x4000)
+    a.csrrw(0, MINSTRETH, 1)
+    a.csrrs(5, MINSTRETH, 0)
+    a.csrrsi(6, MINSTRETH, 0)
+    a.csrrs(7, MINSTRETH, 0)
+    a.label("end")
+    finish(a, [5, 6, 7])
+    tb = await runp(dut, a, regs=[5, 6, 7])
+    assert all(v in (0x4000, 0x4001) for v in tb.values), [hex(v) for v in tb.values]

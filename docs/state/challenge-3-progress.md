@@ -40,6 +40,16 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   * rv_muldiv `op_b_q/op_a_q` reset 0→1: always latched at start before any result path uses them.
   * rv_core `!rst_n` negate on mdu_active_q: mdu_start=0 during reset → next-state identical
     (and flow builds use +verilator+rand+reset+0).
+  * rv_core regfile `.we = wb_valid_q && wb_en_q` → `wb_en_q`: wb_en_q only ever set alongside
+    wb_valid_q (paired pipeline regs) — HAND-VERIFIED 80/80.
+  * rv_decode kill-arm `is_jal/is_jalr = 1` on illegal instrs: trap redirect dominates jal redirect;
+    wb_en masked — HAND-VERIFIED 83/83.
+  * rv_fetch `if (started_q && imem_ready)` pc/instr load guard → `||`: on non-grant cycles the loaded
+    junk is never consumed (id_valid_q stays 0; released TB gates ready with valid) — HAND-VERIFIED
+    80/80. (The `id_valid_q <= started_q && imem_ready` variant of the same line IS killable — my
+    suite kills it 9-way.)
+  * rv_fetch `id_instr_q` reset nop → illegal: dead reset value (id_valid reset 0) — HAND-VERIFIED 83/83.
+  * rv_lsu idle `dmem_addr = 32'd1`: address bus unobserved while dmem_valid=0 — HAND-VERIFIED 83/83.
 - Expect local V plateau ~0.95-0.975 with occasional equivalent draws; server V uses same
   6 classes × ~40 sites from the same mutator, so same ceiling logic applies.
 
