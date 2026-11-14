@@ -14,8 +14,11 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 
 ## Current drop pointer (update every time it changes)
 
-- runs/sub.tar.gz = DROP-1 (rtl+report, D1-D4+CR) md5 a35e0a5b13ead94b2cfae825c01c3e5e (awaiting server).
-- Next staged: drop-2 = rtl+tests+assertions+report (full evidence) → local V, then package.
+- runs/sub.tar.gz = **DROP-2 candidate** (rtl+tests+assertions+report, 85 tests) md5 `c1e18428f7adf905d148615507a0ff2c`
+  — local scored: V=0.975, P=0.50 (full ref run), C=null (server down). Pool copy: runs/sub-c3-v975-a.tar.gz (same md5).
+- DROP-1 (rtl+report only) md5 a35e0a5b13ead94b2cfae825c01c3e5e is SUPERSEDED by drop-2 content-wise; on server
+  return upload drop-2 first (it contains everything drop-1 had).
+- Next staged: drop-3 = drop-2 + winning PPA variants stacked (see Phase tracker F).
 
 ## Phase tracker
 
@@ -24,9 +27,9 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 | A. Bootstrap+baseline PPA | cache + docs | DONE | area 136024 µm², WNS +4.691, pwr 17.20 mW, ~12.1k cells; 15 ns → AREA/POWER GAME |
 | B. Phase 1 deviations | probe-per-REQ gate | DONE | 4 confirmed (D1 hazard-x0 REQ-11, D2 mret-MPIE REQ-41, D3 lh@+2 REQ-25, D4 rem-div0 REQ-30); D5 false alarm; 44 probes, 7 fail baseline |
 | C. Phase 2 fix+CR | lint/elab/public TB | DONE (C pending) | fixed RTL in challenge-3/rtl (commit 176f8e0); CR-D3 in |
-| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | MOSTLY DONE | 80 tests (22+ fail baseline), 47 props 0 fires fixed; REQ matrix pending. Harness vendored into tests/ (flow strips tb/ from archives!) |
-| E. V loop | local flow --skip ppa → mutants → kill | IN PROGRESS | V 0.875→0.925 over 5 re-rolls; 15 kill tests written; 4 equivalent families documented in progress.md "V ceiling" |
-| F. PPA Tier A/B | family-A P measured, safe stack | pending | bank gate L60: unmodified golden assertions pass |
+| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | DONE | 85 tests (22 fail baseline), 47 props 0 fires; REQ matrix: 36 done + 2 structural n/a, zero todo |
+| E. V loop | local flow --skip ppa → mutants → kill | DONE-ISH | V trajectory 0.875→0.975 (two 0.975 rolls); ~10 equivalent families documented; kill-test writing converging — revisit only after server feedback |
+| F. PPA Tier A/B | family-A P measured, safe stack | IN PROGRESS | ref P=0.50; variants v1 (ALU comparator share), v2 (regfile write-en), v3 (muldiv clock-en) queued full-flow ~23 min each |
 | G. PPA Tier C + wildcards 4e | batch full-flow variants | pending | route ~25 min/variant: batch 2-3 concurrent (6 cpus each) |
 | H. Pool finalize | sub-best + report + drop-N ready | pending | highest projective score |
 

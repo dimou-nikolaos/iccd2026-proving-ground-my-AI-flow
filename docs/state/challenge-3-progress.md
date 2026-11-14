@@ -50,14 +50,29 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
     suite kills it 9-way.)
   * rv_fetch `id_instr_q` reset nop → illegal: dead reset value (id_valid reset 0) — HAND-VERIFIED 83/83.
   * rv_lsu idle `dmem_addr = 32'd1`: address bus unobserved while dmem_valid=0 — HAND-VERIFIED 83/83.
+  * rv_core `mret = ex_fire && !trap && is_mret` drop of `!trap`: inside rv_csr the trap branch has
+    priority over mret in the same always_ff, and the redirect mux prefers trap — same-cycle values
+    identical.
+  * rv_core `mdu_start = ex_valid_q && is_mdu && ...` drop of `ex_valid_q`: muldiv in EX fires at done
+    (or traps at done); FSM self-protects against restart-while-busy; killed muldiv (mdu_busy branch
+    keeps ex_dec_q frozen) is already a done-candidate at that cycle — HAND-VERIFIED suite-green.
+  * NOTE: CSR `uses_rs1 = !f3[2]` index mutations are NOT equivalent — pinned by
+    test_req13_csr_consumer_load_interlock (mcycle delta 6 fixed vs 5 mutant).
 - Expect local V plateau ~0.95-0.975 with occasional equivalent draws; server V uses same
   6 classes × ~40 sites from the same mutator, so same ceiling logic applies.
 
 ## PPA
 
 - Baseline (CACHED, runs/challenge-3-cache): **area 136024.0 um2, WNS +4.691 ns, power 17.20 mW**, ~12.1k cells (authoritative full-flow numbers; earlier 62097/2.743/9728 were stale/partial). @15 ns → timing not binding: P is an AREA/POWER game (L58 rule: area-first batches).
-- Prior flow attempt died mid-route (OpenROAD nondeterministic ODB class); `baseline` subcommand run clean (~14 min).
-- Optimizations applied: none yet.
+- **Reference run (drop-2 netlist, fixed+CR): P=0.50 exactly** (runs/out-c3-ref-ppa). synth 128869 um2/13154 cells; final 144220 um2/17518 cells, WNS +3.495, power 17.49 mW. CR growth ≈ offset by fixes → parity.
+- Tier-A variants (all golden-audit 85/85 + 0 assertion fires, fresh sim_build):
+  * v1 `/tmp/c3-ppa-v1`: branch comparators shared with rv_alu (new lt_s/lt_u outputs; core case arms use them; kills 4 duplicate $signed/>= adders). PPA queued (runs/out-c3-v1-ppa).
+  * v2 `/tmp/c3-ppa-v2`: rv_regfile per-register write-enable (genvar loop, DFFEN inference on 992-flop bank; regs_q name/semantics kept). Queued (out-c3-v2-ppa).
+  * v3 `/tmp/c3-ppa-v3`: rv_muldiv clock-enable wrapper `(state_q != S_IDLE || start)` (~130 flops gated; runs when idle=99%+). Queued (out-c3-v3-ppa).
+- fsm_encoding attribute NOT tried: flow ignores fsm attrs (c2 W5 lesson L54).
+- Operand ISO on muldiv NOT tried: c1 lesson — ISO only pays on ARRAY multipliers; muldiv here is iterative shift-add (c1 class = LOSS).
+- Queued runs sequential (~23 min each) via /tmp/ppa-queue.sh; results appended to runs/ppa-queue.log.
+- Optimizations applied to submission RTL: none yet (awaiting variant verdicts).
 
 ## Environment (updated 2026-11-13)
 
