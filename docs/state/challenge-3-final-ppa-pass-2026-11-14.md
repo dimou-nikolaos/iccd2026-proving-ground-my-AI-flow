@@ -39,7 +39,7 @@ fallback. Downside bounded; P upside real. Keep top ports + filelist byte-identi
 |---|---|---|---|---|---|
 | s1 | **C4 JALR target via ALU adder**: `target = {alu_result[31:1],1'b0}` when is_jalr (JALR already executes ADD rs1+imm through u_alu; decode check FIRST: is dec.alu_op==ALU_ADD && src_a==RS1 && src_b_imm for JALR?) | ~660 µm² | NEUTRAL by construction (ALU already computes it; removal is pure de-dup) | B | P vs 0.484 |
 | s2 | **B6 hold-enable deletion**: MEM-stage data fields + WB data fields load EVERY cycle (values provably stable during mem_stall because EX is frozen; WB consumers gated by wb_valid_q). Removes ~110 muxes | ~1.1–1.4 k | off-cone (mux removal on flop D-inputs; alu_result fanout reduced) | B (expr change, names kept) | P |
-| s3 | **C1-light muldiv trim**: drop op_a_q/op_b_q/op_q (operands+opcode frozen while mdu_busy — EX not re-latched; verify with SVA `mdu_busy |=> $stable(ex_rs*_q)` and ISS random MDU-dense seeds). Feed rv_muldiv from ex_rs*_q + ex_dec_q.mdu_op directly | ~1.7–2 k | off-cone (muldiv result has 30+ cycles slack) | C (deletes baseline regs) | P |
+| ~~s3~~ REJECTED — C1-light premise FALSE: counterexample: two older producers of same rd before MDU instr; at start+2 the mdu_busy fwd-hold `ex_rs1_q <= fwd_rs1` recaptures the OLDER producer's value while MDU still needs the nearer one (op_a_q NOT dead). Only op_q removable (~20µm²) → skip |: drop op_a_q/op_b_q/op_q (operands+opcode frozen while mdu_busy — EX not re-latched; verify with SVA `mdu_busy |=> $stable(ex_rs*_q)` and ISS random MDU-dense seeds). Feed rv_muldiv from ex_rs*_q + ex_dec_q.mdu_op directly | ~1.7–2 k | off-cone (muldiv result has 30+ cycles slack) | C (deletes baseline regs) | P |
 | s4 | **branch-eq via ALU SUB**: decode branches with alu_op=ALU_SUB; `branch_taken(eq) = (alu_result==32'd0)`; kills the separate 32-bit eq comparator (v1 already shares lt comparators; v10 misfired because op wasn't SUB — fix IS the decode change) | ~600–900 µm² | POSSIBLY negative (branch path now through SUB carry) — watch WNS | B | P; abandon if WNS drops |
 | s5 | **A4 PC bits [31:2]**: pc_q/pend_pc_q/id_pc_q/ex_pc_q store [31:2] (bit0=0 by construction; bit1: target-misalign traps before fetch redirect can put bit1 into pc_q — verify via probe/SVA), narrow adders | ~0.5–0.8 k | low | B | P |
 | s6 | **B5 pend_pc_q → id_instr_q**: while pend_q=1, id_valid=0 so id_instr_q/id_pc_q are dead; store target there, mux at id_pc output | ~0.9 k | low, off-cone | C (deletes baseline reg) | P |
@@ -74,15 +74,15 @@ check → compare P vs 0.484 with per-term breakdown (which of a/t/p moved). Two
 ## Tracker (tick + commit each row)
 | s# | built | audit | PPA P | decision |
 |---|---|---|---|---|
-| s1 | ☐ | ☐ | ☐ | ☐ |
-| s2 | ☐ | ☐ | ☐ | ☐ |
-| s3 | ☐ | ☐ | ☐ | ☐ |
-| s4 | ☐ | ☐ | ☐ | ☐ |
+| s1 | DONE 18:13 95/95 (assert clean); JALR src_b_imm=1 + target={alu_result[31:1],1'b0} | DONE | qS running (archive 56efc312) | pending P |
+| s2 | DONE; 95/95; needed re-aiming A_WBE/WBRD/WBDATA_NXT pins to unconditional-load defs (s2 tree only) | DONE | qS (6cf72e7b) | pending P; NOTE clean-build lesson: first clean-build ASSERTIONS=1 aborts sim on pin fire (cascades 93 fails) — check assertion msgs not counts |
+| ~~s3~~ | rejected above | — | — | — |
+| s4 | DONE 95/95; branch alu_op=SUB + eq/ne from alu_result | DONE | qS (1be2ed47) | pending P |
 | s5 | ☐ | ☐ | ☐ | ☐ |
 | s6 | ☐ | ☐ | ☐ | ☐ |
 | s7 | ☐ | ☐ | ☐ | ☐ |
 | s8 | ☐ | ☐ | ☐ | ☐ |
-| s10 lint probe | ☐ | — | — | ☐ |
+| s10 lint probe | DONE 18:18 | e1 coarse AND-gated regfile clock: 94/95 (1 reset-window fail) + **flow REJECTED at build** (derived clock disallowed) → E1 DEAD, both sim-unsafe and lint-illegal | — | closed |
 | s11 | ☐ | ☐ | ☐ | ☐ |
 | stack+pool+docs | ☐ | ☐ | ☐ | ☐ |
 
