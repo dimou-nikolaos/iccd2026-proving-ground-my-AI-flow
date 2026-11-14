@@ -1896,3 +1896,23 @@ async def test_req40_meie_gates_external_irq(dut):
     tb = await runp(dut, a, regs=[9, 10, 20, 21, 22])
     assert tb.values[0] == 0, "mcause=%08x: trapped with MEIE=0" % tb.values[0]
     assert tb.values[2] == 0 and tb.values[3] == 0 and tb.values[4] == 0
+
+
+@cocotb.test()
+async def test_req34_illegal_system_f3_100(dut):
+    """REQ-34: OP_SYSTEM funct3=100 is not a defined private op -> illegal
+    instruction trap (kills rv_decode illegal 1'b1->1'b0 in the f3==100 arm)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    bad = 0x00004073                     # SYSTEM, f3=100 (bit14), rs1=x0, rd=x0
+    pc = a.here()
+    a.word(bad)
+    a.addi(1, 0, 7)
+    a.label("end")
+    finish(a, [20, 21, 22, 1])
+    tb = await runp(dut, a, regs=[20, 21, 22, 1])
+    assert tb.values[0] == 2, "mcause=%08x (want illegal-instruction 2)" % tb.values[0]
+    assert tb.values[1] == bad, (hex(tb.values[1]), hex(bad))
+    assert tb.values[2] == pc, (hex(tb.values[2]), hex(pc))

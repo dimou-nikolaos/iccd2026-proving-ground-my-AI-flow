@@ -48,6 +48,13 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   non-CSR instr encoding a CSR address (unmasked rs1-field), CSR reset values, trap promptness
   (mcycle delta < 20), no-spurious-stall (mcycle delta == 5).
 - Classified EQUIVALENT survivors (unkillable, schedule/dead-value arguments):  * rv_core `mdu_done && !mem_stall` → `||`: differs only at done∩mem_stall — proven unreachable
+  * NEW 2026-11-14 09:1x: rv_decode `f3==3'b100 → illegal` 1'b1→1'b0 was NOT equivalent — earlier
+    survived because no test exercised SYSTEM f3=100 (my first probe word 0x00001073 was f3=001,
+    traps via unknown-CSR path masking the mutant). Correct word = 0x00004073 (f3 bits[14:12]=100).
+    NEW test test_req34_illegal_system_f3_100: hand-verified (mutant FAIL, fixed PASS). 92 tests.
+  * rv_fetch.sv:67 latch-guard drop_terms (`→ imem_ready`, `→ started_q`) = equivalent (id_valid_q
+    on line 66 keeps the gate; junk latched while !ready is overwritten at grant; rdata valid-while-
+    waiting in released TB). Confirmed vs drop5v3/v4 roll survivors.
     (D5 false-alarm schedule analysis, docs/designs/challenge-3.md).
   * rv_core `ex_pc_q` reset 0→1: value never consumed while ex_valid=1 after reset (dead reset val).
   * rv_muldiv `op_b_q/op_a_q` reset 0→1: always latched at start before any result path uses them.
