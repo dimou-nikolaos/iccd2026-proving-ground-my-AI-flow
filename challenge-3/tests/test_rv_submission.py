@@ -1749,3 +1749,33 @@ async def test_req03_ready_high_in_reset_window(dut):
     await env.run_checked()
     vals = env.sig(2)
     assert vals == [111, 222], vals
+
+
+@cocotb.test()
+async def test_req41_mret_single_pop_while_stalled(dut):
+    """REQ-41: MRET must pop MSTATUS exactly ONCE, at its fire cycle. A load
+    with bus waits ahead of MRET holds MRET in EX; the CSR pop must not fire on
+    the stall cycles (kills mret drop_term of ex_fire: mutant pulses mret each
+    stalled cycle, double-popping mstatus -> MIE wrong)."""
+    a = Asm()
+    hdl_install(a)
+    a.label("hdl")
+    a.li(28, 0x1800)                      # MPP=3, MPIE=0, MIE=0
+    a.csrrw(0, MSTATUS, 28)
+    a.csrrs(29, MEPC, 0)                  # skip the ecall: mepc += 4
+    a.addi(29, 29, 4)
+    a.csrrw(0, MEPC, 29)
+    a.li(30, 0x8000)
+    a.lw(3, 30, 0)                        # loads with bus waits
+    a.lw(4, 30, 4)
+    a.lw(5, 30, 8)
+    a.lw(6, 30, 12)                      # this one stalls with mret in EX
+    a.mret()
+    a.label("main")
+    a.ecall()
+    a.label("end")
+    a.csrrs(20, MSTATUS, 0)
+    finish(a, [20])
+    tb = await runp(dut, a, regs=[20], data={0x8000: [1, 2, 3, 4]}, dstall=0.9)
+    # fixed: MIE<-MPIE(old=0)=0, MPIE<-1  => 0x1880. Double pop: MIE=1 => 0x1888
+    assert tb.values[0] == 0x1880, "mstatus=%08x after mret (double pop?)" % tb.values[0]
