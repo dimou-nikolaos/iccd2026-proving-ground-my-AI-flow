@@ -28,6 +28,8 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 | lot5 | text probe: dup `assign ex_fire` | 143857 | 3.295 | 17.681 | 0.4586 | LOSS (V=0.925) (yosys accepted THIS one — not a reliable guard) |
 | v6 | reset-strip all datapath flops | 142239 | 3.125 | 14.286 | 0.4774 | net LOSS vs 0.484 but AREA −2073 + POWER −17% (!); WNS hit −1.34. Isolating off-cone subset as v6a. V=0.95. |
 
+| v7t | JALR speculative target adders (tgt_ex/wb/mem_q + sel1 mux) | 145939 | 3.538 | 17.978 | 0.4585 | **LOSS** (V=0.975): +3 adders area, WNS no better — redirect cone is NOT mux-depth-limited. Tier-C speculation ABANDONED. |
+
 **Lottery conclusion (2026-11-14 10:07):** 3/3 RTL-text draws LOST (P 0.446–0.470 vs banked 0.484);
 the current v1 text is a good anchor — do NOT text-lottery core control/cone signals. The knob is
 asymmetric: cone text variations mostly hurt (WNS 2.86–3.76 vs 4.47). lot4/lot5 (operand/fire dup
