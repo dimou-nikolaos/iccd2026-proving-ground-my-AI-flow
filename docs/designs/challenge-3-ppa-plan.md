@@ -15,10 +15,18 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 | variant | change | final area µm² | WNS | power mW | P | verdict |
 |---|---|---|---|---|---|---|
 | ref (drop-2 RTL) | none | 144220 | 3.495 | 17.489 | **0.4631** | CR cost: a −0.060, t −0.116, p −0.017 |
-| v1 | rv_alu exports lt_s/lt_u; core branch arms reuse ALU comparators (kills 4 duplicate 32-bit compares incl. 2 signed-adder cones) | 144312 | 4.469 | 17.117 | **0.4840** | **WIN +0.021** (timing recovery) |
-| v2 | rv_regfile per-register write-enable genvar loop (DFFEN) | 142861 | 3.830 | 17.685 | 0.4704 | +0.007 vs ref but < v1; area −1450 µm², timing/power worse — do NOT bank alone |
-| v3 | rv_muldiv clock-enable `(state_q != S_IDLE \|\| start)` | — | — | — | — | running (q5) |
-| v4 | v1 + fold SH1/2/3ADD into main adder via a_pre operand mux (drops 3 dedicated 32-bit adders) | — | — | — | — | running (q5) |
+| v1 | rv_alu exports lt_s/lt_u; core branch arms reuse ALU comparators (kills 4 duplicate 32-bit compares incl. 2 signed-adder cones) | 144312 | 4.469 | 17.117 | **0.4840** | **WIN +0.021** (timing recovery); reproduced byte-identical in ppa2b re-run |
+| v2 | rv_regfile per-register write-enable genvar loop (DFFEN) | 142861 | 3.830 | 17.685 | 0.4704 | +0.007 vs ref but < v1; do NOT bank |
+| v3 | rv_muldiv clock-enable `(state_q != S_IDLE \|\| start)` | 142349 | 2.981 | 18.935 | 0.4474 | **LOSS** — power WORSE (ICG + wire detour), WNS −1.5. Discard |
+| v4 | v1 + fold SH1/2/3ADD into main adder via a_pre operand mux | 140226 | 2.807 | 17.001 | 0.4584 | area −4000 µm² but +1 mux depth in the critical WB→redirect cone → WNS −1.7. Discard |
+| v5 | v1 + v2 stack | 144739 | 3.220 | 16.993 | 0.4599 | **LOSS** stacked — regfile en even INCREASED area over v1 here; discard |
+
+**Key dynamic: this design is timing-dominated** — the WB→forward-compare→fwd-mux→branch/
+target→redirect→fetch cone sets WNS; ANY depth added inside ALU-operand/forward path costs
+~0.03–0.06 P (40 % weight). Area wins that don't touch that cone are worth ~0.01–0.03.
+ORFS reproduction: same submission archive + same design tree reproduced identical
+area/WNS/power/score across two separate full runs (out-c3-v1-ppa2 vs ppa2b) — L63 noise
+did NOT show here (deterministic ORFS under fixed make invocation).
 
 All variants passed the golden audit (full 85-test suite at branch time + ASSERTIONS=1, 0 fires)
 before queueing.

@@ -5,12 +5,12 @@ Exit gate: every REQ has >= 1 test and >= 1 assertion (REQ-05/42 = structural,
 enforced by the flow build/P stages).
 Status values: `todo`, `test`, `assert`, `done`, `n/a` (with reason).
 
-Tests live in `challenge-3/tests/`: `test_rv_submission.py` (72 directed
+Tests live in `challenge-3/tests/`: `test_rv_submission.py` (75 directed
 cocotb tests) + `test_rv_random.py` (13 ISS-lockstep differential tests:
 `test_rv_rand_n101/103/107/113/127` stall-free, `test_rv_rand_n201/211/223/227/233`
 with 30% imem/dmem waits, `test_rv_rand_t301/302/303` trap-mode seeds — all
 generated with `include_cr=True` or `trap_config`). Suite:
-**85/85 PASS on fixed RTL (~3.5 s); 22 FAIL on `baseline/rtl`** = seeded
+**88/88 PASS on fixed RTL (~3.6 s); 22 FAIL on `baseline/rtl`** = seeded
 deviations D1–D4 (tests prefixed `test_dev_*`), REQ-25 second-leg, and all
 CR-D3 tests (baseline lacks CR). Harnesses `rv_core_env.py`/`randprog.py`
 vendored into `tests/` (flow archive strips `tb/`).
@@ -57,7 +57,7 @@ D4→`A_MDU_REM0`, CR-not-implemented→`A_CRD3_LEGAL`.
 | REQ-31 | CSR ops read old→rd, update per Zicsr; rs1=x0 / imm=0 = pure read (RO readable) | rv_csr.sv:78–90 (is_write masking, RW/RS/RC wr_val); rv_decode.sv:33–35,183–185 | req31_csr_semantics; req31_csrrc_forms_write; req31_32_read_only_csrs; req33_mcycle_write_readback; req33_mcycleh_pure_read_no_write; req33_minstret_write_readback; req33_minstreth_pure_read_no_write | A_CSR_MEPC (do_write path in def); A_EX_RESULT (rd←csr_rdata pin) | done |
 | REQ-32 | unknown CSR addr → illegal; write to RO (addr[11:10]=3) → illegal | rv_csr.sv:77–79 (`ro`, `illegal = op≠NONE && (!known \|\| ro&&is_write)`) | req31_32_read_only_csrs; req34_illegal_encodings; req33_noncsr_instr_csr_addr_no_write | A_TRAP (exc via csr illegal gates trap); A_CSR_MEPC (write term) | done |
 | REQ-33 | MINSTRET counts non-trapping completes; CSR read excludes itself | rv_csr.sv:147 (`else if (retire) minstret_q++`), retire=ex_fire&&!trap (rv_core.sv:283) | req33_minstret; req33_counter_deltas; req33_minstret_across_trap; req33_mcycleh_pure_read_no_write (self-exclusion via read-only path) | A_TRAP (pins retire-suppression term that gates the count) | done |
-| REQ-34 | all undefined encodings illegal ([1:0]≠11, reserved funct3/funct7) | rv_decode.sv:39 (default illegal), 64–163 (per-opcode f3/f7 checks) | req34_illegal_encodings; cr3_reserved_f3_illegal; req23_illegal_load_f3; req39_illegal_traps_promptly | A_TRAP (illegal→exc→trap def pin); A_DEC_FIELDS (field extraction); A_CRD3_LEGAL (CR legality; A_DEC_LEGAL disabled — CHECK_ILLEGAL=0) | done |
+| REQ-34 | all undefined encodings illegal ([1:0]≠11, reserved funct3/funct7) | rv_decode.sv:39 (default illegal), 64–163 (per-opcode f3/f7 checks) | req34_illegal_encodings; cr3_reserved_f3_illegal; req23_illegal_load_f3; req18_illegal_branch_f3; req39_illegal_traps_promptly | A_TRAP (illegal→exc→trap def pin); A_DEC_FIELDS (field extraction); A_CRD3_LEGAL (CR legality; A_DEC_LEGAL disabled — CHECK_ILLEGAL=0) | done |
 | REQ-35 | trap: MEPC=pc of trapped instr (interrupt: next pc), MPIE←MIE, MIE←0, fetch @ MTVEC; no other effect | rv_core.sv:244–258 (trap→redirect_pc=mtvec, trap_pc=ex_pc_q); rv_csr.sv:104–107 | req34_35_mtval_no_other_effect; req35_trap_cycle_csr_write_suppressed; req30_flushed_csr_instr_no_write; req35_36_40_ecall_mret | A_CSR_MEPC; A_CSR_MPIE; A_CSR_MIE; A_TRAP; A_REDIRECT_PC | done |
 | REQ-36 | MCAUSE/MTVAL per event table (0/2/3/4/6/11, irq 0x80000007/0x8000000B) | rv_core.sv:223–238 (exc_cause/exc_val mux); rv_csr.sv:53 (irq_cause), 106–107 (mcause/mtval write) | req36_ebreak; req34_35_mtval_no_other_effect; req36_csr_reset_values; req37_irq_cause_timer_when_ext_idle | A_TRAP (event-enable pin for the table write); cause/val values pinned by tests | done |
 | REQ-37 | interrupt taken when MIE && (MIE&MIP)≠0 before next instr; ext > timer priority | rv_csr.sv:52–53 (irq_pending, ext-first irq_cause); rv_core.sv:244 (trap on ex_fire) | req37_irq_external_priority; req37_irq_timer; req37_irq_ext_only_mie; req37_irq_cause_timer_when_ext_idle | A_TRAP; A_CSR_MIE (mie_q def gates irq_pending) | done |

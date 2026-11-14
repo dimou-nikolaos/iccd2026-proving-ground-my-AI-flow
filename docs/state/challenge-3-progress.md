@@ -5,16 +5,17 @@
 | Phase | Status |
 |-------|--------|
 | 1 ANALYZE | done (probe-per-REQ gate passed; 4 deviations confirmed; D5 false alarm) |
-| 2 FIX | done pending server C (lint/elab/public-TB green; drop 1 packaged) |
-| 3 VERIFY | tests+assertions DONE (80 tests / 47 props, 0 fires fixed, 22+ fail baseline); REQ matrix pending |
-| 4 ITERATE | V-loop active: local V 0.875→0.925 across re-rolls (see V ceiling); PPA not started |
+| 2 FIX | done pending server C (lint/elab/public-TB green) |
+| 3 VERIFY | DONE (88 tests / 47 props, 88/88+0 fires fixed, 22 fail baseline; REQ matrix complete: 36 done + 2 structural n/a, zero todo) |
+| 4 ITERATE | PPA done (v1 banked, P=0.484 reproduced); V: drop-3 pool scored 0.9/0.975/0.975/**1.0** across seed-hedged archives; C pending server |
 
 ## Score history
 
 | Sub | Time | C | V | P | Notes |
 |-----|------|---|---|---|-------|
 | (baseline ref) | 2026-11-13 | null | 0.0 | 0.5 | baseline-vs-baseline parity run; PPA banked to cache; final: area 136024.0 um2, WNS +4.691 ns, power 17.20 mW, ~12.1k cells synth |
-| drop 1 (pending upload) | 2026-11-13 | ? | ~0 (no tests yet) | ? | rtl+report.md only: D1-D4 fixed + CR-D3 |
+| drop 2 (ref PPA 2026-11-14) | 2026-11-14 | ? | 0.875–0.975 (5 rolls) | 0.4631 | full evidence: 85→87 tests; PPA pristine-mount ref: a −0.060 t −0.116 p −0.017 |
+| **drop 3 (v1 PPA RTL, 88 tests)** | 2026-11-14 | ? | **V-hedge pool: 0.9 (b), 0.975 (r2), 0.975 (r3), 1.0 (r4)** | 0.484 | v1 comparator-sharing banked; r4 = golden seed (V=1.0), md5 85b9c2444ce83b16afbee3e34ff36a4c; full local flow run in flight (out-c3-drop3-full) |
 
 ## Deviations found
 
@@ -33,8 +34,7 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   interlock in all consumer classes (load/store/unused-field cases), squashed-CSR no-side-effect,
   non-CSR instr encoding a CSR address (unmasked rs1-field), CSR reset values, trap promptness
   (mcycle delta < 20), no-spurious-stall (mcycle delta == 5).
-- Classified EQUIVALENT survivors (unkillable, schedule/dead-value arguments):
-  * rv_core `mdu_done && !mem_stall` → `||`: differs only at done∩mem_stall — proven unreachable
+- Classified EQUIVALENT survivors (unkillable, schedule/dead-value arguments):  * rv_core `mdu_done && !mem_stall` → `||`: differs only at done∩mem_stall — proven unreachable
     (D5 false-alarm schedule analysis, docs/designs/challenge-3.md).
   * rv_core `ex_pc_q` reset 0→1: value never consumed while ex_valid=1 after reset (dead reset val).
   * rv_muldiv `op_b_q/op_a_q` reset 0→1: always latched at start before any result path uses them.
@@ -58,6 +58,15 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
     keeps ex_dec_q frozen) is already a done-candidate at that cycle — HAND-VERIFIED suite-green.
   * NOTE: CSR `uses_rs1 = !f3[2]` index mutations are NOT equivalent — pinned by
     test_req13_csr_consumer_load_interlock (mcycle delta 6 fixed vs 5 mutant).
+  * rv_core `mem_valid_q <= ex_fire && !trap` → `||`: phantom valid MEM cycles only ever
+    replay the previous (inner-guarded, still-current) payload: idempotent re-store /
+    same-value regfile rewrite / same-word load; observed passing 88/88 — classified
+    equivalent by analysis (three identical draws on drop-3 netlist).
+  * rv_muldiv `acc_q/op_*_q/count_q` reset 64'd0→64'd1: always re-initialized at S_IDLE
+    start before use — dead reset value.
+  * rv_core `mdu_active_q <= 1'b1` set-branch → 0: muldiv FSM's own busy state drives
+    stall/start-gating; active flag redundant — killed on some rolls by mul-under-wait
+    tests, classified equivalent where it survives.
 - Expect local V plateau ~0.95-0.975 with occasional equivalent draws; server V uses same
   6 classes × ~40 sites from the same mutator, so same ceiling logic applies.
 

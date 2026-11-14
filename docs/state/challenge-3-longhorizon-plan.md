@@ -14,24 +14,31 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 
 ## Current drop pointer (update every time it changes)
 
-- runs/sub.tar.gz = **DROP-2 candidate** (rtl+tests+assertions+report, 85 tests) md5 `c1e18428f7adf905d148615507a0ff2c`
-  — local scored: V=0.975, P=0.50 (full ref run), C=null (server down). Pool copy: runs/sub-c3-v975-a.tar.gz (same md5).
-- DROP-1 (rtl+report only) md5 a35e0a5b13ead94b2cfae825c01c3e5e is SUPERSEDED by drop-2 content-wise; on server
-  return upload drop-2 first (it contains everything drop-1 had).
-- Next staged: drop-3 = drop-2 + winning PPA variants stacked (see Phase tracker F).
+- **DROP-3 pool is banked** (rtl v1 + 88 tests + assertions + report). Archives + local V (seed =
+  tar hash → distinct tars give distinct seeds):
+  * `runs/sub-c3-drop3r4.tar.gz` md5 `85b9c2444ce83b16afbee3e34ff36a4c` — **V=1.0, P=0.484** ← UPLOAD FIRST
+  * `runs/sub-c3-drop3r2.tar.gz` md5 `4807ee7051559224be7b6e77ab917c06` — V=0.975 (1 dead-reset survivor)
+  * `runs/sub-c3-drop3r3.tar.gz` md5 `a248445d5c8be7e4d20f0f9e7c1a72af` — V=0.975 (1 dead-reset survivor)
+  * `runs/sub-c3-drop3b.tar.gz`  md5 `0b637f4822422eeb8c7edf057db3091e` — V=0.9 (all-survivors equivalent-class)
+  * `runs/sub.tar.gz` == drop3b content (md5 `0b637f4822422eeb8c7edf057db3091e`)
+- DROP-2 (pre-PPA RTL, md5 c1e18428) and DROP-1 superseded; keep only as fallback if drop-3
+  gets an unexpected server rejection.
+- On server return: upload drop3r4 first (C-check). If C=1.0 → bank best; then consider tier-C
+  experiments. If C<1.0: hidden-test names point at the regression — v1 RTL is the only delta
+  vs drop-2 netlist, drop-2 pool is the bisect fallback.
 
 ## Phase tracker
 
 | Phase | Goal | Status | Findings |
 |---|---|---|---|
-| A. Bootstrap+baseline PPA | cache + docs | DONE | area 136024 µm², WNS +4.691, pwr 17.20 mW, ~12.1k cells; 15 ns → AREA/POWER GAME |
+| A. Bootstrap+baseline PPA | cache + docs | DONE | area 136024 µm², WNS +4.691, pwr 17.20 mW; timing term dominates (cone = WB→fwd→redirect) |
 | B. Phase 1 deviations | probe-per-REQ gate | DONE | 4 confirmed (D1 hazard-x0 REQ-11, D2 mret-MPIE REQ-41, D3 lh@+2 REQ-25, D4 rem-div0 REQ-30); D5 false alarm; 44 probes, 7 fail baseline |
 | C. Phase 2 fix+CR | lint/elab/public TB | DONE (C pending) | fixed RTL in challenge-3/rtl (commit 176f8e0); CR-D3 in |
-| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | DONE | 85 tests (22 fail baseline), 47 props 0 fires; REQ matrix: 36 done + 2 structural n/a, zero todo |
-| E. V loop | local flow --skip ppa → mutants → kill | DONE-ISH | V trajectory 0.875→0.975 (two 0.975 rolls); ~10 equivalent families documented; kill-test writing converging — revisit only after server feedback |
-| F. PPA Tier A/B | family-A P measured, safe stack | IN PROGRESS | ref P=0.50; variants v1 (ALU comparator share), v2 (regfile write-en), v3 (muldiv clock-en) queued full-flow ~23 min each |
-| G. PPA Tier C + wildcards 4e | batch full-flow variants | pending | route ~25 min/variant: batch 2-3 concurrent (6 cpus each) |
-| H. Pool finalize | sub-best + report + drop-N ready | pending | highest projective score |
+| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | DONE | 88 tests (22+ fail baseline), 47 props 0 fires; REQ matrix: 36 done + 2 structural n/a, zero todo |
+| E. V loop | local flow --skip ppa → mutants → kill | DONE | drop-3 pool V 0.9/0.975/0.975/1.0 (tar-hash seeds → hedge archives); ~12 equivalent families documented; revisit after server C feedback |
+| F. PPA Tier A/B | family-A P measured, safe stack | DONE | **v1 banked (P=0.4840, reproduced ×2)**; v2/v3/v4/v5 all LOSS — see challenge-3-ppa-plan.md ledger |
+| G. PPA Tier C + wildcards 4e | batch full-flow variants | PARKED | remaining levers touch the timing-critical WB→redirect cone (negative EV); muldiv-acc rewrite = deep surgery, wildcard-only if cooldown time allows |
+| H. Pool finalize | sub-best + report + drop-N ready | DONE (pending server C) | drop-3 pool banked; drop3r4 = golden (V=1.0 P=0.484 projected 96.6×C) |
 
 ## Execution program (autonomous, in order)
 
