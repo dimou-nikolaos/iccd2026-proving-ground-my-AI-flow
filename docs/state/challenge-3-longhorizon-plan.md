@@ -28,7 +28,7 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
   the drop3r4 "cleaned text" variant measured 0.4625 — synthesis is deterministic per RTL TEXT, P
   variance came from source-text differences (duplicate-assign v1 text wins; keep it byte-identical).
 - DROP-3/drop-4 archives superseded (keep as fallbacks): drop3r4 85b9c244 (V=1.0, P=0.4625 full), drop4v6 308ae1b2 (V=0.95).
-- On server return: upload `runs/sub.tar.gz` (drop-5a) first (C-check). If C=1.0 → bank; if C<1.0 the
+- On server return: upload `runs/sub.tar.gz` (drop7v3, 092ca181) first (C-check). If C=1.0 → bank; if C<1.0 the
   hidden-test names localize: v1 RTL is the only netlist delta vs drop-2 (md5 c1e18428) — bisect with drop-2 pool.
 
 ## Phase tracker
