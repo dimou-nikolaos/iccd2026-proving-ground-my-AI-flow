@@ -12,10 +12,12 @@ running programs at the ports, so they have no test here.
 
 import cocotb
 from cocotb.triggers import FallingEdge
+from cocotb.clock import Clock
 
 from rv_asm import (DEVICE_IRQ, MCYCLE, MCYCLEH, MCAUSE, MIE, MIP, MINSTRET, MINSTRETH,
                     MISA, MSCRATCH, MSTATUS, MEPC, MTVEC, MTVAL, Asm, _b, _i, _j, _r)
-from rv_core_env import Env
+from rv_core_env import Env, _CLOCK_TASKS
+from rv_tb import CLK_NS
 
 M32 = 0xFFFFFFFF
 TOHOST = 0xFFFF0000
@@ -1709,3 +1711,41 @@ async def test_req17_bge_signed_adjacent(dut):
     finish(a, [3])
     tb = await runp(dut, a, regs=[3])
     assert tb.values[0] == 8, tb.values[0]
+
+
+@cocotb.test()
+async def test_req03_ready_high_in_reset_window(dut):
+    """REQ-02/03: a slave that asserts imem_ready while the master is still in
+    reset / before it starts must not corrupt the first fetch (kills fetch
+    drop_term of started_q in the id_valid_q handshake guard: the mutant eats
+    the instruction at pc=0 and retires the reset nop instead)."""
+    a = Asm()
+    a.addi(1, 0, 111)             # pc=0: the instruction the mutant loses
+    a.addi(2, 0, 222)
+    a.label("end")
+    finish(a, [1, 2])
+    env = Env(dut, seed=5)
+    env.load(a.base, a.build())
+    d = dut
+    task = _CLOCK_TASKS.get(id(d))
+    if task is None or task.done():
+        task = cocotb.start_soon(Clock(d.clk, CLK_NS, unit="ns").start(start_high=False))
+        _CLOCK_TASKS[id(d)] = task
+    d.rst_n.value = 0
+    d.imem_ready.value = 0
+    d.imem_rdata.value = 0
+    d.dmem_ready.value = 0
+    d.dmem_rdata.value = 0
+    d.irq_ext.value = 0
+    d.irq_timer.value = 0
+    for _ in range(3):
+        await FallingEdge(d.clk)
+    d.rst_n.value = 1
+    d.imem_ready.value = 1        # forced: ready high while started_q=0
+    d.imem_rdata.value = 0        # junk word on the bus
+    await FallingEdge(d.clk)      # a rising edge lands here: mutant window
+    d.imem_ready.value = 0
+    d.imem_rdata.value = 0
+    await env.run_checked()
+    vals = env.sig(2)
+    assert vals == [111, 222], vals
