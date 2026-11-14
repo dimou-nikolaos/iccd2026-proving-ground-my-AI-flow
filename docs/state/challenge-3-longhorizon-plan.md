@@ -14,18 +14,16 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 
 ## Current drop pointer (update every time it changes)
 
-- **DROP-3 pool is banked** (rtl v1 + 88 tests + assertions + report). Archives + local V (seed =
-  tar hash → distinct tars give distinct seeds):
-  * `runs/sub-c3-drop3r4.tar.gz` md5 `85b9c2444ce83b16afbee3e34ff36a4c` — **V=1.0, P=0.484** ← UPLOAD FIRST
-  * `runs/sub-c3-drop3r2.tar.gz` md5 `4807ee7051559224be7b6e77ab917c06` — V=0.975 (1 dead-reset survivor)
-  * `runs/sub-c3-drop3r3.tar.gz` md5 `a248445d5c8be7e4d20f0f9e7c1a72af` — V=0.975 (1 dead-reset survivor)
-  * `runs/sub-c3-drop3b.tar.gz`  md5 `0b637f4822422eeb8c7edf057db3091e` — V=0.9 (all-survivors equivalent-class)
-  * `runs/sub.tar.gz` == drop3b content (md5 `0b637f4822422eeb8c7edf057db3091e`)
-- DROP-2 (pre-PPA RTL, md5 c1e18428) and DROP-1 superseded; keep only as fallback if drop-3
-  gets an unexpected server rejection.
-- On server return: upload drop3r4 first (C-check). If C=1.0 → bank best; then consider tier-C
-  experiments. If C<1.0: hidden-test names point at the regression — v1 RTL is the only delta
-  vs drop-2 netlist, drop-2 pool is the bisect fallback.
+- **DROP-5 pool is banked** (rtl v1-retextured + 91 tests + assertions + report). Archives + local V:
+  * `runs/sub.tar.gz` == `runs/sub-c3-drop5a.tar.gz` md5 `9f478b66086aa14e7be373b720a4ae6f` — **V=1.0** (no survivors), full flow in flight (out-c3-drop5-full)
+  * `runs/sub-c3-drop5v2.tar.gz` md5 `8dc886795ab232f52a1b8b865e8039ec` — V=0.975 (1 known-equivalent survivor: mdu_done||mem_stall)
+  * `runs/sub-c3-drop5v3.tar.gz` md5 `d719c64639085cc7aa8244de926f9084` — V=0.95 (fetch started_q + trap-gate drop_terms, suspected equiv)
+  * `runs/sub-c3-drop5v4.tar.gz` md5 `90c755036fc70cda7e4752824bb53070` — V=0.925 (3 dead-reset/equiv survivors)
+- PPA seed-noise note: same v1 RTL measured 0.484 (twice, archive sub-c3-v1) and 0.4625 (archive drop3r4) —
+  ORFS varies ~±0.02 P / ~1 ns WNS with the submission-hash seed. v1 WNS beat ref (3.495) on all 3 rolls.
+- DROP-3/drop-4 archives superseded (keep as fallbacks): drop3r4 85b9c244 (V=1.0, P=0.4625 full), drop4v6 308ae1b2 (V=0.95).
+- On server return: upload `runs/sub.tar.gz` (drop-5a) first (C-check). If C=1.0 → bank; if C<1.0 the
+  hidden-test names localize: v1 RTL is the only netlist delta vs drop-2 (md5 c1e18428) — bisect with drop-2 pool.
 
 ## Phase tracker
 

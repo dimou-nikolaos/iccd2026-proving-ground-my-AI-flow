@@ -15,7 +15,17 @@
 |-----|------|---|---|---|-------|
 | (baseline ref) | 2026-11-13 | null | 0.0 | 0.5 | baseline-vs-baseline parity run; PPA banked to cache; final: area 136024.0 um2, WNS +4.691 ns, power 17.20 mW, ~12.1k cells synth |
 | drop 2 (ref PPA 2026-11-14) | 2026-11-14 | ? | 0.875–0.975 (5 rolls) | 0.4631 | full evidence: 85→87 tests; PPA pristine-mount ref: a −0.060 t −0.116 p −0.017 |
-| **drop 3 (v1 PPA RTL, 88 tests)** | 2026-11-14 | ? | **V-hedge pool: 0.9 (b), 0.975 (r2), 0.975 (r3), 1.0 (r4)** | 0.484 | v1 comparator-sharing banked; r4 = golden seed (V=1.0), md5 85b9c2444ce83b16afbee3e34ff36a4c; full local flow run in flight (out-c3-drop3-full) |
+| **drop 3 (v1 PPA RTL, 88 tests)** | 2026-11-14 | ? | **V-hedge pool: 0.9 (b), 0.975 (r2), 0.975 (r3), 1.0 (r4)** | 0.484 / 0.4625 (seed noise, same RTL) | v1 comparator-sharing banked; r4 = golden seed (V=1.0), md5 85b9c2444ce83b16afbee3e34ff36a4c |
+| **drop 5 (v1 retextured + 3 new kill tests, 91 tests)** | 2026-11-14 | ? | **V=1.0 on MAIN archive** (pool: 1.0 / 0.975 / 0.95 / 0.925) | full run in flight (out-c3-drop5-full) | main md5 `9f478b66086aa14e7be373b720a4ae6f`; kills hand-verified: mcycle addr-field phantom write, csr commit early-write behind dmem wait, MEIE irq gate |
+
+## Next action for operator
+
+- **Server down still.** Pool ready: on server return upload `runs/sub.tar.gz` (drop-5a, md5 9f478b66…, V=1.0) FIRST for C-check; keep drop5v2/v3/v4 as same-netlist seed hedges. If C<1.0, failed hidden-test names localize; drop-2 pool (c1e18428) bisects the v1 RTL delta.
+- Meanwhile (local): P seed-noise characterization done; remaining queue: 5th-deviation ISS backstop pass, Phase 4e wildcards only if cooldown time allows.
+
+## Best submission
+
+- Local-best (unconfirmed C): drop-5a — projected 100×C×(0.5×1.0 + 0.5×0.47) ≈ 98.5×C.
 
 ## Deviations found
 
@@ -150,11 +160,3 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 
 - 2026-11-13: release day go instruction; docker sudo hint (confirmed working).
 
-## Next action for operator
-
-- **Upload: runs/sub.tar.gz (drop 1)** — rtl + report.md, D1-D4 fixed + CR-D3. Expect C feedback (all probes + public TB green locally; C is server-only truth). Local V will show ~0 (no tests in archive yet — intentional), P should be ≥0.5-ish from CR logic added vs baseline (unknown until server/local full flow).
-- Then: paste flow report back (C, failed test names, P terms per stage). Agent meanwhile works Phase 3 (ISS lockstep, tests/, assertions/, REQ matrix).
-
-## Best submission
-
-- none banked yet (drop 1 awaiting C).
