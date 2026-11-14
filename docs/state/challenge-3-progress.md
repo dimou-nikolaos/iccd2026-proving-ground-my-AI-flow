@@ -67,6 +67,9 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
   * rv_decode:85 OP_STORE `uses_rs1` 1→0: value-side is forwarding-rescued, but the missing
     interlock bubble is observable via mcycle delta. NEW test test_req13_store_base_interlock_cycle
     (delta==6 pin) hand-verified kill (mutant delta=5 FAIL). KILLABLE, killed.
+- 2026-11-14 ~12:50 (wildcard closure): Phase 4e catalog swept — pipelining/arithmetic/SRAM ideas
+  documented inapplicable (ISS-delta-pinned microarch); fsm_encoding attrs = NO-OP (P identical);
+  keep_hierarchy = flow REJECT (disallowed construct). No untried knob remains. P final = 0.484.
 - 2026-11-14 ~10:50: 95/95 suite green (added mul_negative_b coverage + store-base interlock delta kill).
   lot4 dup-assign = yosys SYNTH FAIL (lesson: never duplicate continuous assigns on logic vars).
   lot5 dup ex_fire LOSS 0.4586. Text lottery CLOSED (0 wins/5). v6a+v7t PPA re-queued (q9; note:

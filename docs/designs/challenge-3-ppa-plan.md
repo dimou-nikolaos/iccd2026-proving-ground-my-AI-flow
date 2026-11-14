@@ -41,7 +41,13 @@ Formal 4e trigger (C=1.0 banked) NOT met (server down); catalog swept opportunis
   breaks ISS lockstep + delta pins → C=0 by construction. Not worth measuring.
 - Yosys attribute draws (local, zero-risk, queued q14): `woh` fsm_encoding=one_hot on muldiv FSM
   (412d2517), `wauto` fsm_encoding=auto (8ca7c583), `wkh` keep_hierarchy on u_alu instance (0fb6f249).
-  95/95 audited; P results TBD below.
+  MEASURED (q14, 12:47): woh P=0.484 and wauto P=0.484 with area/WNS/power IDENTICAL to the banked
+  netlist (144312/4.469/17.117) => fsm_encoding is a NO-OP through this flow's synth for this FSM
+  (netlist unchanged — not even a lottery draw). wkh (keep_hierarchy on u_alu) = flow REJECTED at
+  build ("non-synthesizable or disallowed constructs") => instantiation-level attributes are NOT
+  allowed by the flow lint whitelist. WILDCARD PHASE CLOSED: no remaining untried knob.
+  LESSON (new): the flow rejects unknown RTL attributes on instances; only module/signal-level
+  fsm_encoding survives lint, and it maps nothing useful here.
 - ICG/clock-en: tried as v3 (0.4474 LOSS). Operand-isolation: skipped (muldiv regs already quiet
   between ops; div duty tiny => upside <1% power).
 
