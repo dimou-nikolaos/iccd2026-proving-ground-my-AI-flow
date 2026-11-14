@@ -1683,3 +1683,29 @@ async def test_req13_csr_consumer_load_interlock(dut):
     delta = tb.values[1] - tb.values[0]
     assert delta == 6, ("mcycle delta %d across load->CSR-consumer block, expected "
                         "6 (incl. interlock bubble)" % delta)
+
+
+@cocotb.test()
+async def test_req17_bge_signed_adjacent(dut):
+    """REQ-17: BGE is rs1 >= rs2 SIGNED; adjacent negatives must not taken
+    (kills off_by_one widening of the BGE comparison against -1)."""
+    a = Asm()
+    a.li(1, -5)
+    a.li(2, -4)
+    a.bge(1, 2, "skip")          # -5 >= -4 false: fall through
+    a.addi(3, 0, 1)              # executed on correct RTL
+    a.label("skip")
+    a.li(4, -4)
+    a.li(5, -5)
+    a.bge(4, 5, "skip2")         # -4 >= -5 true: taken
+    a.addi(3, 3, 100)            # must be skipped
+    a.label("skip2")
+    a.li(6, -2147483648)
+    a.li(7, 2147483647)
+    a.bge(6, 7, "skip3")         # INT_MIN >= INT_MAX false
+    a.addi(3, 3, 7)
+    a.label("skip3")
+    a.label("end")
+    finish(a, [3])
+    tb = await runp(dut, a, regs=[3])
+    assert tb.values[0] == 8, tb.values[0]
