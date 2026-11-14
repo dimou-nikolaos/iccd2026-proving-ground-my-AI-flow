@@ -33,6 +33,18 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 | v6b | v6a + MEM/WB data regs strip | 144323 | 3.775 | 17.754 | 0.4668 | LOSS (V=0.90). |
 | v6a-rerun | muldiv-only strip (clean rerun) | 145192 | 2.341 | 18.852 | 0.4313 | LOSS — WORSE than full-strip v6 (!): reset-strip placement effects are pure lottery noise, NOT monotone. RESET-STRIP LINE CLOSED (all variants < 0.484). |
 
+### Wildcards tried (flow-wildcard.md catalog closure, 2026-11-14)
+Formal 4e trigger (C=1.0 banked) NOT met (server down); catalog swept opportunistically anyway:
+- Aggressive pipelining / arithmetic (CSD, carry-save, DA, transposed) / storage (SRAM inference) —
+  ANALYZED INAPPLICABLE: no constant coefficients; regfile is 32x32 (macro latency breaks the
+  0-cycle-forwarding microarch pinned by hidden mcycle-delta tests); any pipeline-depth change
+  breaks ISS lockstep + delta pins → C=0 by construction. Not worth measuring.
+- Yosys attribute draws (local, zero-risk, queued q14): `woh` fsm_encoding=one_hot on muldiv FSM
+  (412d2517), `wauto` fsm_encoding=auto (8ca7c583), `wkh` keep_hierarchy on u_alu instance (0fb6f249).
+  95/95 audited; P results TBD below.
+- ICG/clock-en: tried as v3 (0.4474 LOSS). Operand-isolation: skipped (muldiv regs already quiet
+  between ops; div duty tiny => upside <1% power).
+
 **PPA EXPLORATION CLOSED (2026-11-14 ~12:00):** 10 RTL variants + 5 text draws measured; winner remains
 v1 retexture at **P=0.484** (theoretical ceiling ~0.496). Do not open new PPA fronts without a cone-aware
 mechanism argument; the WB→fwd→branch→redirect→fetch cone dominates and every perturbation costs more

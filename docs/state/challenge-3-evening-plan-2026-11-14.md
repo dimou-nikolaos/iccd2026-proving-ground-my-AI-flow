@@ -40,6 +40,12 @@ autonomously" + extra directives:
 | 7 | Consolidation: stack only safe winners (per-roll evidence), rebuild drop-6 pool (main + 3 report-comment hedges), full-flow P on final main, V rolls, md5 pins, docs | DONE 12:0x: PPA CLOSED (all lines lost; banked P=0.484). MAIN upload = drop7v3 092ca181 (V=1.0 roll + RTL byte-identical to drop5a => P=0.484 transfers, verified by diff); full-flow re-verify running (q12). Hedges: drop7a 0.95, drop7v4 0.975, drop5a 9f478b66 (measured V=1.0), drop7v2 0.925. | |
 | 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | DONE 12:15: sub-1 = drop7v3 092ca181 (full-flow V=1.0+P=0.484 same roll); checkpoint file challenge-3-session-checkpoint-2026-11-14-1215.md pins everything | | pointer text updated |
 
+## Phase 4e wildcard status (operator Q 12:15)
+Catalog-swept. Remaining applicable knob = yosys attributes: 3 draws queued (q14: woh/wauto/wkh,
+95/95 audited, P ~13:05). Pipelining/arithmetic/SRAM ideas documented-inapplicable in ppa-plan
+"Wildcards tried". NOTE first attempt misfired (wrong declaration text -> unpatched clones;
+queue killed before any results were logged — lesson: diff every variant tree vs base BEFORE queuing).
+
 ## Explorer-award staging (distinct netlists, submit ONLY after main C=1.0 banked)
 Award = most distinct netlist variants with C>0.9. Candidate archives (all C-sane: 95/95 or 92/92 local,
 0 assertion fires; each is its OWN netlist => own sub, own seed roll; P irrelevant):
