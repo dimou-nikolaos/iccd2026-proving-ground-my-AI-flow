@@ -23,10 +23,11 @@
 ## Next action for operator
 
 - **ACTIVE PLAN: `docs/state/challenge-3-evening-plan-2026-11-14.md`** (approved 6-hour autonomous
-  plan, server-down mode): phases 1–8 with tracker + exit evidence. Read THAT file next; tick
-  its tracker as phases complete (log here too).
-- Server-return override: upload `runs/sub.tar.gz` (drop-5a, md5 9f478b66…, V=1.0 P=0.484) FIRST
-  for C; then one staged variant per sub per playbook in the evening-plan file.
+  plan, server-down mode): phases 1–7 DONE (see tracker; all PPA exploration CLOSED at 0.484).
+- Server-return: upload `runs/sub.tar.gz` == drop7v3 md5 `092ca181e03abce1647667c1895e5d32` FIRST
+  (V=1.0 roll + P=0.484 byte-verified vs drop5a). Same-netlist seed hedges if the server's V roll
+  differs: drop7a a759cfb8 (0.95), drop7v4 c9b7211f (0.975), drop5a 9f478b66 (measured 1.0),
+  drop7v2 e37d4e58 (0.925). No PPA/C-risk variants staged (all measured as losses — see ppa-plan).
 
 ## Best submission
 
