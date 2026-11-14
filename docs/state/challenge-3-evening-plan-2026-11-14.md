@@ -40,7 +40,12 @@ autonomously" + extra directives:
 | 7 | Consolidation: stack only safe winners (per-roll evidence), rebuild drop-6 pool (main + 3 report-comment hedges), full-flow P on final main, V rolls, md5 pins, docs | DONE 12:0x: PPA CLOSED (all lines lost; banked P=0.484). MAIN upload = drop7v3 092ca181 (V=1.0 roll + RTL byte-identical to drop5a => P=0.484 transfers, verified by diff); full-flow re-verify running (q12). Hedges: drop7a 0.95, drop7v4 0.975, drop5a 9f478b66 (measured V=1.0), drop7v2 0.925. | |
 | 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | DONE 12:15: sub-1 = drop7v3 092ca181 (full-flow V=1.0+P=0.484 same roll); checkpoint file challenge-3-session-checkpoint-2026-11-14-1215.md pins everything | | pointer text updated |
 
-## Phase 9 — "squeeze" campaign (operator go 12:50, wildcards round 2)
+## Phase 9 — "squeeze" campaign (operator go 12:50, wildcards round 2) — DONE 15:15
+RESULT: 18/18 distinct netlists measured, ZERO beat P=0.484 → P declared FINAL (EV of further
+draws ≈ 0; ledger has full table). Harvest: v13 C-hedge (staged, use only on C<1.0 implicating
+ALU iface); new seed hedges a2/b4 (V=0.95); Explorer pool 19 distinct netlists staged.
+Original plan text below kept for the record:
+
 Three fronts, all staged C-unverified; uploads ONLY after main C banked, one per cooldown sub:
 FRONT C-hedge (v13, archive c8b50c69, 95/95): rv_alu interface reverted to EXACTLY released ports
 (CR arms kept); comparators moved into rv_core with new internal names (alu_lt_s stays a core wire so
