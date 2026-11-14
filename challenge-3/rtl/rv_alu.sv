@@ -17,6 +17,10 @@ module rv_alu (
   assign lt_unsigned = (a < b);
   assign lt_s        = lt_signed;
   assign lt_u        = lt_unsigned;
+  assign lt_s        = lt_signed;
+  assign lt_u        = lt_unsigned;
+  assign lt_s        = lt_signed;
+  assign lt_u        = lt_unsigned;
 
   always_comb begin
     unique case (op)
