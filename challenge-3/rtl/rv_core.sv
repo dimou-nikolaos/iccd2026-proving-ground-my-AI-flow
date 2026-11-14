@@ -52,6 +52,7 @@ module rv_core (
   logic [31:0]      redirect_pc;
 
   logic [31:0]      alu_a, alu_b, alu_result;
+  logic             alu_lt_s, alu_lt_u;
   logic             branch_taken;
   logic [31:0]      target, ex_result, ex_link;
   logic             target_misaligned;
@@ -176,17 +177,19 @@ module rv_core (
     .op     (ex_dec_q.alu_op),
     .a      (alu_a),
     .b      (alu_b),
-    .result (alu_result)
+    .result (alu_result),
+    .lt_s   (alu_lt_s),
+    .lt_u   (alu_lt_u)
   );
 
   always_comb begin
     unique case (ex_dec_q.branch_f3)
       3'b000:  branch_taken = (fwd_rs1 == fwd_rs2);
       3'b001:  branch_taken = (fwd_rs1 != fwd_rs2);
-      3'b100:  branch_taken = ($signed(fwd_rs1) < $signed(fwd_rs2));
-      3'b101:  branch_taken = ($signed(fwd_rs1) >= $signed(fwd_rs2));
-      3'b110:  branch_taken = (fwd_rs1 < fwd_rs2);
-      3'b111:  branch_taken = (fwd_rs1 >= fwd_rs2);
+      3'b100:  branch_taken = alu_lt_s;
+      3'b101:  branch_taken = !alu_lt_s;
+      3'b110:  branch_taken = alu_lt_u;
+      3'b111:  branch_taken = !alu_lt_u;
       default: branch_taken = 1'b0;
     endcase
   end

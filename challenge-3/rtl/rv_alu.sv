@@ -3,7 +3,9 @@ module rv_alu (
   input  rv_pkg::alu_op_t op,
   input  logic [31:0]     a,
   input  logic [31:0]     b,
-  output logic [31:0]     result
+  output logic [31:0]     result,
+  output logic            lt_s,
+  output logic            lt_u
 );
   import rv_pkg::*;
 
@@ -13,6 +15,8 @@ module rv_alu (
   assign shamt       = b[4:0];
   assign lt_signed   = ($signed(a) < $signed(b));
   assign lt_unsigned = (a < b);
+  assign lt_s        = lt_signed;
+  assign lt_u        = lt_unsigned;
 
   always_comb begin
     unique case (op)
