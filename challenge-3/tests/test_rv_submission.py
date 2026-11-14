@@ -1804,3 +1804,95 @@ async def test_req18_illegal_branch_f3(dut):
     trap with mtval = instruction (kills decode branch illegal-term drop_terms)."""
     for f3 in (2, 3):
         await _illegal_branch(dut, f3)
+
+
+def _lui_imm20(rd, imm20):
+    return (imm20 << 12) | (rd << 7) | 0x37
+
+
+@cocotb.test()
+async def test_req37_counter_addr_field_not_write(dut):
+    """REQ-37: mcycle/minstret counter write arms require an ACTUAL CSR write;
+    a non-CSR instruction whose instr[31:20] happens to equal MCYCLE/MCYCLEH
+    must not steal the counter's free-running increment (kills rv_csr
+    drop_term of do_write in the MCYCLE/MCYCLEH write arms)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    a.csrrs(1, MCYCLE, 0)
+    a.word(_lui_imm20(9, 0xB8100))       # addr field = 0xB81 = MCYCLEH
+    a.csrrs(2, MCYCLE, 0)
+    a.word(_lui_imm20(9, 0xB8000))       # addr field = 0xB80 = MCYCLE
+    a.csrrs(3, MCYCLE, 0)
+    a.label("end")
+    finish(a, [1, 2, 3, 20, 21, 22])
+    tb = await runp(dut, a, regs=[1, 2, 3, 20, 21, 22])
+    assert tb.values[1] - tb.values[0] == 2, "delta1=%0d (want 2)" % (tb.values[1] - tb.values[0])
+    assert tb.values[2] - tb.values[1] == 2, "delta2=%0d (want 2)" % (tb.values[2] - tb.values[1])
+    assert tb.values[3] == 0 and tb.values[4] == 0 and tb.values[5] == 0
+
+
+@cocotb.test()
+async def test_req16_csr_stalled_behind_load_wait(dut):
+    """REQ-13/36: a CSR op sitting in EX while the prior load waits on dmem
+    must NOT commit early: mcycle must not be written with wdata OR'd in
+    (kills rv_core drop_term of ex_fire in the csr commit gate — early commit
+    writes garbage into mcycle and eats increments during the wait)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    a.li(16, 0x10000)                     # mask bit far above program cycle count
+    a.li(8, 0x8100)
+    a.csrrs(1, MCYCLE, 0)
+    a.li(7, 111)
+    a.sw(7, 8, 0)
+    for i in range(1, 13):                # dependent load chain (mem activity)
+        if i == 8:
+            continue                      # keep the base register intact
+        a.lw(i, 8, 4 * (i % 4))
+        a.addi(i, i, 0)
+    a.lw(15, 8, 0)                        # load into MEM...
+    a.csrrs(9, MCYCLE, 16)                # ...CSR op stalled in EX behind its wait
+    a.lw(15, 8, 4)
+    a.csrrs(17, MCYCLE, 16)               # second stall opportunity
+    a.csrrs(3, MCYCLE, 0)
+    a.label("xend")
+    finish(a, [1, 3, 9, 20, 21, 22])
+    tb = await runp(dut, a, regs=[1, 3, 9, 20, 21, 22],
+                    data={0x8100: [5]}, dstall=0.45, seed=11)
+    d = tb.values[1] - tb.values[0]
+    assert tb.values[2] & 0x10000 == 0, "rd of CSRRS saw early-written mcycle: %08x" % tb.values[2]
+    assert tb.values[1] & 0x10000 != 0, "write at fire missing (delta=%d)" % d
+    assert d >= 100, "mcycle lost increments during wait: delta=%d" % d
+    assert tb.values[3] == 0 and tb.values[4] == 0 and tb.values[5] == 0
+
+
+@cocotb.test()
+async def test_req40_meie_gates_external_irq(dut):
+    """REQ-40: with mstatus.MIE=1 and MTIE=1 but MEIE=0, an asserted external
+    interrupt line must NOT trap (kills rv_csr drop_term of meie_q in
+    irq_pending; the trap would run the handler and set mcause)."""
+    a = Asm()
+    hdl_install(a)
+    hdl_precise(a, rc=20, rt=21, re=22)
+    a.label("main")
+    a.li(31, DEVICE_IRQ)
+    a.li(6, 0x88)                         # MIE(bit3) + MTIE(bit7), no MEIE(bit11)
+    a.csrrs(0, MSTATUS, 6)
+    a.li(7, 1)
+    a.sw(7, 31, 0)                        # irq_ext <= 1
+    a.li(5, 12)
+    a.label("spin")
+    a.addi(5, 5, -1)
+    a.bne(5, 0, "spin")                   # ~36 cycles with irq asserted
+    a.csrrs(9, MCAUSE, 0)
+    a.csrrs(10, MIP, 0)
+    a.li(7, 0)
+    a.sw(7, 31, 0)                        # clear irq line
+    a.label("end")
+    finish(a, [9, 10, 20, 21, 22])
+    tb = await runp(dut, a, regs=[9, 10, 20, 21, 22])
+    assert tb.values[0] == 0, "mcause=%08x: trapped with MEIE=0" % tb.values[0]
+    assert tb.values[2] == 0 and tb.values[3] == 0 and tb.values[4] == 0

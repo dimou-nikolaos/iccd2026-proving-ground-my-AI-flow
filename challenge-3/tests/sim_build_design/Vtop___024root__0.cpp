@@ -215,6 +215,8 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_csr__DOT__addr = (0x00000fffU 
                                                 & (vlSelfRef.rv_core__DOT__ex_dec_q[0U] 
                                                    >> 8U));
+    vlSelfRef.rv_core__DOT__u_fetch__DOT__id_instr 
+        = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_instr_q;
     vlSelfRef.rv_core__DOT__u_hazard__DOT__ex_rs1 = 
         (0x0000001fU & (vlSelfRef.rv_core__DOT__ex_dec_q[2U] 
                         >> 0x00000017U));
@@ -225,8 +227,6 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                         >> 0x00000012U));
     vlSelfRef.rv_core__DOT__u_hazard__DOT__ex_rs2_val 
         = vlSelfRef.rv_core__DOT__ex_rs2_q;
-    vlSelfRef.rv_core__DOT__u_fetch__DOT__id_instr 
-        = vlSelfRef.rv_core__DOT__u_fetch__DOT__id_instr_q;
     vlSelfRef.rv_core__DOT__u_hazard__DOT__mem_rd = vlSelfRef.rv_core__DOT__mem_rd_q;
     vlSelfRef.rv_core__DOT__u_hazard__DOT__mem_result 
         = vlSelfRef.rv_core__DOT__mem_result_q;
@@ -1793,6 +1793,8 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_csr__DOT__u_csr_defs__DOT__wr_val 
         = vlSelfRef.rv_core__DOT__u_csr__DOT__wr_val;
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
     vlSelfRef.rv_core__DOT__u_alu__DOT__result = ((0x00000010U 
                                                    & (IData)(vlSelfRef.rv_core__DOT__u_alu__DOT__op))
                                                    ? 
@@ -1911,6 +1913,8 @@ void Vtop___024root___ico_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                        : 
                                                       (vlSelfRef.rv_core__DOT__u_alu__DOT__a 
                                                        + vlSelfRef.rv_core__DOT__u_alu__DOT__b))))));
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
     vlSelfRef.rv_core__DOT__id_rs1_val = vlSelfRef.rv_core__DOT__u_regfile__DOT__rdata1;
     vlSelfRef.rv_core__DOT__id_rs2_val = vlSelfRef.rv_core__DOT__u_regfile__DOT__rdata2;
@@ -4461,9 +4465,9 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
         }
     } else {
         vlSelfRef.rv_core__DOT__mdu_active_q = 0U;
-        vlSelfRef.rv_core__DOT__mem_store_q = 0U;
         vlSelfRef.rv_core__DOT__ex_valid_q = 0U;
         vlSelfRef.rv_core__DOT__ex_instr_q = 0U;
+        vlSelfRef.rv_core__DOT__mem_store_q = 0U;
         vlSelfRef.rv_core__DOT__ex_pc_q = 0U;
         vlSelfRef.rv_core__DOT__ex_rs1_q = 0U;
         vlSelfRef.rv_core__DOT__ex_rs2_q = 0U;
@@ -4484,12 +4488,12 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
     }
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__mdu_active_q 
         = vlSelfRef.rv_core__DOT__mdu_active_q;
-    vlSelfRef.rv_core__DOT__u_lsu__DOT__store_data 
-        = vlSelfRef.rv_core__DOT__mem_store_q;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_valid_q 
         = vlSelfRef.rv_core__DOT__ex_valid_q;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_instr 
         = vlSelfRef.rv_core__DOT__ex_instr_q;
+    vlSelfRef.rv_core__DOT__u_lsu__DOT__store_data 
+        = vlSelfRef.rv_core__DOT__mem_store_q;
     vlSelfRef.rv_core__DOT__u_core_defs__DOT__ex_pc_q 
         = vlSelfRef.rv_core__DOT__ex_pc_q;
     vlSelfRef.rv_core__DOT__u_stage_sva__DOT__ex_pc 
@@ -5260,6 +5264,8 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned 
         = (vlSelfRef.rv_core__DOT__u_alu__DOT__a < vlSelfRef.rv_core__DOT__u_alu__DOT__b);
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_signed;
     vlSelfRef.rv_core__DOT__u_alu__DOT__result = ((0x00000010U 
                                                    & (IData)(vlSelfRef.rv_core__DOT__u_alu__DOT__op))
                                                    ? 
@@ -5378,6 +5384,8 @@ void Vtop___024root___nba_sequent__TOP__10(Vtop___024root* vlSelf) {
                                                        : 
                                                       (vlSelfRef.rv_core__DOT__u_alu__DOT__a 
                                                        + vlSelfRef.rv_core__DOT__u_alu__DOT__b))))));
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
+    vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
     vlSelfRef.rv_core__DOT__u_alu__DOT__lt_u = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_unsigned;
     vlSelfRef.rv_core__DOT__alu_lt_s = vlSelfRef.rv_core__DOT__u_alu__DOT__lt_s;
     vlSelfRef.rv_core__DOT__alu_result = vlSelfRef.rv_core__DOT__u_alu__DOT__result;
