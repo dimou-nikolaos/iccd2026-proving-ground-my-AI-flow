@@ -30,6 +30,14 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 
 | v7t | JALR speculative target adders (tgt_ex/wb/mem_q + sel1 mux) | 145939 | 3.538 | 17.978 | 0.4585 | **LOSS** (V=0.975): +3 adders area, WNS no better — redirect cone is NOT mux-depth-limited. Tier-C speculation ABANDONED. |
 
+| v6b | v6a + MEM/WB data regs strip | 144323 | 3.775 | 17.754 | 0.4668 | LOSS (V=0.90). |
+| v6a-rerun | muldiv-only strip (clean rerun) | 145192 | 2.341 | 18.852 | 0.4313 | LOSS — WORSE than full-strip v6 (!): reset-strip placement effects are pure lottery noise, NOT monotone. RESET-STRIP LINE CLOSED (all variants < 0.484). |
+
+**PPA EXPLORATION CLOSED (2026-11-14 ~12:00):** 10 RTL variants + 5 text draws measured; winner remains
+v1 retexture at **P=0.484** (theoretical ceiling ~0.496). Do not open new PPA fronts without a cone-aware
+mechanism argument; the WB→fwd→branch→redirect→fetch cone dominates and every perturbation costs more
+than it gains.
+
 **Lottery conclusion (2026-11-14 10:07):** 3/3 RTL-text draws LOST (P 0.446–0.470 vs banked 0.484);
 the current v1 text is a good anchor — do NOT text-lottery core control/cone signals. The knob is
 asymmetric: cone text variations mostly hurt (WNS 2.86–3.76 vs 4.47). lot4/lot5 (operand/fire dup

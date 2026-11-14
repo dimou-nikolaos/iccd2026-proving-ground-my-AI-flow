@@ -15,9 +15,11 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 ## Current drop pointer (update every time it changes)
 
 - **DROP-5 pool is banked** (rtl v1-retextured + 91 tests + assertions + report). Archives + local V:
-  * `runs/sub.tar.gz` == `runs/sub-c3-drop7a.tar.gz` md5 `a759cfb809a45512285325a463b33a41` — drop-7 pool
-    (same RTL/netlist as drop-5, 95 tests: +SYSTEM-f3=100, +store-base delta, +MULHSU-B coverage).
-    Hedges (same netlist, new seeds): drop7v2 e37d4e58, drop7v3 092ca181, drop7v4 c9b7211f. V rolls pending.
+  * `runs/sub.tar.gz` == `runs/sub-c3-drop7v3.tar.gz` md5 `092ca181e03abce1647667c1895e5d32` — drop-7 pool
+    V=1.0 COPY (same RTL/netlist as drop-5 byte-verified => P=0.484 transfers; 95 tests incl. SYSTEM-f3=100,
+    store-base delta, MULHSU-B). Full-flow re-verification: runs/out-c3-drop7v3-full (q12).
+    Same-netlist hedges (measured V rolls): drop7a a759cfb8 V=0.95, drop7v4 c9b7211f V=0.975,
+    drop7v2 e37d4e58 V=0.925, drop5a 9f478b66 V=1.0 (measured).
   * Older same-netlist seeds still valid: drop5a 9f478b66 (V=1.0 banked), drop6a edb84d1c.
   * `runs/sub-c3-drop5v2.tar.gz` md5 `8dc886795ab232f52a1b8b865e8039ec` — V=0.975 (1 known-equivalent survivor: mdu_done||mem_stall)
   * `runs/sub-c3-drop5v3.tar.gz` md5 `d719c64639085cc7aa8244de926f9084` — V=0.95 (fetch started_q + trap-gate drop_terms, suspected equiv)
