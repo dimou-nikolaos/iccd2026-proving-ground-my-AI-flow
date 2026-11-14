@@ -40,6 +40,20 @@ autonomously" + extra directives:
 | 7 | Consolidation: stack only safe winners (per-roll evidence), rebuild drop-6 pool (main + 3 report-comment hedges), full-flow P on final main, V rolls, md5 pins, docs | DONE 12:0x: PPA CLOSED (all lines lost; banked P=0.484). MAIN upload = drop7v3 092ca181 (V=1.0 roll + RTL byte-identical to drop5a => P=0.484 transfers, verified by diff); full-flow re-verify running (q12). Hedges: drop7a 0.95, drop7v4 0.975, drop5a 9f478b66 (measured V=1.0), drop7v2 0.925. | |
 | 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | IN PROGRESS (next step) | | pointer text updated |
 
+## Explorer-award staging (distinct netlists, submit ONLY after main C=1.0 banked)
+Award = most distinct netlist variants with C>0.9. Candidate archives (all C-sane: 95/95 or 92/92 local,
+0 assertion fires; each is its OWN netlist => own sub, own seed roll; P irrelevant):
+  1. drop7v3 092ca181 (main, also counts)         — v1 retexture netlist
+  2. v6  dc124c01-era archive superseded by repack 99d00363? NO: v6 archive runs/sub-c3-v6.tar.gz (rebuilt 10:57) — full reset-strip netlist
+  3. runs/sub-c3-v6a.tar.gz 99d00363 — muldiv-strip netlist (V=0.925 local)
+  4. runs/sub-c3-v6b.tar.gz 21003e53 — MEM/WB-strip netlist (V=0.90)
+  5. runs/sub-c3-v7t.tar.gz 86957dc7 — spec-adder netlist (V=0.975)
+  6. runs/sub-c3-v11.tar.gz e73f1d8f — v6a+v7t stack netlist (95/95)
+  7. runs/sub-c3-lot1/2/3/5 tarballs (72cd3f59/105c7042/cdb4e16c/148dc3ab→rebuilt/10cf1253) — text-draw netlists
+  8. drop3r4 85b9c244 (cleaned-text v1 netlist, P=0.4625) and drop2 c1e18428 (pre-PPA netlist)
+Budget check: main + ~8 explorer subs ≤ 30; one per 30-min window; do DURING cooldowns, never before
+main C banked. NOTE lot4 must NOT be submitted (synth-fail archive → C=0).
+
 ## Server-return upload playbook (frozen until C banked)
 1. Sub 1: `runs/sub.tar.gz` (drop5a, 9f478b66…) — expected V=1.0, P=0.484, C unknown → C=1.0 → BANK.
 2. If C<1.0: failed hidden-test names → localize; drop-2 pool (c1e18428, pre-PPA RTL) bisects
