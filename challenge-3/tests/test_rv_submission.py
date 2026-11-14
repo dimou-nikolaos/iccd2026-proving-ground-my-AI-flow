@@ -1589,7 +1589,7 @@ async def test_req13_no_stall_on_unused_rs1_field(dut):
     a.csrrs(1, MCYCLE, 0)
     a.li(5, 0x8000)
     a.lw(10, 5, 0)                        # producer rd=x10
-    a.word((0x50123 << 12) | (9 << 7) | 0x37)   # lui x9: rs1-field = 0xA
+    a.word((0x50150 << 12) | (9 << 7) | 0x37)   # lui x9: rs1-field bits[19:15]=0xA
     a.csrrs(2, MCYCLE, 0)
     a.label("end")
     finish(a, [1, 2])
