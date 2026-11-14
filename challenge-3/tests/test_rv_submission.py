@@ -1596,3 +1596,38 @@ async def test_req13_no_stall_on_unused_rs1_field(dut):
     tb = await runp(dut, a, regs=[1, 2], data={0x8000: [7]})
     delta = tb.values[1] - tb.values[0]
     assert delta == 5, ("mcycle delta %d, expected 5 (no interlock bubble)" % delta)
+
+
+@cocotb.test()
+async def test_req35_trap_cycle_csr_write_suppressed(dut):
+    """REQ-30/35: an instruction trapped AT its fire cycle must not commit its
+    CSR write. The interrupt line rises right after the prior store retires,
+    so the trap lands exactly on the CSRRW MCYCLE; the handler must then see
+    MCYCLE untouched (kills csr commit drop_term: ex_fire||!trap commits the
+    write on the trap cycle)."""
+    a = Asm()
+    hdl_install(a)
+    a.label("hdl")
+    a.csrrs(20, MCYCLE, 0)        # must be small (no 12345 write)
+    a.csrrs(21, MEPC, 0)          # must equal the CSRRW pc
+    a.li(31, DEVICE_IRQ)
+    a.addi(26, 0, 0)
+    a.sw(26, 31, 0)               # clear lines
+    a.li(27, 0x88)
+    a.csrrc(26, MSTATUS, 27)
+    a.csrrs(27, MEPC, 0)
+    a.addi(27, 27, 4)
+    a.csrrw(27, MEPC, 27)
+    a.mret()
+    a.label("main")
+    irq_enable(a, 0x080)
+    a.li(1, 12345)
+    a.set_irq(2)                  # line rises when this store retires
+    pc_csrw = a.here()            # next instruction = the trapped CSRRW
+    a.csrrw(0, MCYCLE, 1)         # fixed: trapped, no write; mutant: writes 12345
+    a.label("end")
+    finish(a, [20, 21])
+    tb = await runp(dut, a, regs=[20, 21])
+    assert tb.values[1] == pc_csrw, ("mepc=%08x expected %08x (trap not on CSRRW?)"
+                                     % (tb.values[1], pc_csrw))
+    assert tb.values[0] < 200, "MCYCLE=%d: trapped CSRRW still wrote" % tb.values[0]
