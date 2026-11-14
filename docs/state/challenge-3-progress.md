@@ -63,15 +63,28 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 
 ## PPA
 
-- Baseline (CACHED, runs/challenge-3-cache): **area 136024.0 um2, WNS +4.691 ns, power 17.20 mW**, ~12.1k cells (authoritative full-flow numbers; earlier 62097/2.743/9728 were stale/partial). @15 ns → timing not binding: P is an AREA/POWER game (L58 rule: area-first batches).
-- **Reference run (drop-2 netlist, fixed+CR): P=0.50 exactly** (runs/out-c3-ref-ppa). synth 128869 um2/13154 cells; final 144220 um2/17518 cells, WNS +3.495, power 17.49 mW. CR growth ≈ offset by fixes → parity.
-- Tier-A variants (all golden-audit 85/85 + 0 assertion fires, fresh sim_build):
-  * v1 `/tmp/c3-ppa-v1`: branch comparators shared with rv_alu (new lt_s/lt_u outputs; core case arms use them; kills 4 duplicate $signed/>= adders). PPA queued (runs/out-c3-v1-ppa).
-  * v2 `/tmp/c3-ppa-v2`: rv_regfile per-register write-enable (genvar loop, DFFEN inference on 992-flop bank; regs_q name/semantics kept). Queued (out-c3-v2-ppa).
-  * v3 `/tmp/c3-ppa-v3`: rv_muldiv clock-enable wrapper `(state_q != S_IDLE || start)` (~130 flops gated; runs when idle=99%+). Queued (out-c3-v3-ppa).
-- fsm_encoding attribute NOT tried: flow ignores fsm attrs (c2 W5 lesson L54).
-- Operand ISO on muldiv NOT tried: c1 lesson — ISO only pays on ARRAY multipliers; muldiv here is iterative shift-add (c1 class = LOSS).
-- Queued runs sequential (~23 min each) via /tmp/ppa-queue.sh; results appended to runs/ppa-queue.log.
+- **CRITICAL FLOW FACT (learned the hard way):** the PPA baseline side runs the RTL in the
+  mounted **design tree**, not the released one — the cache key is
+  `sha256_tree(design_root, exclude=hidden/worked-example/__pycache__/tb)` (path+content
+  stable hash, pgflow util.py). Mounting my edited `challenge-3/` as `/design` made baseline
+  == submission → **false P=0.5 parity** for ref/v1 runs (out-c3-ref-ppa, out-c3-v1-ppa are VOID).
+- Correct setup now in use: `/tmp/c3-des-pristine` = released tree (rtl from `challenge-3/baseline/rtl`,
+  baseline/ copy minus report.md). Local cache dir `design-3-a025d0573db6/` seeded with a COPY of the
+  authoritative `design-3-4dd373a87a3a/baseline_ppa.json` (hash reproduction attempts failed by
+  unknown file-set details at bootstrap time — seeding the cache is equivalent for local measurement).
+- Authoritative baseline final (cached): **area 136024.0 um2, WNS +4.691 ns, power 17.2019 mW**.
+  Hand-computed P for unoptimized drop-2 netlist (from void-run submission-side numbers — ORFS-vs-ORFS
+  comparison so still meaningful): area 144220 (a=-0.060), WNS 3.495 (t=-0.116), power 17.489 (p=-0.017)
+  → **P≈0.463 — CR-D3 growth costs ~4 points**; need PPA wins to get back above 0.5.
+- Tier-A variants (golden-audit green: 85/85+0 fires at audit time, now 87 tests):
+  * v1 `/tmp/c3-ppa-v1`: branch comparators shared with rv_alu (lt_s/lt_u outputs). synth 129807 (+938 vs ref) —
+    suspect the sharing LOSES area (ALU mux grew); awaiting correct-mount run.
+  * v2 `/tmp/c3-ppa-v2`: rv_regfile per-register write-enable genvar loop (DFFEN on 992-flop bank).
+  * v3 `/tmp/c3-ppa-v3`: rv_muldiv clock-enable `(state_q != S_IDLE || start)` (~130 flops gated).
+- Queue2 (`/tmp/ppa-queue2.sh`, runs/ppa-queue.log): ref → v1 → v2 → v3, all with pristine mount +
+  seeded cache; results in runs/out-c3-{ref,v1,v2,v3}-ppa2. ~12-15 min each if cache hit works.
+- fsm_encoding attr NOT tried (flow ignores attrs, c2 L54). Operand ISO on muldiv NOT tried (iterative
+  sequencer = c1 "adder class" → LOSS pattern).
 - Optimizations applied to submission RTL: none yet (awaiting variant verdicts).
 
 ## Environment (updated 2026-11-13)
