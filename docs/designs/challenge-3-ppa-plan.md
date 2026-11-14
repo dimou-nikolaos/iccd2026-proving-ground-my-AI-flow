@@ -72,8 +72,25 @@ Reset-strip power/area mechanism is REAL and reproducible (a2/a4: power −16..1
 placement landing pays ≥1.3 ns WNS in the cone-dominated map — the mechanism can NEVER pay without a
 timing win that never appeared in any draw (best strip-family WNS 3.56 vs 4.47 needed). Statement-order
 edits are invisible to synth (a2/b4 = clone netlists). P=0.484 FINAL; further draws EV≈0.
+### FINAL PASS ledger (operator notes v2 triage, 2026-11-14 18:00–20:10) — full detail in
+`docs/state/challenge-3-final-ppa-pass-2026-11-14.md`
+
+| variant | change | final area µm² | WNS | power mW | P | verdict |
+|---|---|---|---|---|---|---|
+| s1 | JALR target via ALU adder (src_b_imm=1, target={alu_result[31:1],1'b0}) | 143453 | 2.722 | 17.618 | 0.4485 | LOSS (area GOOD −859, WNS draw) |
+| s2 | hold-enable strip MEM/WB/fetch data flops (pins re-aimed) | 145113 | 2.703 | **13.870** | 0.4674 | LOSS; **p=+0.194 best power ever**; V=0.95 |
+| s4 | branch eq/ne via ALU SUB | 144390 | 1.937 | 17.479 | 0.4326 | DEAD (lengthens cone, as predicted) |
+| s8 | valid-bits regfile (B1-alt) | **138660** | 3.217 | 21.009 | 0.4454 | best area −5.4k but **power backfire** (reset-less X-toggle) → B1-full DEAD |
+| s12 | s2+s8 stack | 138754 | 3.229 | 15.567 | **0.4771** | **best non-golden ever**; a+t+p all improved, WNS gap only; V=0.925 |
+| s12b | same netlist re-pack | 138754 | 3.229 | 15.567 | 0.4771 | P identical → PPA deterministic per netlist (seed rolls V only); V=0.975 |
+| s13 | s12+s1 stack | 138938 | 2.663 | 15.465 | 0.4665 | LOSS; ABC ate the JALR dedup area |
+| e1 | regfile AND-gated clock (E1 probe) | — | — | — | — | flow **REJECT at build** (derived clock) + 1 sim fail → E1 DEAD |
+
+**Final statistical closure (20:10): 24 distinct netlists drawn, 0 ≥ 0.484. P=0.484 FINAL (draws closed).**
+
 Explorer pool now: drop7v3(main), drop2, drop3r4, v6, v6a, v6b, v7t, v11, v13, lot1, lot2, lot3, lot5,
-a1, a3, a4, a5, b1, b2, b3 = **19 candidate netlists** (submit during cooldowns after C bank; budget 30).
+a1, a3, a4, a5, b1, b2, b3, s1, s2, s4, s8, s12, s12b, s13 = **26 candidate netlists** (submit during
+cooldowns after C bank; budget 30). Tier-C (s-family, v11, v13) = C-unverified: after main C banks only.
 
 **Lottery conclusion (2026-11-14 10:07):** 3/3 RTL-text draws LOST (P 0.446–0.470 vs banked 0.484);
 the current v1 text is a good anchor — do NOT text-lottery core control/cone signals. The knob is

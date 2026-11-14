@@ -20,6 +20,12 @@
 | **drop 6 (92 tests: +SYSTEM f3=100 kill)** | 2026-11-14 | ? | pool: 0.975 (a), **1.0 (v2)**, 0.925 (v3), 0.95 (v4) — all survivors classified | P pending (same RTL as drop5 → 0.484 expected) | drop6a md5 edb84d1cb283f1381dce4cfd378c485f; V=1.0 copy drop6v2 md5 5a80b81a |
 | **drop 5 (v1 retextured + 3 new kill tests, 91 tests)** | 2026-11-14 | ? | **V=1.0 on MAIN archive** (pool: 1.0 / 0.975 / 0.95 / 0.925) | **P=0.484** (full run out-c3-drop5-full: 144312 µm², WNS 4.469, 17.117 mW) | main md5 `9f478b66086aa14e7be373b720a4ae6f` — projected **74.2×C**; kills hand-verified: mcycle addr-field phantom write, csr commit early-write behind dmem wait, MEIE irq gate |
 
+## FINAL PPA PASS (operator v2 notes, 2026-11-14 15:30–20:10) — CLOSED
+Triaged+tested s-family from operator notes doc: results table now in ppa-plan ledger;
+verdict: 24/24 draws < 0.484, P=0.484 FINAL; s12 (0.4771) best-of-rest + explorer entries;
+cycle-changing ideas DAA by our deterministic-cycle pins; s3 disproven by fwd-recapture
+counterexample; E1 lint-dead. Golden drop7v3 UNCHANGED. Checkpoint: session-checkpoint-2026-11-14-2015.md.
+
 ## Next action for operator
 
 - **ACTIVE PLAN: `docs/state/challenge-3-evening-plan-2026-11-14.md`** (approved 6-hour autonomous
