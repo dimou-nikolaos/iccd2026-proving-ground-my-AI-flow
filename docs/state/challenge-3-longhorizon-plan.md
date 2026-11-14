@@ -24,8 +24,8 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
 | A. Bootstrap+baseline PPA | cache + docs | DONE | area 136024 µm², WNS +4.691, pwr 17.20 mW, ~12.1k cells; 15 ns → AREA/POWER GAME |
 | B. Phase 1 deviations | probe-per-REQ gate | DONE | 4 confirmed (D1 hazard-x0 REQ-11, D2 mret-MPIE REQ-41, D3 lh@+2 REQ-25, D4 rem-div0 REQ-30); D5 false alarm; 44 probes, 7 fail baseline |
 | C. Phase 2 fix+CR | lint/elab/public TB | DONE (C pending) | fixed RTL in challenge-3/rtl (commit 176f8e0); CR-D3 in |
-| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | IN PROGRESS | test-writer + assertion-writer spawned 2026-11-13 |
-| E. V loop | local flow --skip ppa → mutants → kill | pending | V rerolls per archive (L5); pool 3-4 archives/netlist |
+| D. Phase 3 evidence | tests/ + assertions/ + REQ matrix; exit gate L12+L60 audit | MOSTLY DONE | 80 tests (22+ fail baseline), 47 props 0 fires fixed; REQ matrix pending. Harness vendored into tests/ (flow strips tb/ from archives!) |
+| E. V loop | local flow --skip ppa → mutants → kill | IN PROGRESS | V 0.875→0.925 over 5 re-rolls; 15 kill tests written; 4 equivalent families documented in progress.md "V ceiling" |
 | F. PPA Tier A/B | family-A P measured, safe stack | pending | bank gate L60: unmodified golden assertions pass |
 | G. PPA Tier C + wildcards 4e | batch full-flow variants | pending | route ~25 min/variant: batch 2-3 concurrent (6 cpus each) |
 | H. Pool finalize | sub-best + report + drop-N ready | pending | highest projective score |

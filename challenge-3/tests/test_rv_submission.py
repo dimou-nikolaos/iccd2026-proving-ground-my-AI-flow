@@ -1410,7 +1410,7 @@ async def test_req33_noncsr_instr_csr_addr_no_write(dut):
     lui x0,0xB02 encodes MINSTRET in [31:20]; its retire must still increment."""
     a = Asm()
     a.csrrs(1, MINSTRET, 0)
-    a.word(0xB0200037)           # lui x0, 0xB02
+    a.word(0xB0280037)           # lui x0, 0xB02 with rs1-field=x1 (unmasked)
     a.addi(2, 0, 1)
     a.csrrs(3, MINSTRET, 0)
     a.label("end")
@@ -1577,3 +1577,22 @@ async def test_req30_flushed_csr_instr_no_write(dut):
     finish(a, [20])
     tb = await runp(dut, a, regs=[20], data={0x8000: [12345]}, dstall=0.9)
     assert tb.values[20 - 20] < 200, "MCYCLE=%d: squashed CSR wrote anyway" % tb.values[0]
+
+
+@cocotb.test()
+async def test_req13_no_stall_on_unused_rs1_field(dut):
+    """REQ-13: the load-use interlock must not fire for an ID instruction that
+    carries a colliding rs1 FIELD but does not use rs1 (LUI). Pins the exact
+    mcycle delta of a no-wait run (kills hazard drop_term of id_uses_rs1:
+    an unwanted +1 stall bubble changes the delta)."""
+    a = Asm()
+    a.csrrs(1, MCYCLE, 0)
+    a.li(5, 0x8000)
+    a.lw(10, 5, 0)                        # producer rd=x10
+    a.word((0x50123 << 12) | (9 << 7) | 0x37)   # lui x9: rs1-field = 0xA
+    a.csrrs(2, MCYCLE, 0)
+    a.label("end")
+    finish(a, [1, 2])
+    tb = await runp(dut, a, regs=[1, 2], data={0x8000: [7]})
+    delta = tb.values[1] - tb.values[0]
+    assert delta == 5, ("mcycle delta %d, expected 5 (no interlock bubble)" % delta)

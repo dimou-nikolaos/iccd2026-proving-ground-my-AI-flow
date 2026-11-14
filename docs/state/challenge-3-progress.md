@@ -6,8 +6,8 @@
 |-------|--------|
 | 1 ANALYZE | done (probe-per-REQ gate passed; 4 deviations confirmed; D5 false alarm) |
 | 2 FIX | done pending server C (lint/elab/public-TB green; drop 1 packaged) |
-| 3 VERIFY | pending (ISS lockstep + tests/ + assertions/ + REQ matrix fill during cooldown) |
-| 4 ITERATE | pending |
+| 3 VERIFY | tests+assertions DONE (80 tests / 47 props, 0 fires fixed, 22+ fail baseline); REQ matrix pending |
+| 4 ITERATE | V-loop active: local V 0.875→0.925 across re-rolls (see V ceiling); PPA not started |
 
 ## Score history
 
@@ -26,11 +26,26 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 
 ## V ceiling
 
-- TBD.
+- Local V trajectory (seed re-rolls every archive): 0.875 → 0.875 → 0.85 → 0.90 → 0.925 (80 tests).
+- Test suite now pins: illegal-funct3 sweep (lb/lh/lw/lbu/lhu + all 3 illegal f3), CSR read/write
+  semantics (pure reads no side effect; MCYCLE/MCYCLEH/MINSTRET/MINSTRETH write+readback;
+  CSRRCC/RCI unmasked writes), JALR ±imm, irq enable-bit and cause-mux combinations, load-use
+  interlock in all consumer classes (load/store/unused-field cases), squashed-CSR no-side-effect,
+  non-CSR instr encoding a CSR address (unmasked rs1-field), CSR reset values, trap promptness
+  (mcycle delta < 20), no-spurious-stall (mcycle delta == 5).
+- Classified EQUIVALENT survivors (unkillable, schedule/dead-value arguments):
+  * rv_core `mdu_done && !mem_stall` → `||`: differs only at done∩mem_stall — proven unreachable
+    (D5 false-alarm schedule analysis, docs/designs/challenge-3.md).
+  * rv_core `ex_pc_q` reset 0→1: value never consumed while ex_valid=1 after reset (dead reset val).
+  * rv_muldiv `op_b_q/op_a_q` reset 0→1: always latched at start before any result path uses them.
+  * rv_core `!rst_n` negate on mdu_active_q: mdu_start=0 during reset → next-state identical
+    (and flow builds use +verilator+rand+reset+0).
+- Expect local V plateau ~0.95-0.975 with occasional equivalent draws; server V uses same
+  6 classes × ~40 sites from the same mutator, so same ceiling logic applies.
 
 ## PPA
 
-- Baseline (CACHED, runs/challenge-3-cache): **area 62097.405 um2, WNS +2.743 ns** (@15 ns → slack +2.74, timing not binding), total power 9728.181 uW. Cells ~5880, depth 30 (yosys synth). P is an AREA/POWER game (L58-style decision: area-first batches, watch WNS cliff).
+- Baseline (CACHED, runs/challenge-3-cache): **area 136024.0 um2, WNS +4.691 ns, power 17.20 mW**, ~12.1k cells (authoritative full-flow numbers; earlier 62097/2.743/9728 were stale/partial). @15 ns → timing not binding: P is an AREA/POWER game (L58 rule: area-first batches).
 - Prior flow attempt died mid-route (OpenROAD nondeterministic ODB class); `baseline` subcommand run clean (~14 min).
 - Optimizations applied: none yet.
 
@@ -40,6 +55,25 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 - Flow rejects archives without `report.md` ("submission is missing: report.md") — even baseline PPA runs. Baseline tar now includes a stub report.md.
 
 ## Activity log (append-only, newest at top)
+
+#### 2026-11-14 00:30 — Phase 3 evidence + first V-iteration round
+- Did: tests suite complete (80 cocotb: 65 directed + 15 ISS-lockstep random; vendored harness rv_tb/rv_asm
+  INTO tests/ — flow archive strips everything but rtl/tests/assertions/report.md, so tb/ imports died in
+  the flow evidence stage; rv_core_env now self-contained). Assertions validated (47 props, 0 fires fixed,
+  liveness on baseline per deviation). Ran local flow 6x (seed re-rolls per archive): V 0.875/0.875/0.85/
+  0.90/0.925. Wrote 15 mutation-kill tests across the survivor classes (see V ceiling section), classified
+  4 equivalent-mutant families (documented, unkillable).
+- Found: FLOW FACTS (worth keeping): evidence runner = cocotb_tools.runner with design build_args
+  (DEFAULT -Wno-fatal --x-assign unique --x-initial unique) + runner auto-adds --public-flat-rw (wb_* taps
+  safe under flow); evidence discovers ALL tests/test_*.py (test_iss/test_randprog produce harmless
+  "no tests discovered" warnings — keep); public_tb runs from DESIGN side (my tb/ copy irrelevant);
+  plusargs +verilator+rand+reset+0 (regs 0 at start); seed from submission hash.
+- Found: two of my own kill tests initially failed to kill their mutant for subtle reasons: (a) lui-encoded
+  CSR addr needs rs1-FIELD (instr[19:15]) != x0 else csr_masked_zero suppresses the write on the mutant too;
+  (b) load/consumer forwarding window timing — interlock mutants only observable with dstall or exact-cycle
+  mcycle pins. Both fixed.
+- Next: REQ matrix fill (docs/designs/challenge-3-req-matrix.md), then Phase 4b PPA (area/power-first,
+  full-flow runs ~30 min; bank gate = unmodified golden assertions), then Tier wildcards.
 
 #### 2026-11-13 late — probe-per-REQ sweep gate PASSED
 - Did: @probe-creator wrote challenge-3/probes/ (44 tests, 1 build). Ran vs baseline AND fixed. Orchestrator packaged drop 1 (challenge-3/report.md + rtl), local --skip ppa sanity next.
