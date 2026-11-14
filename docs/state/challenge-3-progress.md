@@ -16,7 +16,7 @@
 | (baseline ref) | 2026-11-13 | null | 0.0 | 0.5 | baseline-vs-baseline parity run; PPA banked to cache; final: area 136024.0 um2, WNS +4.691 ns, power 17.20 mW, ~12.1k cells synth |
 | drop 2 (ref PPA 2026-11-14) | 2026-11-14 | ? | 0.875–0.975 (5 rolls) | 0.4631 | full evidence: 85→87 tests; PPA pristine-mount ref: a −0.060 t −0.116 p −0.017 |
 | **drop 3 (v1 PPA RTL, 88 tests)** | 2026-11-14 | ? | **V-hedge pool: 0.9 (b), 0.975 (r2), 0.975 (r3), 1.0 (r4)** | 0.484 / 0.4625 (seed noise, same RTL) | v1 comparator-sharing banked; r4 = golden seed (V=1.0), md5 85b9c2444ce83b16afbee3e34ff36a4c |
-| **drop 5 (v1 retextured + 3 new kill tests, 91 tests)** | 2026-11-14 | ? | **V=1.0 on MAIN archive** (pool: 1.0 / 0.975 / 0.95 / 0.925) | full run in flight (out-c3-drop5-full) | main md5 `9f478b66086aa14e7be373b720a4ae6f`; kills hand-verified: mcycle addr-field phantom write, csr commit early-write behind dmem wait, MEIE irq gate |
+| **drop 5 (v1 retextured + 3 new kill tests, 91 tests)** | 2026-11-14 | ? | **V=1.0 on MAIN archive** (pool: 1.0 / 0.975 / 0.95 / 0.925) | **P=0.484** (full run out-c3-drop5-full: 144312 µm², WNS 4.469, 17.117 mW) | main md5 `9f478b66086aa14e7be373b720a4ae6f` — projected **74.2×C**; kills hand-verified: mcycle addr-field phantom write, csr commit early-write behind dmem wait, MEIE irq gate |
 
 ## Next action for operator
 
@@ -25,7 +25,7 @@
 
 ## Best submission
 
-- Local-best (unconfirmed C): drop-5a — projected 100×C×(0.5×1.0 + 0.5×0.47) ≈ 98.5×C.
+- Local-best (unconfirmed C): drop-5a — V=1.0, P=0.484 → projected 100×C×(0.5×1.0+0.5×0.484) = **74.2×C**.
 
 ## Deviations found
 
@@ -158,5 +158,8 @@ CONFIRMED 4 (D1-D4) — table + probe evidence in `docs/designs/challenge-3.md`.
 
 ## Operator feedback log
 
+- 2026-11-14: ISS backstop pass (scratch tree, /tmp/c3-backstop): +8 plain seeds (401-451, incl. 45% wait)
+  +3 trap-config seeds (311-313) → 26/26 lockstep PASS on fixed RTL. Combined with 44-probe gate +
+  22-fail baseline suite: no evidence of a 5th seeded deviation. Deviation hunt CLOSED at 4 (within 3-6 band).
 - 2026-11-13: release day go instruction; docker sudo hint (confirmed working).
 

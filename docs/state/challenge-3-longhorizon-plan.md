@@ -19,8 +19,9 @@ Pattern proven in challenge-2 (docs/state/challenge-2-longhorizon-plan.md).
   * `runs/sub-c3-drop5v2.tar.gz` md5 `8dc886795ab232f52a1b8b865e8039ec` — V=0.975 (1 known-equivalent survivor: mdu_done||mem_stall)
   * `runs/sub-c3-drop5v3.tar.gz` md5 `d719c64639085cc7aa8244de926f9084` — V=0.95 (fetch started_q + trap-gate drop_terms, suspected equiv)
   * `runs/sub-c3-drop5v4.tar.gz` md5 `90c755036fc70cda7e4752824bb53070` — V=0.925 (3 dead-reset/equiv survivors)
-- PPA seed-noise note: same v1 RTL measured 0.484 (twice, archive sub-c3-v1) and 0.4625 (archive drop3r4) —
-  ORFS varies ~±0.02 P / ~1 ns WNS with the submission-hash seed. v1 WNS beat ref (3.495) on all 3 rolls.
+- PPA text-sensitivity note: v1-identical BYTES give identical results (0.484 twice + drop5a full run);
+  the drop3r4 "cleaned text" variant measured 0.4625 — synthesis is deterministic per RTL TEXT, P
+  variance came from source-text differences (duplicate-assign v1 text wins; keep it byte-identical).
 - DROP-3/drop-4 archives superseded (keep as fallbacks): drop3r4 85b9c244 (V=1.0, P=0.4625 full), drop4v6 308ae1b2 (V=0.95).
 - On server return: upload `runs/sub.tar.gz` (drop-5a) first (C-check). If C=1.0 → bank; if C<1.0 the
   hidden-test names localize: v1 RTL is the only netlist delta vs drop-2 (md5 c1e18428) — bisect with drop-2 pool.

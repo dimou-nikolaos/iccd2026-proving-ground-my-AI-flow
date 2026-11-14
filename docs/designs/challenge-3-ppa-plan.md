@@ -25,8 +25,11 @@ for path analysis. Results under `runs/out-c3-<v>-ppa2/`.
 target→redirect→fetch cone sets WNS; ANY depth added inside ALU-operand/forward path costs
 ~0.03–0.06 P (40 % weight). Area wins that don't touch that cone are worth ~0.01–0.03.
 ORFS reproduction: same submission archive + same design tree reproduced identical
-area/WNS/power/score across two separate full runs (out-c3-v1-ppa2 vs ppa2b) — L63 noise
-did NOT show here (deterministic ORFS under fixed make invocation).
+area/WNS/power/score across two separate full runs (out-c3-v1-ppa2 vs ppa2b) — and again on drop5a
+full run (144312 / 4.46935 / 17.117 bit-identical). ORFS is DETERMINISTIC per RTL text; the earlier
+0.4625 sample (drop3r4) came from a *cleaned rv_alu source text* (single lt_s assigns) that
+synthesized a worse netlist. Lesson: P differences between logically-identical RTL texts are REAL;
+freeze the measured v1 text byte-identically (L63 refined).
 
 All variants passed the golden audit (full 85-test suite at branch time + ASSERTIONS=1, 0 fires)
 before queueing.
