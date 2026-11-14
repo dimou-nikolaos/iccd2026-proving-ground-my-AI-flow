@@ -82,7 +82,7 @@ check → compare P vs 0.484 with per-term breakdown (which of a/t/p moved). Two
 | s2 | measured | 95/95 | **P=0.4674** (a−0.0668, t−0.193 WNS2.70, **p=+0.194 = 13.87mW BEST POWER ever**) V=0.95 | LOSS standalone; p-mechanism reproducible → keep for stack ticket; Explorer entry |
 | s4 | measured | 95/95 | **P=0.4326** (WNS 1.937 — branch-through-SUB lengthens cone, as feared) V=0.925 | DEAD; distinct → skip (P too low even for explorer value? explorer only needs C>0.9 — keep as candidate) |
 | s8 | measured | 95/95 | **P=0.4454** (a=−0.0194 best AREA ever −5.6k!, t−0.143, **p=−0.221 POWER BACKFIRE**: reset-less regfile flops = X-toggling in vectorless → +22% power) V=0.875 | B1-full DEAD (same backfire bigger). Valid-bits variant → stack test below |
-| s12 STACK ticket | building | ☐ | ☐ | free lottery ticket: s2(p+0.19)+s8(a−0.019) theoretical landing 0.511; local-run only, upload iff >0.484 |
+| s12 STACK (s2+s8) | DONE 95/95 | f4189944 | **P=0.4771** (a−0.0201 area 138754, t−0.1418 WNS3.229, p+0.0951 15.57mW) V=0.925 | BEST non-golden P ever, but STILL < 0.484. Mechanisms stacked correctly (best a AND positive p together) — the ONLY missing term is WNS lottery (need ≥4.47, drew 3.23). Draws 23/23 loss. One re-draw queued (qS4); if it loses, timing-closure is statistically final and no more draws. Explorer pool: +s12,s1,s2,s4,s8 (all C-unverified Tier-C: only post-C-bank) |
 | s5 | ☐ | ☐ | ☐ | ☐ |
 | s6 | SKIP (0.9k vs 22/22 lottery evidence: EV<0) | — | — | — |
 | s7 | SKIP (0.6k, same reason) | — | — | — |
