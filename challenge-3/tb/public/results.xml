@@ -1,0 +1,17 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1794646120" />
+    <testcase name="test_first_fetch_is_zero" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="19" time="0.0013427734375" sim_time_ns="91.0" ratio_time="67770.18181818182" />
+    <testcase name="test_arithmetic" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="28" time="0.003843069076538086" sim_time_ns="361.0" ratio_time="93935.33990942367" />
+    <testcase name="test_shifts_and_compares" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="51" time="0.003530740737915039" sim_time_ns="330.99999999999994" ratio_time="93748.03322304002" />
+    <testcase name="test_branches_and_loop" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="71" time="0.005942821502685547" sim_time_ns="640.9999999999999" ratio_time="107861.22378239587" />
+    <testcase name="test_jumps" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="94" time="0.002659320831298828" sim_time_ns="271.0" ratio_time="101905.71848664156" />
+    <testcase name="test_load_store" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="111" time="0.003860950469970703" sim_time_ns="341.0" ratio_time="88320.22131653699" />
+    <testcase name="test_forwarding_and_load_use" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="133" time="0.003264904022216797" sim_time_ns="320.9999999999998" ratio_time="98318.35723674596" />
+    <testcase name="test_multiply_divide" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="154" time="0.020314455032348633" sim_time_ns="2270.9999999999995" ratio_time="111792.31716448563" />
+    <testcase name="test_csr_access" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="172" time="0.0018680095672607422" sim_time_ns="191.0" ratio_time="102247.87032546267" />
+    <testcase name="test_ecall_trap" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="185" time="0.0028443336486816406" sim_time_ns="301.0" ratio_time="105824.43453478625" />
+    <testcase name="test_illegal_instruction" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="206" time="0.0017769336700439453" sim_time_ns="191.0" ratio_time="107488.53669663223" />
+    <testcase name="test_wait_states" classname="test_rv_public" file="/design/tb/public/test_rv_public.py" lineno="220" time="0.006270885467529297" sim_time_ns="681.0" ratio_time="108597.10379438825" />
+  </testsuite>
+</testsuites>
