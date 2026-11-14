@@ -38,7 +38,7 @@ autonomously" + extra directives:
 | 5 | v8 Tier-C prep: branch-target/fwd speculation via NEW-named intermediates, spec-named signals keep baseline expressions (hidden-assert safety). Measure P; if promising, stage C-unverified | BUILT v7t (92/92, sel1 additive port). MEASURED P=0.4585 LOSS (V=0.975) → redirect cone not mux-depth-limited → Tier-C speculation ABANDONED. v11 stack (v6a+v7t) built 95/95 (e73f1d8f) but moot unless v6a wins. | /tmp/c3-ppa-v8 + audit + P |
 | 6 | v9 muldiv trim/ICG retry | DROPPED (low prior: v3 ICG loss 0.4474; acc_q already rem+quo pair; v6a covers muldiv area/power lever) | | /tmp/c3-ppa-v9 + audit + P |
 | 7 | Consolidation: stack only safe winners (per-roll evidence), rebuild drop-6 pool (main + 3 report-comment hedges), full-flow P on final main, V rolls, md5 pins, docs | DONE 12:0x: PPA CLOSED (all lines lost; banked P=0.484). MAIN upload = drop7v3 092ca181 (V=1.0 roll + RTL byte-identical to drop5a => P=0.484 transfers, verified by diff); full-flow re-verify running (q12). Hedges: drop7a 0.95, drop7v4 0.975, drop5a 9f478b66 (measured V=1.0), drop7v2 0.925. | |
-| 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | IN PROGRESS (next step) | | pointer text updated |
+| 8 | Server-return readiness rehearsal: upload playbook (below) current in longhorizon plan | DONE 12:15: sub-1 = drop7v3 092ca181 (full-flow V=1.0+P=0.484 same roll); checkpoint file challenge-3-session-checkpoint-2026-11-14-1215.md pins everything | | pointer text updated |
 
 ## Explorer-award staging (distinct netlists, submit ONLY after main C=1.0 banked)
 Award = most distinct netlist variants with C>0.9. Candidate archives (all C-sane: 95/95 or 92/92 local,
