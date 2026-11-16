@@ -1,6 +1,7 @@
 # checkpoint 2026-11-16 — ONE-SHOT SUBMISSION DECISION
 
-Operator: only ONE submission allowed. Pick = **runs/sub.tar.gz (drop7v3, md5 092ca181e03abce1647667c1895e5d32) UNMODIFIED.**
+Operator: challenge-3 gets exactly ONE submission (policy is one slot PER CHALLENGE —
+challenge-1 and challenge-2 each have their own separate slot; NOT one total across the competition). Pick = **runs/sub.tar.gz (drop7v3, md5 092ca181e03abce1647667c1895e5d32) UNMODIFIED.**
 
 ## Why (measured, same-hash roll, out-c3-drop7v3-full: build/public/mutation/ppa all pass)
 - V=1.0 AND P=0.484 on the SAME archive hash — the only archive in the whole campaign (24 netlists,
@@ -12,6 +13,9 @@ Operator: only ONE submission allowed. Pick = **runs/sub.tar.gz (drop7v3, md5 09
   95/95 own tests + 0 assertion fires + public TB, full flow status=scored.
 - C unknown (server never ran it); all candidates share that risk; drop7v3 = most-audited +
   complete REQ matrix = safest. Projected score 100×C×(0.5+0.5×0.484) = 74.2×C.
+
+## Policy correction (16 Nov): the Explorer drip-feed plan (26 archives, one per cooldown) is VOID
+under the one-submission-per-challenge policy — challenge-3 final = this single drop7v3 upload.
 
 ## DO NOT: re-pack, touch, or "improve" runs/sub.tar.gz before upload (hash = scores).
 Verify at upload time: md5sum runs/sub.tar.gz == 092ca181e03abce1647667c1895e5d32.

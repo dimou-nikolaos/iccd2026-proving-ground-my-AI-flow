@@ -27,7 +27,8 @@ cycle-changing ideas DAA by our deterministic-cycle pins; s3 disproven by fwd-re
 counterexample; E1 lint-dead. Golden drop7v3 UNCHANGED. Checkpoint: session-checkpoint-2026-11-14-2015.md.
 
 ## ONE-SHOT SUBMISSION (2026-11-16): = runs/sub.tar.gz drop7v3 092ca181… UNMODIFIED
-Only one submission allowed. drop7v3 is the unique archive with measured V=1.0 AND campaign-best
+Challenge-3 gets exactly one submission (one slot PER CHALLENGE — c1/c2 have their own separate
+slots; earlier 'only ONE submission' wording here was imprecise; explorer drip-feed plan void). drop7v3 is the unique archive with measured V=1.0 AND campaign-best
 P=0.484 on its own hash (out-c3-drop7v3-full, all stages pass); candidates re-checked 11-16, no
 re-roll needed or wanted (same-netlist re-rolls all V<1.0; P fixed per netlist). Checkpoint:
 session-checkpoint-2026-11-16-ONESHOT.md.

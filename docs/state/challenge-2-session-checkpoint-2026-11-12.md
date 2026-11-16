@@ -46,7 +46,7 @@
   checklist + `challenge-3-playbook.md` "what challenge-2 adds" section), keep c2 bank frozen.
 
 
-## SUBMISSION PLAYBOOK v9 (SUPERSEDES v8) — ONE submission only (operator, Nov 16)
+## SUBMISSION PLAYBOOK v9 (SUPERSEDES v8) — ONE submission only FOR CHALLENGE-2 (operator, Nov 16; policy is one slot PER CHALLENGE, not one total)
 - **Submit exactly: `runs/sub-best.tar.gz` = `runs/c2-sub-rr-r16.tar.gz`, md5 `43aec5cf45eeb85bf8fdfe3f47156358`.**
 - Full flow on those exact bytes (out-rr-r16-full): build/public/mutation/ppa all pass; **V=1.0 (40/40)**, **P=0.5288** (final: 45803.9 µm², WNS +2.546, 5.692 mW), 58/58 tests+assertions green, ~8 min total. Rules 1–4 certified on the shipping tar.
 - Why r16: V is seeded by tar bytes → reroll via marker comment in dma_apb.sv (scripts/reroll-bank.py). Seeds r16/r17/r19 scored V=1.0; picked r16. abar2 remains the highest-P baseline-contract-safe family (W8/W9/W10 excluded: contract-change class = hidden-assert C risk).
