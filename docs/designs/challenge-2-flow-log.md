@@ -69,11 +69,11 @@ not baseline-contract compatibility → audit every family locally against UNMOD
 
 ---
 
-## Submission decision (Nov 16, single-submission policy)
+## Submission decision (Nov 16, one-submission-per-challenge policy)
 
-Operator reported: **only one submission for challenge-2** (one slot; earlier campaign plans of rerolls/Explorer breadth void). Task: safest candidate with the highest P, ideally V=1.0.
+Operator reported: **exactly one submission for challenge-2** (policy is one slot PER CHALLENGE — challenge-1/2/3 each have their own; NOT one total across the competition; earlier campaign plans of rerolls/Explorer breadth void). Task: safest candidate with the highest P, ideally V=1.0.
 
-### Decision matrix (single-submission scenario)
+### Decision matrix (one-submission-per-challenge scenario)
 
 | Candidate | P (measured) | V on exact tar bytes | C-risk (golden-audit) | Notes |
 |---|---|---|---|---|
