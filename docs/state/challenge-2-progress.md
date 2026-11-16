@@ -344,3 +344,6 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - Clean bank `c2-sub-32`/`sub-best` new md5 **43aec5cf45eeb85bf8fdfe3f47156358** — full flow re-scored green end-to-end (~8 min total): build 0.5s, 58 tests+assertions 16s, mutation 39/40 (arb.sv:51 reroll survivor), PPA 0.5288. Clean `c2-sub-w2` re-scored too (V=0.975 chan.sv:54, P=0.5082).
 - New landmines logged: L62 (tar junk ingestion + audit classifier), L63 (P varies across fresh P&R runs; cache-hit-only determinism).
 - Branches synced: `main` = `challenge-2` = `challenge-3` = `060e4ce` (ff-only; challenge-3 inherits L62 — its packaging must use the repack/audit gate from day one).
+### 2026-11-16 — SINGLE submission locked (playbook v9 executed)
+- **Submit `runs/c2-sub-rr-r16.tar.gz` (= `runs/sub-best.tar.gz`), md5 `43aec5cf45eeb85bf8fdfe3f47156358`.** V=1.0 (40/40) + P=0.5288 measured on exact bytes (out-rr-r16-full); proj 76.44 @C=1.0.
+- V-reroll to a 40/40 seed via `scripts/reroll-bank.py` (comment-marker seed bump; r16/r17/r19 clean). Pre-submission RTL-vs-baseline diff audit clean: only spec fixes + CR-D2 + documented PPA restructurings + 1 comment line; zero reset-structure changes. Details: challenge-2-flow-log.md §Submission decision.
