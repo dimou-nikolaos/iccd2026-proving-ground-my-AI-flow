@@ -1,7 +1,7 @@
 # Challenge-1 session checkpoint (2026-11-08 end of session, updated 2026-11-11)
 
 ## ⚠ UPDATE 2026-11-11 (post-submission)
-- **Single-design submission policy** due to infrastructure issues (only one of three challenges can be submitted). Since challenge-2/3 weren't bootstrapped, this is challenge-1's one and only submission.
+- **One-submission-per-challenge policy** (CORRECTED 16 Nov: each design has its own single slot — NOT one total across the competition). challenge-1 uses its one and only submission.
 - **Submitted `runs/sub-v73.tar.gz`** (md5 `a91ca5cfd2c9be67de47fcbb4c3d7c36`, identical to `runs/sub-best.tar.gz`).
 - **Final local flow** (`runs/out-final-v73/`): build pass, 64/64 tests pass, 40/40 mutations killed (V=1.000), PPA pass with P=0.6146. Projected score if C=1: **80.73**.
 - **Pre-submission spec audit found**: 2 inherited Tier A reset wildcards (FIFO mem_q no reset, FIR data-path regs sync-only) — both LOW functional risk, accepted as ~5-10% C-risk vs ~4.7-score cost to revert.
