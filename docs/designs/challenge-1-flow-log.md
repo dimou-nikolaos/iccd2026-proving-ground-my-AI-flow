@@ -234,11 +234,11 @@ This establishes the Explorer budget is feasible with current archive (30 subs �
 
 ## Submission decision (Nov 11, infrastructure constraint)
 
-Operator reported: **single-design submission policy** — only one of the three challenge designs can be submitted. challenge-2 and challenge-3 were not bootstrapped. challenge-1 had to use **one and only one submission**.
+Operator reported (CORRECTED 16 Nov — earlier wording here was wrong): **one-submission-per-challenge policy** — EACH of the three designs has its own single submission slot (challenge-1 one, challenge-2 one, challenge-3 one; NOT one total across the competition). challenge-1 had to use **its one and only submission** on the single highest-EV candidate.
 
 This changed the locked Sub 1 / Sub 2 / Explorer strategy to a single shot at highest-EV candidate.
 
-### Decision matrix (single-submission scenario)
+### Decision matrix (one-submission-per-challenge scenario)
 
 | Candidate | P | V local | REQ-42 | Projected (C=1) | C-risk | EV |
 |-----------|---|---------|--------|-----------------|--------|-----|
