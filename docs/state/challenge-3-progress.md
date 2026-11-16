@@ -26,6 +26,12 @@ verdict: 24/24 draws < 0.484, P=0.484 FINAL; s12 (0.4771) best-of-rest + explore
 cycle-changing ideas DAA by our deterministic-cycle pins; s3 disproven by fwd-recapture
 counterexample; E1 lint-dead. Golden drop7v3 UNCHANGED. Checkpoint: session-checkpoint-2026-11-14-2015.md.
 
+## ONE-SHOT SUBMISSION (2026-11-16): = runs/sub.tar.gz drop7v3 092ca181… UNMODIFIED
+Only one submission allowed. drop7v3 is the unique archive with measured V=1.0 AND campaign-best
+P=0.484 on its own hash (out-c3-drop7v3-full, all stages pass); candidates re-checked 11-16, no
+re-roll needed or wanted (same-netlist re-rolls all V<1.0; P fixed per netlist). Checkpoint:
+session-checkpoint-2026-11-16-ONESHOT.md.
+
 ## Next action for operator
 
 - **ACTIVE PLAN: `docs/state/challenge-3-evening-plan-2026-11-14.md`** (approved 6-hour autonomous
