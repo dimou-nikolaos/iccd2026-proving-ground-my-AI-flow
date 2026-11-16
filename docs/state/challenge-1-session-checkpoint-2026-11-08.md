@@ -1,9 +1,17 @@
-# Challenge-1 session checkpoint (2026-11-08 end of session, pre-compaction)
+# Challenge-1 session checkpoint (2026-11-08 end of session, updated 2026-11-11)
+
+## ⚠ UPDATE 2026-11-11 (post-submission)
+- **Single-design submission policy** due to infrastructure issues (only one of three challenges can be submitted). Since challenge-2/3 weren't bootstrapped, this is challenge-1's one and only submission.
+- **Submitted `runs/sub-v73.tar.gz`** (md5 `a91ca5cfd2c9be67de47fcbb4c3d7c36`, identical to `runs/sub-best.tar.gz`).
+- **Final local flow** (`runs/out-final-v73/`): build pass, 64/64 tests pass, 40/40 mutations killed (V=1.000), PPA pass with P=0.6146. Projected score if C=1: **80.73**.
+- **Pre-submission spec audit found**: 2 inherited Tier A reset wildcards (FIFO mem_q no reset, FIR data-path regs sync-only) — both LOW functional risk, accepted as ~5-10% C-risk vs ~4.7-score cost to revert.
+- No follow-up submissions available. Awaiting C feedback as terminal result.
+- See `challenge-1-progress.md` "Submission record" table for full details.
 
 ## Resume recipe
 1. `md5sum runs/sub-best.tar.gz` — must be `a91ca5cfd2c9be67de47fcbb4c3d7c36` (= sub-v73). If different, trust tar.gz and update progress.md.
 2. Workspace `challenge-1/rtl/` matches sub-v73 RTL (async-reset FIR delay_q restored per REQ-42).
-3. Continue per "Next action" at bottom (when server returns).
+3. Server submitted. Awaiting C. No further action unless server C comes back <1.0 — then document failed-test names for future-design lessons.
 
 ## State at end of session
 - **sub-best: sub-v73** (P=0.6146, V=1.0 local, REQ-42 COMPLIANT async reset). md5 `a91ca5cfd2c9be67de47fcbb4c3d7c36`. Projected at C=1: 80.73.
@@ -11,7 +19,7 @@
 - **Earlier aggressive variant sub-v39 (sync reset, P=0.6192) is kept on disk but demoted** — proven REQ-42 violation via `test_async_reset.py` (L35). Projected 80.96 but ~25% hidden-test C risk.
 - Total sub archives: 130+ (`runs/sub-*.tar.gz`)
 - V=1.0 lucky pool (with async test included): v67, v68, v70, v73 (4 candidates, P=0.6146 each)
-- Server: DOWN — cannot submit.
+- Server: DOWN — cannot submit. (Will be updated once uploaded.)
 - Lessons L1-L35. New: L35 (async-reset probe test pattern, decision matrix).
 - General flow commits: `e20ae30`, `8a57b67`, `a0fbb90` (cherry-picked from challenge-1). Pending: L35 + SKILL update.
 

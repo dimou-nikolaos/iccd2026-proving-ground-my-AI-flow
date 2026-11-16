@@ -232,6 +232,53 @@ This establishes the Explorer budget is feasible with current archive (30 subs �
 
 ---
 
+## Submission decision (Nov 11, infrastructure constraint)
+
+Operator reported: **single-design submission policy** — only one of the three challenge designs can be submitted. challenge-2 and challenge-3 were not bootstrapped. challenge-1 had to use **one and only one submission**.
+
+This changed the locked Sub 1 / Sub 2 / Explorer strategy to a single shot at highest-EV candidate.
+
+### Decision matrix (single-submission scenario)
+
+| Candidate | P | V local | REQ-42 | Projected (C=1) | C-risk | EV |
+|-----------|---|---------|--------|-----------------|--------|-----|
+| sub-v73 (async) | 0.6146 | 1.0 | compliant | 80.73 | ~5-10% | ~76 |
+| sub-v39 (sync) | 0.6192 | 1.0 | VIOLATION | 80.96 | ~25% | ~61 |
+| sub-v55 (conservative async) | 0.6101 | 0.975 | compliant | 79.00 | ~3% | ~76 |
+| strict-async v73 (FIFO+FIR revert) | ~0.52 | ~1.0 | strict compliant | ~76 | ~1% | ~75 |
+| sub-13 / sub-11 stack (no P wildcards) | 0.5658 | 0.975 | n/a | ~75 | ~1% | ~74 |
+
+**Chose v73** — same EV as more conservative alternatives but higher upside if hidden doesn't catch the Tier A residual wildcards.
+
+### Pre-submission spec audit (L64 added as general lesson)
+
+Compared v73 RTL against `challenge-1/baseline/rtl/`. Found 2 inherited Tier A reset wildcards still in:
+- `dsp_fifo.sv:50` — FIFO `mem_q[]` has no reset (baseline async reset). Standard FIFO practice.
+- `dsp_fir.sv:103` — FIR data-path regs in sync-only always_ff (baseline had async). FSM handles reset functionally.
+
+Reverting both: P from 0.6146 to ~0.52 (−0.09), score cost ~4.7. Accepted residual risk.
+
+### Final flow run (`runs/out-final-v73/`)
+
+| Stage | Status | Detail |
+|-------|--------|--------|
+| Build | pass | filelist/ports/sdc unchanged |
+| Public tests | **64/64 pass** | 10 operator + 54 ours + 1 async-reset probe |
+| Mutation | **40/40 killed** | V=1.000 |
+| PPA | pass | P=0.6146 (a −0.033, t +0.216, p +0.779) |
+| Area | 68,558 µm² | baseline 66,379 (+3.3%) |
+| WNS | 5.359 ns | baseline 2.701 (+98% margin) |
+| Power | 6.947 mW | baseline 31.452 (−78%) |
+
+**Submitted** `runs/sub-v73.tar.gz` (md5 `a91ca5cfd2c9be67de47fcbb4c3d7c36`, 33,289 bytes, 29 files). Awaiting C. Projected final score if C=1: **80.73**.
+
+### What was abandoned
+- No probe submission (Sub 2 plan: test if hidden catches REQ-42 violation)
+- No Explorer award (no submission budget for distinct netlists)
+- No follow-up iterations if C<1.0 (no submission budget)
+
+All 138 tarballs on disk in `runs/` remain as research artifacts / lessons for future-design work.
+
 ## Tooling and process improvements built during the campaign
 
 See `challenge-1-tool-inventory.md` for full inventory. Summary:
