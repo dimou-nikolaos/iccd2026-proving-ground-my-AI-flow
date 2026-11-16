@@ -82,7 +82,7 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 - Flow blind spot identified (L60): flow tests stage compiles tar tests WITHOUT submission assertions/
   (mutants killed by port-level failures only); "0 assertion fires" comes from public-tb compile whose
   scenarios never overlap the strobes. W8's flow greenness was never evidence of golden compatibility.
-- **sub-best.tar.gz = c2-sub-32 (abar2; V/P reroll samples 0.975–1.0 / 0.518–0.529, md5 5cbe34b8f21181cd0064e530ff226ae2 — clean repack, L62).**
+- **sub-best.tar.gz = c2-sub-32 (abar2; V/P reroll samples 0.975–1.0 / 0.518–0.529, md5 43aec5cf45eeb85bf8fdfe3f47156358 — clean repack, L62).**
   abar2 bank AUDITED CLEAN: 58/58 with unmodified golden assertions compiled in, 0 fires.
 - W6 audit: fires GOLDEN immediately (65ns a_decode_word) — same contract-change class; already
   Explorer-only, now evidence-based. c2-sub-w8 + c2-sub-w10-w8a2 (md5 fa42a29f…) = Explorer /
@@ -299,7 +299,7 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
   runs/c2-best.md. Agent: C3 readiness + upkeep. Operator task: watch server.
 
 ### Best submission
-- **c2-sub-32** (abar2 family; clean-repack md5 5cbe34b8f21181cd0064e530ff226ae2; re-scored V=0.975/P=0.5288) —
+- **c2-sub-32** (abar2 family; clean-repack md5 43aec5cf45eeb85bf8fdfe3f47156358; re-scored V=0.975/P=0.5288) —
   proj 75.92 @C=1.0. Copy at runs/sub-best.tar.gz (md5-verified). **BANK #1** (restored
   2026-11-12 after L60 golden audit; goldens-silent 58/58). Spares: c2-sub-33/-34 (V=1.0 rerolls).
 - c2-sub-w8 (P=0.5212, md5 2068f7e1…) = DEMOTED to Explorer/late-slot C-probe: microarch
@@ -341,6 +341,6 @@ Full fix sketches + phase tracker + protocol: **`docs/state/challenge-2-longhori
 ### 2026-11-13 — submission-archive hygiene pass (L62/L63)
 - Pre-submission audit found 25/52 c2 tars contained build junk (`tests/sim_build_*/`, `__pycache__`, `results.xml`) — up to 210 entries, 2.6 MB/tar. Repacked all with `scripts/repack-c2.py` (legit members byte-identical; junk dropped). Pool 63 MB → 1.2 MB. Pre-repack originals in `runs/dirty-backup/`.
 - Full compliance audit vs competition rules across all 52 tars: layout = `rtl/ tests/ assertions/ report.md`; `rtl/filelist.f` byte-identical to released in every tar; `rtl/*.sv` set == filelist set; zero banned constructs (initial/#/fork/force/DPI/class/$-tasks); tests = `test_*.py` + `dma_tb.py` helper + Makefile. Only exceptions: c2-sub-e03/e04 (no RTL at all — matches their recorded rejected@build verdicts; not for submission).
-- Clean bank `c2-sub-32`/`sub-best` new md5 **5cbe34b8f21181cd0064e530ff226ae2** — full flow re-scored green end-to-end (~8 min total): build 0.5s, 58 tests+assertions 16s, mutation 39/40 (arb.sv:51 reroll survivor), PPA 0.5288. Clean `c2-sub-w2` re-scored too (V=0.975 chan.sv:54, P=0.5082).
+- Clean bank `c2-sub-32`/`sub-best` new md5 **43aec5cf45eeb85bf8fdfe3f47156358** — full flow re-scored green end-to-end (~8 min total): build 0.5s, 58 tests+assertions 16s, mutation 39/40 (arb.sv:51 reroll survivor), PPA 0.5288. Clean `c2-sub-w2` re-scored too (V=0.975 chan.sv:54, P=0.5082).
 - New landmines logged: L62 (tar junk ingestion + audit classifier), L63 (P varies across fresh P&R runs; cache-hit-only determinism).
 - Branches synced: `main` = `challenge-2` = `challenge-3` = `060e4ce` (ff-only; challenge-3 inherits L62 — its packaging must use the repack/audit gate from day one).

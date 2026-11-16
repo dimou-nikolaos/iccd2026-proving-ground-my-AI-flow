@@ -4,7 +4,7 @@ All `runs/c2-sub-*.tar.gz` archives (gitignored, regenerable via `scripts/` + `d
 
 Legend: `scored` = full flow passed (V,P from report); `no-report` = archived only; `contract-change` (Notes) = ships MODIFIED assertions vs family-A goldens -> hidden-assert C-risk, late-slot/Explorer only (L60).
 
-Archives: 51. Distinct scored netlists: see progress-file Explorer counts.
+Archives: 55. Distinct scored netlists: see progress-file Explorer counts.
 
 | archive | status | V | P | tar md5 | flow out |
 |---|---|---|---|---|---|
@@ -58,7 +58,11 @@ Archives: 51. Distinct scored netlists: see progress-file Explorer counts.
 | `c2-sub-w2.tar.gz` | scored | 0.975 | 0.5082 | `183128f85c1a…` | out-repack-c2-sub-w2/report.json |
 | `c2-sub-w3.tar.gz` | no-report | — | — | `7b5bcaf6fe7a…` | — |
 | `c2-sub-w5.tar.gz` | no-report | — | — | `e137f8b6822f…` | — |
-| `c2-sub-32.tar.gz` | scored | 0.975 | 0.0000 | `5cbe34b8f211…` | out-finalcheck-subbest/report.json |
+| `c2-sub-32.tar.gz` | no-report | — | — | `5cbe34b8f211…` | — |
+| `c2-sub-rr-r16.tar.gz` | scored | 1.000 | 0.5288 | `43aec5cf45ee…` | out-rr-r16-full/report.json |
+| `c2-sub-rr-r17.tar.gz` | scored | 1.000 | 0.0000 | `3ade8191787a…` | out-rr-r17/report.json |
+| `c2-sub-rr-r18.tar.gz` | scored | 0.975 | 0.0000 | `6a7412a7f085…` | out-rr-r18/report.json |
+| `c2-sub-rr-r19.tar.gz` | scored | 1.000 | 0.0000 | `d036c9a6d8a3…` | out-rr-r19/report.json |
 
 ## Curated verdicts (copy of runs/c2-best.md, campaign source of truth)
 
@@ -102,7 +106,7 @@ dreq[0]→arbiter pw→rk encoder→(start+rk add)→ch_len_zero mux→state_q, 
 **PPA plateau CONFIRMED: 26 scored tries; abar2 (0.5184) unbeaten; walls: dreq-arb-cone + paddr→prdata.**
 | c2-sub-e05/e06 | buffer-copy Explorer entries (access_bx, is_glob_bx) | v4 | 1.0 ×2 | 0.5058/0.5055 | — | — | netlist-distinct, safe names; Explorer queue |
 | c2-sub-w5 | abar2 + fsm_encoding one_hot | v4 | 1.0 | 0.5184 | — | e137f8b6822f… | IDENTICAL PPA to abar2 → attr ignored by flow synth → NOT distinct; do not submit (dup) |
-| c2-sub-32 | **BANK #1** (abar2; V/P are reroll samples) | v4 | 0.975–1.0 | 0.518–0.529 | 75.2–75.9 | 5cbe34b8f211… | CLEAN REPACK re-verified end-to-end 2026-11-13 (out-repack-c2-sub-32): all stages green in ~8 min; V=0.975 (survivor dma_arb.sv:51 = rotation-equivalent reroll sample), P=0.5288. NOTE: P is NOT run-deterministic (0.5184→0.5288 same netlist); bank md5 chain: d3d0381f (dirty) → be656d4d (clean repack) → 42dd5c5e (report.md refreshed: 58-test count + honest PPA section; rtl/tests/assertions byte-identical; re-scored green out-finalcheck-subbest) |
+| c2-sub-32 | **BANK #1** (abar2; V/P are reroll samples) | v4 | 0.975–1.0 | 0.518–0.529 | 75.2–75.9 | 43aec5cf45ee… | CLEAN REPACK re-verified end-to-end 2026-11-13 (out-repack-c2-sub-32): all stages green in ~8 min; V=0.975 (survivor dma_arb.sv:51 = rotation-equivalent reroll sample), P=0.5288. NOTE: P is NOT run-deterministic (0.5184→0.5288 same netlist); bank md5 chain: d3d0381f (dirty) → be656d4d (clean repack) → 42dd5c5e (report.md refreshed: 58-test count + honest PPA section; rtl/tests/assertions byte-identical; re-scored green out-finalcheck-subbest) |
 | w2c / v6 | gated gi load / flags-at-ctrl | — | — | — | — | — | DROPPED: v6 flag lags 1 cycle (real deviation, ctrl can't see len_q_next); w2c unprovable at equiv gate (2 cells, provably safe by hand but doctrine holds) |
 | c2-sub-36 | abar8 = abar2+gate-enc only | v4 | queued | queued | — | 039da874e0bf… | waveF isolation |
 | c2-sub-29 | a3 = a2+strobes slimmed | v4 | queued | queued | — | 02accd1a2f1f… | waveD |
