@@ -1,0 +1,14 @@
+id: design-3
+title: "Five-stage RV32IM processor core with machine-mode traps"
+top: rv_core
+clock_port: clk
+reset_port: rst_n
+reset_active: low
+reset_type: async
+clock_period_ns: 15.0
+hdl: systemverilog
+filelist: rtl/filelist.f      # paths inside are relative to the design root
+sim: verilator
+public_tests: tb/public       # cocotb, run with: make -C tb/public
+constraint: flow/constraint.sdc
+lines: 1203                 # lines of RTL in rtl/ (baseline)

@@ -10,7 +10,7 @@ Measured pitfalls from challenge-1 and challenge-2, encoded as rules. **Read bef
 - **Phase 4 — iterate (C: correctness risk)**: L4, L32, L35, L60, L64
 - **Phase 4 — iterate (P: PPA strategy)**: L5, L6, L9, L10, L11, L14, L15, L16, L17, L18, L19, L20, L21, L27, L28, L29, L30, L31, L32, L33, L34, L35, L48, L54, L55, L56, L60
 - **Phase 4 — iterate (V: mutation kill + seed hedging + Explorer)**: L7, L8, L22, L23, L42, L43, L44, L49, L51, L52, L53
-- **Flow running / tooling ops**: L50, L61, L62, L63
+- **Flow running / tooling ops**: L50, L61, L62, L63, L64
 
 ## Phase 1 — analysis
 
@@ -293,6 +293,8 @@ diff -ru challenge-N/baseline/rtl challenge-N/rtl > /tmp/final-audit.diff
 #   - Does this change internal signals hidden tests might inspect by name? (probe risk)
 #   - Does this match the spec's reset/encoding/handshake language strictly? (interpretation risk)
 ```
+
+**L65. The PPA "baseline side" is the RTL in the mounted DESIGN tree, not the released RTL — never PPA-measure with your edited tree mounted.** pgflow ppa.py runs baseline from `design.root` and caches it under `sha256_tree(root, exclude=hidden/worked-example/__pycache__/tb)` (path+content hash, util.py `sha256_tree`). Challenge-3 incident: mounting the edited design dir as `/design` made baseline==submission → every PPA run reported false P=0.50 parity (three ~25-min runs wasted before `details/baseline` revealed the identical numbers). Correct local harness: keep a pristine released tree (`rtl/` from your `baseline/rtl` copy) as the `/design` mount for all PPA runs, and seed the cache dir for it with a copy of the authoritative `baseline_ppa.json` if your reconstruction hash doesn't match (local-only cache seeding; verify `details/baseline.final` in the report matches the released baseline numbers before trusting any variant P).
 
 ## How to use this file
 

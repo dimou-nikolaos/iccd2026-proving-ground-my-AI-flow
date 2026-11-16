@@ -1,0 +1,10 @@
+rtl/rv_pkg.sv
+rtl/rv_regfile.sv
+rtl/rv_decode.sv
+rtl/rv_alu.sv
+rtl/rv_muldiv.sv
+rtl/rv_csr.sv
+rtl/rv_hazard.sv
+rtl/rv_fetch.sv
+rtl/rv_lsu.sv
+rtl/rv_core.sv
